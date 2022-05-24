@@ -12,13 +12,17 @@ build() {
 
 	log "Writing build instructions to temp file..."
 	TEMP_INSTRUCTIONS=$(mktemp /tmp/instructions.XXXXXX)
-	echo "$INSTRUCTIONS" > "$TEMP_INSTRUCTIONS"
+	echo -n "$INSTRUCTIONS" > "$TEMP_INSTRUCTIONS"
 
 	log "Listing the build instructions..."
 	cat "$TEMP_INSTRUCTIONS" 1>&2
 
 	log "Running build instructions..."
-	bash "$TEMP_INSTRUCTIONS"
+	(
+		# Set TARGET_DIR to absolute in case the instructions cd.
+		TARGET_DIR="$(pwd)/$TARGET_DIR" \
+			bash "$TEMP_INSTRUCTIONS"
+	)
 	
 	log "Checking binary artifact written."
 	[ -f "$BIN_PATH" ] || die "Binary product $BIN_PATH not found."
