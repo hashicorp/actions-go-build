@@ -24,12 +24,12 @@ inputs:
     description: Version of the product being built.
     required: true
 
-  arch:
-    description: Target product architecture.
-    required: true
-
   os:
     description: Target product operating system.
+    required: true
+
+  arch:
+    description: Target product architecture.
     required: true
 
   package_name:
