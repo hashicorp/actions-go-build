@@ -42,7 +42,7 @@ digest_path_abs() {
 	local SOURCE_NAME="$1"
 	local DIGEST_NAME="$2"
 	if [ "$SOURCE_NAME" = "primary" ]; then
-		ROOT_PATH="$PRIMARY_ROOT_PATH"
+		ROOT_PATH="$PRIMARY_ROOT_DIR"
 	elif [ "$SOURCE_NAME" = "verification" ]; then
 		ROOT_PATH="$LOCAL_VERIFICATION_ROOT_DIR"
 	else
