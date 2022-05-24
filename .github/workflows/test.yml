@@ -15,3 +15,5 @@ jobs:
           os: linux
           arch: amd64
           package_name: dummy-app
+          instructions: |
+            go build -o "$TARGET_DIR/$BIN_NAME" ./testdata/dummy-app
