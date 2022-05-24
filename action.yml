@@ -44,21 +44,20 @@ inputs:
     description: Name of the product zip file.
     required: false
 
+env:
+  TARGET_DIR: dist/${{ inputs.os }}/${{ inputs.arch }}/build
+  OS: ${{ inputs.os }}
+  ARCH: ${{ inputs.arch }}
+  GOOS: ${{ inputs.os }}
+  GOARCH: ${{ inputs.arch }}
+  PRODUCT_VERSION: ${{ inputs.product_version }}
+  BIN_NAME: ${{ inputs.bin_name }}
+  ZIP_NAME: ${{ inputs.zip_name }}
+  PACKAGE_NAME: ${{ inputs.package_name }}
+  INSTRUCTIONS: ${{ inputs.instructions }}
+
 runs:
   using: composite
-
-  env:
-    TARGET_DIR: dist/${{ inputs.os }}/${{ inputs.arch }}/build
-    OS: ${{ inputs.os }}
-    ARCH: ${{ inputs.arch }}
-    GOOS: ${{ inputs.os }}
-    GOARCH: ${{ inputs.arch }}
-    PRODUCT_VERSION: ${{ inputs.product_version }}
-    BIN_NAME: ${{ inputs.bin_name }}
-    ZIP_NAME: ${{ inputs.zip_name }}
-    PACKAGE_NAME: ${{ inputs.package_name }}
-    INSTRUCTIONS: ${{ inputs.instructions }}
-
   steps:
     - name: Calculate default values and paths.
       shell: bash
@@ -70,6 +69,8 @@ runs:
       shell: bash
       run: ./scripts/primary-build
     - name: Run Local Verification Build
+      shell: bash
       run: ./scripts/local-verification-build
     - name: Compare Build Outputs
+      shell: bash
       run: ./scripts/compare-digests
