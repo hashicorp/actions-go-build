@@ -7,6 +7,9 @@ build() {
 	log "Creating target directory '$TARGET_DIR'"
 	mkdir -p "$TARGET_DIR"
 
+	log "Creating zip directory '$ZIP_DIR'"
+	mkdir -p "$ZIP_DIR"
+
 	log "Creating metadata directory '$META_DIR'"
 	mkdir -p "$META_DIR"
 
