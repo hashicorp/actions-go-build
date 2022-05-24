@@ -29,3 +29,6 @@ store_env ZIP_PATH
 
 META_PATH="${TARGET_DIR}/../meta"
 store_env META_PATH
+
+PRODUCT_REVISION="$(git --rev-parse HEAD)"
+store_env PRODUCT_REVISION

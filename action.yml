@@ -54,7 +54,6 @@ runs:
     GOOS: ${{ inputs.os }}
     GOARCH: ${{ inputs.arch }}
     PRODUCT_VERSION: ${{ inputs.product_version }}
-    PRODUCT_REVISION: ${{ github.sha }}
     BIN_NAME: ${{ inputs.bin_name }}
     ZIP_NAME: ${{ inputs.zip_name }}
     PACKAGE_NAME: ${{ inputs.package_name }}
