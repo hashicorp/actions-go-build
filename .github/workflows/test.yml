@@ -6,6 +6,7 @@ jobs:
   action-test:
     runs-on: ubuntu-latest
     steps:
+      - uses: actions/checkout@v3
       - name: Invoke Action
         uses: ./ # This is the action defined in this repo.
         with:
