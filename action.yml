@@ -48,8 +48,6 @@ runs:
   using: composite
 
   env:
-    PRIMARY_ROOT_DIR: ${{ github.workspace }}
-    LOCAL_VERIFICATION_ROOT_DIR: ${{ github.workspace }}/../local-verification
     TARGET_DIR: dist/${{ inputs.os }}/${{ inputs.arch }}/build
     OS: ${{ inputs.os }}
     ARCH: ${{ inputs.arch }}

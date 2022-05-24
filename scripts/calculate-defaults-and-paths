@@ -8,6 +8,12 @@ store_env() {
 	echo "$1=${!1}" >> "$GITHUB_ENV"
 }
 
+PRIMARY_ROOT_DIR="$(pwd)"
+store_env PRIMARY_ROOT_DIR
+
+LOCAL_VERIFICATION_ROOT_DIR="$PRIMARY_ROOT_DIR/../local-verification"
+store_env LOCAL_VERIFICATION_ROOT_DIR
+
 # Default BIN_NAME is package name minus -enteprise suffix.
 [ -z "$BIN_NAME" ] && { BIN_NAME="${PACKAGE_NAME%-enterprise}"; }
 store_env BIN_NAME
