@@ -47,8 +47,18 @@ inputs:
 runs:
   using: composite
   steps:
-    - name: Calculate default values and paths.
+    - name: Calculate default values and paths; set env vars.
       shell: bash
+      env:
+        INSTRUCTIONS: ${{ inputs.instructions }}
+        OS: ${{ inputs.os }}
+        ARCH: ${{ inputs.arch }}
+        GOOS: ${{ inputs.os }}
+        GOARCH: ${{ inputs.arch }}
+        PRODUCT_VERSION: ${{ inputs.product_version }}
+        BIN_NAME: ${{ inputs.bin_name }}
+        ZIP_NAME: ${{ inputs.zip_name }}
+        PACKAGE_NAME: ${{ inputs.package_name }}
       run: ./scripts/calculate-defaults-and-paths
     - uses: actions/setup-go@v2
       with:

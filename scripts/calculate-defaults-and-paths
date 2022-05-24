@@ -5,8 +5,29 @@
 source scripts/standard-header.bash
 
 store_env() {
-	echo "$1=${!1}" >> "$GITHUB_ENV"
+  {
+    echo "$1<<EOF"
+    echo "${!1}"
+    echo "EOF"
+  } >> "$GITHUB_ENV"
+  echo "export $1='${!1}'" >> "$GITHUB_ENV.export"
+  echo "--> Set $1 to '${!1}'"
 }
+
+# Pass through env vars from required inputs.
+store_env INSTRUCTIONS
+store_env OS
+store_env ARCH
+store_env PRODUCT_VERSION
+
+GOOS="$OS"
+store_env GOOS
+
+GOARCH="$ARCH"
+store_env GOARCH
+
+TARGET_DIR="dist/$OS/$ARCH/build"
+store_env TARGET_DIR
 
 PRIMARY_ROOT_DIR="$(pwd)"
 store_env PRIMARY_ROOT_DIR
