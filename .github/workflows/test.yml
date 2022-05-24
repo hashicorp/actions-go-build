@@ -4,6 +4,7 @@ on: [push]
 
 jobs:
   action-test:
+    runs-on: ubuntu-latest
     steps:
       - name: Invoke Action
         uses: ./ # This is the action defined in this repo.
