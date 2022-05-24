@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
 
 source scripts/standard-header.bash
+source scripts/digest-tools.bash
 
 PASSED=true
 
