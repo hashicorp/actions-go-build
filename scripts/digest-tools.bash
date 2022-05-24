@@ -11,9 +11,9 @@ write_digest() {
 
 read_digest() {
 	local SOURCE_NAME="$1"
-	local ROOT_PATH="$1"
 	local DIGEST_NAME="$2"
-	local DIGEST_PATH="$ROOT_PATH/$META_DIR/${DIGEST_NAME}_digest"
+	local DIGEST_PATH
+	DIGEST_PATH="$(digest_path_abs "$SOURCE_NAME" "$DIGEST_NAME")"
 	local DIGEST
 	DIGEST="$(cat "$DIGEST_PATH")" || {
 		die "Failed to read digest from '$DIGEST_PATH'"
