@@ -1,5 +1,7 @@
 name: Test
 
+on: [push]
+
 jobs:
   action-test:
     steps:
