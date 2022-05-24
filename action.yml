@@ -46,18 +46,6 @@ inputs:
 
 runs:
   using: composite
-  env:
-    TARGET_DIR: dist/${{ inputs.os }}/${{ inputs.arch }}/build
-    OS: ${{ inputs.os }}
-    ARCH: ${{ inputs.arch }}
-    GOOS: ${{ inputs.os }}
-    GOARCH: ${{ inputs.arch }}
-    PRODUCT_VERSION: ${{ inputs.product_version }}
-    BIN_NAME: ${{ inputs.bin_name }}
-    ZIP_NAME: ${{ inputs.zip_name }}
-    PACKAGE_NAME: ${{ inputs.package_name }}
-    INSTRUCTIONS: |
-      ${{ inputs.instructions }}
   steps:
     - name: Calculate default values and paths.
       shell: bash
