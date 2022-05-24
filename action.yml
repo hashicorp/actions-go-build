@@ -56,7 +56,8 @@ runs:
     BIN_NAME: ${{ inputs.bin_name }}
     ZIP_NAME: ${{ inputs.zip_name }}
     PACKAGE_NAME: ${{ inputs.package_name }}
-    INSTRUCTIONS: ${{ inputs.instructions }}
+    INSTRUCTIONS: |
+      ${{ inputs.instructions }}
   steps:
     - name: Calculate default values and paths.
       shell: bash
