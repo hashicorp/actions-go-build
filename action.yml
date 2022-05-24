@@ -71,7 +71,8 @@ runs:
         go-version: ${{ inputs.go_version }}
     - name: Run Primary Build
       shell: bash
-      run: ./scripts/build
+      run: ./scripts/primary-build
     - name: Run Local Verification Build
       run: ./scripts/local-verification-build
-    - name:
+    - name: Compare Build Outputs
+      run: ./scripts/compare-digests
