@@ -1,0 +1,13 @@
+name: Test
+
+jobs:
+  action-test:
+    steps:
+      - name: Invoke Action
+        uses: ./ # This is the action defined in this repo.
+        with:
+          go_version: 1.17
+          product_version: 1.0.0
+          os: linux
+          arch: amd64
+          package_name: dummy-app
