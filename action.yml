@@ -53,22 +53,20 @@ runs:
         INSTRUCTIONS: ${{ inputs.instructions }}
         OS: ${{ inputs.os }}
         ARCH: ${{ inputs.arch }}
-        GOOS: ${{ inputs.os }}
-        GOARCH: ${{ inputs.arch }}
         PRODUCT_VERSION: ${{ inputs.product_version }}
         BIN_NAME: ${{ inputs.bin_name }}
         ZIP_NAME: ${{ inputs.zip_name }}
         PACKAGE_NAME: ${{ inputs.package_name }}
-      run: ./scripts/calculate-defaults-and-paths
+      run: ${{ github.action_path }}/scripts/calculate-defaults-and-paths
     - uses: actions/setup-go@v2
       with:
         go-version: ${{ inputs.go_version }}
     - name: Run Primary Build
       shell: bash
-      run: ./scripts/primary-build
+      run: ${{ github.action_path }}/scripts/primary-build
     - name: Run Local Verification Build
       shell: bash
-      run: ./scripts/local-verification-build
+      run: ${{ github.action_path }}/scripts/local-verification-build
     - name: Compare Build Outputs
       shell: bash
-      run: ./scripts/compare-digests
+      run: ${{ github.action_path }}/scripts/compare-digests
