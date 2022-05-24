@@ -15,7 +15,7 @@ build() {
 	echo -n "$INSTRUCTIONS" > "$TEMP_INSTRUCTIONS"
 
 	log "Listing the build instructions..."
-	cat "$TEMP_INSTRUCTIONS" 1>&2
+	{ cat "$TEMP_INSTRUCTIONS"; echo; } 1>&2
 
 	log "Running build instructions..."
 	(
