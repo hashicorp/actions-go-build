@@ -3,7 +3,7 @@ write_digest() {
 	local FILE="$2"
 	local DIGEST_PATH
 	DIGEST_PATH="$(digest_path_rel "$NAME")"
-	sha256sum "$FILE" | cut -d' ' > "$DIGEST_PATH" || {
+	sha256sum "$FILE" | cut -d' ' -f1 > "$DIGEST_PATH" || {
 		die "Failed to write digest of '$FILE' to '$DIGEST_PATH'"
 	}
 	log "Wrote digest of '$FILE' to '$DIGEST_PATH': $(cat "$DIGEST_PATH")"
