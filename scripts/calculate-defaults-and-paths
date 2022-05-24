@@ -1,0 +1,25 @@
+#!/usr/bin/env bash
+
+# shellcheck disable=SC2034 # Don't check unused vars for the sake of the store_env function.
+
+source scripts/standard-header.bash
+
+store_env() {
+	echo "$1=${!1}" >> "$GITHUB_ENV"
+}
+
+# Default BIN_NAME is package name minus -enteprise suffix.
+[ -z "$BIN_NAME" ] && { BIN_NAME="${PACKAGE_NAME%-enterprise}"; }
+store_env BIN_NAME
+
+[ -z "$ZIP_NAME" ] && { ZIP_NAME="${PACKAGE_NAME}_${PRODUCT_VERSION}_${OS}_${ARCH}.zip"; }
+store_env ZIP_NAME
+
+BIN_PATH="${TARGET_DIR}/${BIN_NAME}"
+store_env BIN_PATH
+
+ZIP_PATH="${TARGET_DIR}/../dist"
+store_env ZIP_PATH
+
+META_PATH="${TARGET_DIR}/../meta"
+store_env META_PATH

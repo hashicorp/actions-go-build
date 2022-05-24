@@ -1,0 +1,10 @@
+#!/usr/bin/env bash
+
+source scripts/standard-header.bash
+
+PASSED=true
+
+compare_digest "bin" || PASSED=false
+compare_digest "zip" || PASSED=false
+
+$PASSED

@@ -1,0 +1,7 @@
+#!/usr/bin/env bash
+
+source scripts/builder-header.bash
+
+# We assume this script is started in the repo root.
+
+build

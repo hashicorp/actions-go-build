@@ -1,0 +1,9 @@
+#!/usr/bin/env bash
+
+source scripts/builder-header.bash
+
+# We assume this script is started in the repo root.
+
+make_and_enter_isolated_build_env "$LOCAL_VERIFICATION_ROOT_DIR"
+
+build
