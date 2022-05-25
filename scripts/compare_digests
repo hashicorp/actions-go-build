@@ -42,7 +42,7 @@ build_name() {
 }
 
 if $PASSED; then
-	write_summary "### $(emoji_for_passed "$PASSED") Build of $(build name) correctly reproduced in local environment."
+	write_summary "### $(emoji_for_passed "$PASSED") Build of $(build_name) correctly reproduced in local environment."
 else
 	write_summary "### $(emoji_for_passed "$PASSED") Build of $(build_name) did not correctly reproduce in local environment"
 fi
