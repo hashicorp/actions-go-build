@@ -66,7 +66,9 @@ runs:
       run: ${{ github.action_path }}/scripts/primary_build
     - name: Run Local Verification Build
       shell: bash
-      run: ${{ github.action_path }}/scripts/local_verification_build
+      # Sleep 2 seconds to make sure we get different mtimes.
+      # For fast builds this is necessary.
+      run: sleep 2; ${{ github.action_path }}/scripts/local_verification_build
     - name: Compare Build Outputs
       shell: bash
       run: ${{ github.action_path }}/scripts/compare_digests
