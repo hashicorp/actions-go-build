@@ -54,6 +54,23 @@ assert_exported_in_github_env() {
 	assert_exported_in_github_env PRODUCT_VERSION "1.2.3"
 }
 
+@test "non-required vars handled correctly" {
+	# Setup.
+	set_required_env_vars
+
+	export BIN_NAME="somethingelse"
+	export ZIP_NAME="somethingelse.zip"
+
+	# Run the script under test.
+	./scripts/digest_inputs
+
+	# Assert non-required env vars handled correctly.
+	assert_exported_in_github_env BIN_NAME "somethingelse"
+	assert_exported_in_github_env ZIP_NAME "somethingelse.zip"
+	assert_exported_in_github_env ZIP_PATH "dist/darwin/amd64/dist/somethingelse.zip"
+	assert_exported_in_github_env BIN_PATH "dist/darwin/amd64/build/somethingelse"
+}
+
 @test "default vars calculated correctly - non-enterprise" {
 	# Setup.
 	set_required_env_vars
@@ -97,21 +114,4 @@ assert_exported_in_github_env() {
 	assert_exported_in_github_env PRODUCT_REVISION "$(git rev-parse HEAD)"
 	assert_exported_in_github_env BIN_PATH "dist/darwin/amd64/build/blargle"
 	assert_exported_in_github_env ZIP_PATH "dist/darwin/amd64/dist/blargle-enterprise_1.2.3_darwin_amd64.zip"
-}
-
-@test "non-required vars handled correctly" {
-	# Setup.
-	set_required_env_vars
-
-	export BIN_NAME="somethingelse"
-	export ZIP_NAME="somethingelse.zip"
-
-	# Run the script under test.
-	./scripts/digest_inputs
-
-	# Assert non-required env vars handled correctly.
-	assert_exported_in_github_env BIN_NAME "somethingelse"
-	assert_exported_in_github_env ZIP_NAME "somethingelse.zip"
-	assert_exported_in_github_env ZIP_PATH "dist/darwin/amd64/dist/somethingelse.zip"
-	assert_exported_in_github_env BIN_PATH "dist/darwin/amd64/build/somethingelse"
 }
