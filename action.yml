@@ -57,7 +57,7 @@ runs:
         BIN_NAME: ${{ inputs.bin_name }}
         ZIP_NAME: ${{ inputs.zip_name }}
         PACKAGE_NAME: ${{ inputs.package_name }}
-      run: ${{ github.action_path }}/scripts/calculate-defaults-and-paths
+      run: ${{ github.action_path }}/scripts/digest_inputs
     - uses: actions/setup-go@v2
       with:
         go-version: ${{ inputs.go_version }}
