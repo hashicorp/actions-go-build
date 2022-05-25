@@ -30,7 +30,6 @@ print_results() {
 	fi
 	local PRIMARY="${RESULTS[0]}"
 	local VERIFICATION="${RESULTS[1]:-$PRIMARY}"
-	write_summary "$(emoji_for_passed "$PASSED") $NAME SHA256 sums do not match:"
 	write_summary "|          $NAME           |     SHA256    |"
 	write_summary "|--------------------------|---------------|"
 	write_summary "| Primary build            | $PRIMARY      |"
