@@ -2,6 +2,8 @@
 
 set -Eeuo pipefail
 
+load assertions.bats
+
 setup() {
 	source scripts/builder_header.bash
 	cp -r testdata/dummy-app/* "$BATS_TEST_TMPDIR"
@@ -22,21 +24,6 @@ setup() {
 	export ZIP_NAME="blargles.zip"
 	export ZIP_PATH="$ZIP_DIR/$ZIP_NAME"
 	export META_DIR="meta"
-}
-
-assert_file_exists() {
-	[ -f "$1" ] || {
-		echo "File '$1' does not exist, but it should."
-		return 1
-	}
-}
-
-assert_executable_file_exists() {
-	assert_file_exists "$1"
-	[ -x "$1" ] || {
-		echo "File '$1' is not executable, but it should."
-		return 1
-	}
 }
 
 @test "working build instructions are executed correctly" {

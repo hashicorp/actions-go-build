@@ -1,3 +1,5 @@
+source scripts/standard_header.bash
+
 write_digest() {
 	local NAME="$1"
 	local FILE="$2"
@@ -16,10 +18,12 @@ read_digest() {
 	DIGEST_PATH="$(digest_path_abs "$SOURCE_NAME" "$DIGEST_NAME")"
 	local DIGEST
 	DIGEST="$(cat "$DIGEST_PATH")" || {
-		die "Failed to read digest from '$DIGEST_PATH'"
+		log "ERROR: Failed to read digest from '$DIGEST_PATH'"
+		return 1
 	}
 	[ -n "$DIGEST" ] || {
-		die "Empty digest read from '$DIGEST_PATH'"
+		log "ERROR: Empty digest read from '$DIGEST_PATH'"
+		return 1
 	}
 	log "Read $SOURCE_NAME $DIGEST_NAME digest: $DIGEST"
 	echo "$DIGEST"
@@ -54,12 +58,12 @@ digest_path_abs() {
 compare_digest() {
 	local DIGEST_NAME="$1"
 
-	PRIMARY_DIGEST="$(     read_digest primary      "$DIGEST_NAME")"
-	VERIFICATION_DIGEST="$(read_digest verification "$DIGEST_NAME")"
+	PRIMARY_DIGEST="$(     read_digest primary      "$DIGEST_NAME")" || return 1
+	VERIFICATION_DIGEST="$(read_digest verification "$DIGEST_NAME")" || return 1
 
 	if [ "$PRIMARY_DIGEST" != "$VERIFICATION_DIGEST" ]; then
 		log "FAIL: Digests not equal for $DIGEST_NAME; Primary: $PRIMARY_DIGEST; Verification: $VERIFICATION_DIGEST"
 		return 1
 	fi
-	log "OK: Digests for $DIGEST_NAME are equal: $PRIMARY_BIN_DIGEST"
+	log "OK: Digests for $DIGEST_NAME are equal: $PRIMARY_DIGEST"
 }
