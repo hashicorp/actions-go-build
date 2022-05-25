@@ -37,11 +37,17 @@ print_results() {
 	write_summary "-----"
 }
 
+build_name() {
+	echo "$PACKAGE_NAME v$PRODUCT_VERSION $OS/$ARCH"
+}
+
 if $PASSED; then
-	write_summary "### $(emoji_for_passed "$PASSED") Build correctly reproduced in local environment."
+	write_summary "### $(emoji_for_passed "$PASSED") Build of $(build name) correctly reproduced in local environment."
 else
-	write_summary "### $(emoji_for_passed "$PASSED") Build did not correctly reproduce in local environment"
+	write_summary "### $(emoji_for_passed "$PASSED") Build of $(build_name) did not correctly reproduce in local environment"
 fi
+
+write_summary "-----"
 
 print_results "Binary" $BIN_PASSED "${BIN_RESULTS[@]}"
 print_results "Zip"    $ZIP_PASSED "${ZIP_RESULTS[@]}"
