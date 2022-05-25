@@ -40,7 +40,7 @@ assert_exported_in_github_env() {
 	set_required_env_vars
 
 	# Run the script under test.
-	./scripts/digest-inputs
+	./scripts/digest_inputs
 
 	# Assert required vars passed through unchanged.
 	assert_exported_in_github_env PACKAGE_NAME    "blargle"
@@ -59,7 +59,7 @@ assert_exported_in_github_env() {
 	set_required_env_vars
 
 	# Run the script under test.
-	./scripts/digest-inputs
+	./scripts/digest_inputs
 
 	# Assert default vars generated correctly.
 	assert_exported_in_github_env GOOS "darwin"
@@ -82,7 +82,7 @@ assert_exported_in_github_env() {
 	export PACKAGE_NAME="blargle-enterprise"
 
 	# Run the script under test.
-	./scripts/digest-inputs
+	./scripts/digest_inputs
 
 	# Assert default vars generated correctly.
 	assert_exported_in_github_env GOOS "darwin"
@@ -107,7 +107,7 @@ assert_exported_in_github_env() {
 	export ZIP_NAME="somethingelse.zip"
 
 	# Run the script under test.
-	./scripts/digest-inputs
+	./scripts/digest_inputs
 
 	# Assert non-required env vars handled correctly.
 	assert_exported_in_github_env BIN_NAME "somethingelse"
