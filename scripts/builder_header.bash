@@ -1,7 +1,10 @@
 source scripts/standard_header.bash
 source scripts/digest_tools.bash
 
-build() {
+# build performs the build inside a subshell as this allows us
+# to exit early with 'die' without killing the caller as well.
+build() {(
+	set -euo pipefail
 	log "Starting build process, rooted at $PWD"
 
 	log "Creating target directory '$TARGET_DIR'"
@@ -25,7 +28,9 @@ build() {
 		# Set TARGET_DIR to absolute in case the instructions cd.
 		TARGET_DIR="$(pwd)/$TARGET_DIR" \
 			bash "$TEMP_INSTRUCTIONS"
-	)
+	) || {
+		die "Build failed."
+	}
 	
 	log "Checking binary artifact written."
 	[ -f "$BIN_PATH" ] || die "Binary product $BIN_PATH not found."
@@ -37,12 +42,13 @@ build() {
 	zip -r -j "$ZIP_PATH" "$TARGET_DIR"
 
 	write_digest zip "$ZIP_PATH"
-}
+)}
 
 make_and_enter_isolated_build_env() {
 	local DIR="$1"
 	if [[ "$DIR" != "/"* ]]; then
-		die "Directory must be absolute; got '$DIR'"
+		log "Directory must be absolute; got '$DIR'"
+		return 1
 	fi
 	mkdir -p "$DIR"
 	cp -r . "$DIR"
