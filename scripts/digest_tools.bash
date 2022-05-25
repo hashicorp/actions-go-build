@@ -55,6 +55,9 @@ digest_path_abs() {
 	echo "$ROOT_PATH/$(digest_path_rel "$DIGEST_NAME")"
 }
 
+# compare_digest fails if the two digests are different.
+# If it fails, it writes both digests to stdout first primary then verification.
+# If it succeeds, it writes just the one digest to stdout.
 compare_digest() {
 	local DIGEST_NAME="$1"
 
@@ -63,7 +66,10 @@ compare_digest() {
 
 	if [ "$PRIMARY_DIGEST" != "$VERIFICATION_DIGEST" ]; then
 		log "FAIL: Digests not equal for $DIGEST_NAME; Primary: $PRIMARY_DIGEST; Verification: $VERIFICATION_DIGEST"
+		echo "$PRIMARY_DIGEST"
+		echo "$VERIFICATION_DIGEST"
 		return 1
 	fi
 	log "OK: Digests for $DIGEST_NAME are equal: $PRIMARY_DIGEST"
+	echo "$PRIMARY_DIGEST"
 }
