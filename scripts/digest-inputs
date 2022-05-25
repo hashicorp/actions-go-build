@@ -4,14 +4,14 @@
 
 source scripts/standard-header.bash
 
-store_env() {
-  {
-    echo "$1<<EOF"
-    echo "${!1}"
-    echo "EOF"
-  } >> "$GITHUB_ENV"
-  echo "export $1='${!1}'" >> "$GITHUB_ENV.export"
-  echo "--> Set $1 to '${!1}'"
+store_env() { local NAME="$1"
+	{
+		echo "$NAME<<EOF"
+		echo "${!NAME}"
+		echo "EOF"
+	} >> "$GITHUB_ENV"
+	echo "export $NAME='${!NAME}'" >> "$GITHUB_ENV.export"
+	echo "--> Set $NAME to '${!NAME}'"
 }
 
 # Pass through env vars from required inputs.
@@ -40,14 +40,14 @@ store_env META_DIR
 PRIMARY_ROOT_DIR="$(pwd)"
 store_env PRIMARY_ROOT_DIR
 
-LOCAL_VERIFICATION_ROOT_DIR="$PRIMARY_ROOT_DIR/../local-verification"
+LOCAL_VERIFICATION_ROOT_DIR="$PRIMARY_ROOT_DIR/../local_verification"
 store_env LOCAL_VERIFICATION_ROOT_DIR
 
 # Default BIN_NAME is package name minus -enteprise suffix.
-[ -z "$BIN_NAME" ] && { BIN_NAME="${PACKAGE_NAME%-enterprise}"; }
-store_env BIN_NAME
+[ -z "${BIN_NAME:-}" ] && { BIN_NAME="${PACKAGE_NAME%-enterprise}"; }
+store_env BIN_NAME "${PACKAGE_NAME%-enterprise}"
 
-[ -z "$ZIP_NAME" ] && { ZIP_NAME="${PACKAGE_NAME}_${PRODUCT_VERSION}_${OS}_${ARCH}.zip"; }
+[ -z "${ZIP_NAME:-}" ] && { ZIP_NAME="${PACKAGE_NAME}_${PRODUCT_VERSION}_${OS}_${ARCH}.zip"; }
 store_env ZIP_NAME
 
 PRODUCT_REVISION="$(git rev-parse HEAD)"
