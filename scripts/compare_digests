@@ -19,12 +19,22 @@ write_summary() { echo "$*" >> "${GITHUB_STEP_SUMMARY:-github-step-summary.md}";
 
 emoji_for_passed() { "$1" && echo ":white_check_mark:" || echo ":x:"; }
 
-BIN_HEADER="Binary $(emoji_for_passed $BIN_PASSED)"
-ZIP_HEADER="Zip $(emoji_for_passed $ZIP_PASSED)"
+print_results() {
+	local NAME="$1"; shift
+	local PASSED="$1"; shift
+	local RESULTS=("$@")
+	if $PASSED; then
+		write_summary "$(emoji_for_passed "$PASSED") $NAME SHA256 sums match: ${RESULTS[0]}"
+	else
+		write_summary "$(emoji_for_passed "$PASSED") $NAME SHA256 sums do not match:"
+		write_summary "|                          |      SHA256     |"
+		write_summary "|--------------------------|-----------------|"
+		write_summary "| Primary build            | ${RESULTS[0]}   |"
+		write_summary "| Local verification build | ${RESULTS[1]:-} |"
+	fi
+}
 
-write_summary "### Local Verification Build $(emoji_for_passed $PASSED)"
-write_summary ""
-write_summary "|     $BIN_HEADER     |     $ZIP_HEADER     |"
-write_summary "|---------------------|---------------------|"
-write_summary "| ${BIN_RESULTS[0]}   | ${ZIP_RESULTS[0]}   |"
-write_summary "| ${BIN_RESULTS[1]:-} | ${ZIP_RESULTS[1]:-} |"
+write_summary "### Local Verification Build $(emoji_for_passed "$PASSED")"
+
+print_results "Binary" $BIN_PASSED "${BIN_RESULTS[@]}"
+print_results "Zip"    $ZIP_PASSED "${ZIP_RESULTS[@]}"
