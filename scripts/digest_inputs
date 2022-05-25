@@ -19,6 +19,7 @@ store_env INSTRUCTIONS
 store_env OS
 store_env ARCH
 store_env PRODUCT_VERSION
+store_env PACKAGE_NAME
 
 GOOS="$OS"
 store_env GOOS
