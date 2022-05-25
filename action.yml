@@ -63,10 +63,10 @@ runs:
         go-version: ${{ inputs.go_version }}
     - name: Run Primary Build
       shell: bash
-      run: ${{ github.action_path }}/scripts/primary-build
+      run: ${{ github.action_path }}/scripts/primary_build
     - name: Run Local Verification Build
       shell: bash
-      run: ${{ github.action_path }}/scripts/local-verification-build
+      run: ${{ github.action_path }}/scripts/local_verification_build
     - name: Compare Build Outputs
       shell: bash
-      run: ${{ github.action_path }}/scripts/compare-digests
+      run: ${{ github.action_path }}/scripts/compare_digests

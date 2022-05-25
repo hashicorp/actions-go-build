@@ -2,7 +2,7 @@
 
 # shellcheck disable=SC2034 # Don't check unused vars for the sake of the store_env function.
 
-source scripts/standard-header.bash
+source scripts/standard_header.bash
 
 store_env() { local NAME="$1"
 	{

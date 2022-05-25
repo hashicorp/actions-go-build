@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-source scripts/builder-header.bash
+source scripts/builder_header.bash
 
 # We assume this script is started in the repo root.
 

@@ -1,5 +1,5 @@
-source scripts/standard-header.bash
-source scripts/digest-tools.bash
+source scripts/standard_header.bash
+source scripts/digest_tools.bash
 
 build() {
 	log "Starting build process, rooted at $PWD"
