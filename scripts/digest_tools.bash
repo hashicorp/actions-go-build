@@ -36,7 +36,7 @@ digest_names() {
 
 digest_path_rel() {
 	local DIGEST_NAME="$1"
-	digest_names | grep -q "^$DIGEST_NAME\$" || {
+	digest_names | grep -Eq "^$DIGEST_NAME\$" || {
 		die "Digest name '$DIGEST_NAME' not recognised; must be one of: $(digest_names | xargs)"
 	}
 	echo "$META_DIR/${DIGEST_NAME}_digest"	
