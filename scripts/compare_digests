@@ -24,17 +24,25 @@ print_results() {
 	local PASSED="$1"; shift
 	local RESULTS=("$@")
 	if $PASSED; then
-		write_summary "$(emoji_for_passed "$PASSED") $NAME SHA256 sums match: ${RESULTS[0]}"
+		write_summary "$(emoji_for_passed "$PASSED") $NAME SHA256 sums match."
 	else
-		write_summary "$(emoji_for_passed "$PASSED") $NAME SHA256 sums do not match:"
-		write_summary "|                          |      SHA256     |"
-		write_summary "|--------------------------|-----------------|"
-		write_summary "| Primary build            | ${RESULTS[0]}   |"
-		write_summary "| Local verification build | ${RESULTS[1]:-} |"
+		write_summary "$(emoji_for_passed "$PASSED") $NAME SHA256 sums do not match."
 	fi
+	local PRIMARY="${RESULTS[0]}"
+	local VERIFICATION="${RESULTS[1]:-$PRIMARY}"
+	write_summary "$(emoji_for_passed "$PASSED") $NAME SHA256 sums do not match:"
+	write_summary "|          $NAME           |     SHA256    |"
+	write_summary "|--------------------------|---------------|"
+	write_summary "| Primary build            | $PRIMARY      |"
+	write_summary "| Local verification build | $VERIFICATION |"
+	write_summary "-----"
 }
 
-write_summary "### Local Verification Build $(emoji_for_passed "$PASSED")"
+if $PASSED; then
+	write_summary "### $(emoji_for_passed "$PASSED") Build correctly reproduced in local environment."
+else
+	write_summary "### $(emoji_for_passed "$PASSED") Build did not correctly reproduce in local environment"
+fi
 
 print_results "Binary" $BIN_PASSED "${BIN_RESULTS[@]}"
 print_results "Zip"    $ZIP_PASSED "${ZIP_RESULTS[@]}"

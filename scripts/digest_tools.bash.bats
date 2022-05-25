@@ -58,27 +58,73 @@ enter_verification_root() {
 	}
 }
 
-@test "compare digest succeeds when digests the same" {
+
+@test "compare bin digest fails when digests don't exist" {
+	if compare_digest bin; then
+		echo "compare_digest succeeded but it should have failed"
+		return 1
+	fi
+}
+
+@test "compare zip digest fails when digests don't exist" {
+	if compare_digest zip; then
+		echo "compare_digest succeeded but it should have failed"
+		return 1
+	fi
+}
+
+@test "compare bin digest succeeds when digests the same" {
 	echo "thesame" > "$PRIMARY_ROOT_DIR/meta/bin_digest"
 	echo "thesame" > "$LOCAL_VERIFICATION_ROOT_DIR/meta/bin_digest"
-	compare_digest bin || {
+
+	GOT="$(compare_digest bin)" || {
 		echo "compare_digest failed but it should have succeeded"
 		return 1
 	}
-}
+	
+	WANT="thesame"
 
-@test "compare digest fails when digests dont't exist" {
-	if compare_digest bin; then
-		echo "compare_digest succeeded but it should have failed"
+	[ "$GOT" = "$WANT" ] || {
+		echo "Got digest '$GOT'; want '$WANT'"
 		return 1
-	fi
+	}
+
 }
 
-@test "compare digest fails when digests are different" {
+@test "compare zip digest succeeds when digests the same" {
+	echo "thesame" > "$PRIMARY_ROOT_DIR/meta/zip_digest"
+	echo "thesame" > "$LOCAL_VERIFICATION_ROOT_DIR/meta/zip_digest"
+
+	GOT="$(compare_digest zip)" || {
+		echo "compare_digest failed but it should have succeeded"
+		return 1
+	}
+	
+	WANT="thesame"
+
+	[ "$GOT" = "$WANT" ] || {
+		echo "Got digest '$GOT'; want '$WANT'"
+		return 1
+	}
+
+}
+
+@test "compare bin digest fails when digests are different" {
 	echo "thesame" > "$PRIMARY_ROOT_DIR/meta/bin_digest"
 	echo "different" > "$LOCAL_VERIFICATION_ROOT_DIR/meta/bin_digest"
-	if compare_digest bin; then
-		echo "compare_digest succeeded but it should have failed"
-		return 1
-	fi
+
+	WANT="$(printf "thesame\ndifferent")"
+
+	assert_failure_with_output "$WANT" compare_digest bin
+
+}
+
+@test "compare zip digest fails when digests are different" {
+	echo "thesame" > "$PRIMARY_ROOT_DIR/meta/zip_digest"
+	echo "different" > "$LOCAL_VERIFICATION_ROOT_DIR/meta/zip_digest"
+
+	WANT="$(printf "thesame\ndifferent")"
+
+	assert_failure_with_output "$WANT" compare_digest zip
+
 }

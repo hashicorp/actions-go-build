@@ -28,3 +28,41 @@ assert_file_has_contents() {
 		return 1
 	}
 }
+
+dump_got_want() {
+	echo "Got output:"
+	echo "$1"
+	echo "Want output:"
+	echo "$2"
+}
+
+assert_success_with_output() {
+	local WANT="$1"
+	shift
+	if ! GOT="$("$@")"; then
+		echo "Command failed but was expected to pass: $*"
+		return 1
+	fi
+	[ "$GOT" = "$WANT" ] || {
+		echo "Command succeeded but gave the wrong output: $*"
+		echo "Got output:"
+		echo "$GOT"
+		echo "Want output:"
+		echo "$WANT"
+		return 1
+	}
+}
+
+assert_failure_with_output() {
+	local WANT="$1"
+	shift
+	if GOT="$("$@")"; then
+		echo "Command succeeded but was expected to fail: $*"
+		return 1
+	fi
+	[ "$GOT" = "$WANT" ] || {
+		echo "Command failed correctly, but gave the wrong output: $*"
+		dump_got_want "$GOT" "$WANT"
+		return 1
+	}
+}
