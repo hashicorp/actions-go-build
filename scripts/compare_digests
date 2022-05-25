@@ -20,13 +20,11 @@ write_summary() { echo "$*" >> "${GITHUB_STEP_SUMMARY:-github-step-summary.md}";
 emoji_for_passed() { "$1" && echo ":white_check_mark:" || echo ":x:"; }
 
 BIN_HEADER="Binary $(emoji_for_passed $BIN_PASSED)"
-ZIP_HEADER="Binary $(emoji_for_passed $ZIP_PASSED)"
-
-
+ZIP_HEADER="Zip $(emoji_for_passed $ZIP_PASSED)"
 
 write_summary "### Local Verification Build $(emoji_for_passed $PASSED)"
 write_summary ""
-write_summary "|    $BIN_HEADER    |    $ZIP_HEADER    |"
-write_summary "|-------------------|----------- -------|"
-write_summary "| ${BIN_RESULTS[0]} | ${ZIP_RESULTS[0]} |"
-write_summary "| ${BIN_RESULTS[1]} | ${ZIP_RESULTS[1]} |"
+write_summary "|     $BIN_HEADER     |     $ZIP_HEADER     |"
+write_summary "|---------------------|---------------------|"
+write_summary "| ${BIN_RESULTS[0]}   | ${ZIP_RESULTS[0]}   |"
+write_summary "| ${BIN_RESULTS[1]:-} | ${ZIP_RESULTS[1]:-} |"
