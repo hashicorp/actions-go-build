@@ -57,8 +57,8 @@ set_required_env_vars() {
 	# Assert non-required env vars handled correctly.
 	assert_exported_in_github_env BIN_NAME "somethingelse"
 	assert_exported_in_github_env ZIP_NAME "somethingelse.zip"
-	assert_exported_in_github_env ZIP_PATH "dist/somethingelse.zip"
-	assert_exported_in_github_env BIN_PATH "dist/darwin/amd64/somethingelse"
+	assert_exported_in_github_env ZIP_PATH "out/somethingelse.zip"
+	assert_exported_in_github_env BIN_PATH "dist/somethingelse"
 }
 
 @test "default vars calculated correctly - non-enterprise" {
@@ -71,16 +71,16 @@ set_required_env_vars() {
 	# Assert default vars generated correctly.
 	assert_exported_in_github_env GOOS                    "darwin"
 	assert_exported_in_github_env GOARCH                  "amd64"
-	assert_exported_in_github_env TARGET_DIR              "dist/darwin/amd64"
-	assert_exported_in_github_env ZIP_DIR                 "dist"
-	assert_exported_in_github_env META_DIR                "dist/meta/darwin/amd64"
+	assert_exported_in_github_env TARGET_DIR              "dist"
+	assert_exported_in_github_env ZIP_DIR                 "out"
+	assert_exported_in_github_env META_DIR                ".meta"
 	assert_exported_in_github_env PRIMARY_BUILD_ROOT      "$(pwd)"
 	assert_exported_in_github_env VERIFICATION_BUILD_ROOT "$(dirname "$PWD")/verification"
 	assert_exported_in_github_env BIN_NAME                "blargle"
 	assert_exported_in_github_env ZIP_NAME                "blargle_1.2.3_darwin_amd64.zip"
 	assert_exported_in_github_env PRODUCT_REVISION        "$(git rev-parse HEAD)"
-	assert_exported_in_github_env BIN_PATH                "dist/darwin/amd64/blargle"
-	assert_exported_in_github_env ZIP_PATH                "dist/blargle_1.2.3_darwin_amd64.zip"
+	assert_exported_in_github_env BIN_PATH                "dist/blargle"
+	assert_exported_in_github_env ZIP_PATH                "out/blargle_1.2.3_darwin_amd64.zip"
 
 	assert_nonempty_in_github_env PRODUCT_REVISION_TIME
 	assert_nonempty_in_github_env PRODUCT_REVISION_TIME_LOCAL
@@ -97,14 +97,14 @@ set_required_env_vars() {
 	# Assert default vars generated correctly.
 	assert_exported_in_github_env GOOS                    "darwin"
 	assert_exported_in_github_env GOARCH                  "amd64"
-	assert_exported_in_github_env TARGET_DIR              "dist/darwin/amd64"
-	assert_exported_in_github_env ZIP_DIR                 "dist"
-	assert_exported_in_github_env META_DIR                "dist/meta/darwin/amd64"
+	assert_exported_in_github_env TARGET_DIR              "dist"
+	assert_exported_in_github_env ZIP_DIR                 "out"
+	assert_exported_in_github_env META_DIR                ".meta"
 	assert_exported_in_github_env PRIMARY_BUILD_ROOT      "$(pwd)"
 	assert_exported_in_github_env VERIFICATION_BUILD_ROOT "$(dirname "$PWD")/verification"
 	assert_exported_in_github_env BIN_NAME                "blargle"
 	assert_exported_in_github_env ZIP_NAME                "blargle-enterprise_1.2.3_darwin_amd64.zip"
 	assert_exported_in_github_env PRODUCT_REVISION        "$(git rev-parse HEAD)"
-	assert_exported_in_github_env BIN_PATH                "dist/darwin/amd64/blargle"
-	assert_exported_in_github_env ZIP_PATH                "dist/blargle-enterprise_1.2.3_darwin_amd64.zip"
+	assert_exported_in_github_env BIN_PATH                "dist/blargle"
+	assert_exported_in_github_env ZIP_PATH                "out/blargle-enterprise_1.2.3_darwin_amd64.zip"
 }

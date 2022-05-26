@@ -30,9 +30,9 @@ main() {
 	
 	# Set relative paths used to store various build artifacts.
 	
-	set_env TARGET_DIR "dist/$OS/$ARCH"
-	set_env ZIP_DIR    "dist"
-	set_env META_DIR   "dist/meta/$OS/$ARCH"
+	set_env TARGET_DIR "dist"
+	set_env ZIP_DIR    "out"
+	set_env META_DIR   ".meta"
 	set_env BIN_PATH   "$TARGET_DIR/$BIN_NAME"
 	set_env ZIP_PATH   "$ZIP_DIR/$ZIP_NAME"
 
