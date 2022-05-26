@@ -80,7 +80,7 @@ runs:
     - name: Upload local verification build zip file.
       uses: actions/upload-artifact@v3
       with:
-        name: ${{ env.ZIP_NAME }}.local-verification-build.zip
+        name: local_verification_build/${{ env.ZIP_NAME }}
         path: ${{ env.ZIP_PATH_VERIFICATION }}
         if-no-files-found: error
 
