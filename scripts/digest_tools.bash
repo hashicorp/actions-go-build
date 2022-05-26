@@ -29,16 +29,20 @@ read_digest() {
 	echo "$DIGEST"
 }
 
-digest_names() {
-	echo bin
-	echo zip
+assert_digest_name() {
+	local DIGEST_NAME="$1"
+	local DIGEST_NAMES=(bin zip)
+	for N in "${DIGEST_NAMES[@]}"; do
+		if [ "$N" = "$DIGEST_NAME" ]; then
+			return 0
+		fi
+	done
+	die "Digest name '$DIGEST_NAME' not recognised; must be one of: ${DIGEST_NAMES[*]}"
 }
 
 digest_path_rel() {
 	local DIGEST_NAME="$1"
-	digest_names | grep -Eq "^$DIGEST_NAME\$" || {
-		die "Digest name '$DIGEST_NAME' not recognised; must be one of: $(digest_names | xargs)"
-	}
+	assert_digest_name "$DIGEST_NAME"
 	echo "$META_DIR/${DIGEST_NAME}_digest"	
 }
 
