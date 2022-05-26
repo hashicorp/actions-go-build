@@ -82,9 +82,9 @@ assert_exported_in_github_env() {
 assert_nonempty_in_github_env() {
 	VAR_NAME="$1"
 	GOT="$(get_value_from_github_env "$VAR_NAME")"
-	[ -n "$VAR_NAME" ] || {
+	[ -n "$GOT" ] || {
 		echo "$VAR_NAME is empty; wanted non-empty."
-		return
+		return 1
 	}
 }
 
