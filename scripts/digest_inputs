@@ -66,30 +66,13 @@ remove_enterprise_suffix() {
 	echo "${1%-enterprise}"
 }
 
-# is_gnu_date fails with no output if the named program in the path is not GNU date.
-# Otherwise it succeeds and prints the name of the program passed in.
-is_gnu_date() {
-	"$1" -d yesterday > /dev/null 2>&1 || return 1
-	echo "$1"
-}
-
-# We rely on the GNU date program as it can convert the format of arbitrary dates.
-# This function echoes either 'date' or 'gdate' if it's installed as one of those.
-# It exits with an error if GNU date is not found.
-gnu_date_prog() {
-	local ERROR="GNU date not installed."
-	[ "$(uname)" != "Darwin" ] || ERROR+=" On mac? Try 'brew install coreutils'"
-	is_gnu_date date || is_gnu_date gdate || err "$ERROR"
-}
-
 commit_time_utc() {
 	local COMMIT_ID="$1"
 	local T
 	T="$(git show -s --format=%cI "$COMMIT_ID")"
-	local DATE_PROG
-	DATE_PROG="$(gnu_date_prog)" || return 1
-	"$DATE_PROG" --utc --iso-8601=seconds -d "$T"
+	date --utc --iso-8601=seconds -d "$T"
 }
+
 
 export_to_github_job() { local NAME="$1"
 	{
