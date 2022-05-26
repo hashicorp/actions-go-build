@@ -47,6 +47,18 @@ inputs:
 runs:
   using: composite
   steps:
+    # We need the GNU date program installed that comes with coreutils.
+    - name: Ensure Coreutils Installed On Mac
+      if: runner.os == 'macOS'
+      shell: bash
+      run: |
+        set -euo pipefail
+        command -v brew > /dev/null 2>&1 || {
+          echo "Homebrew not installed, unable to proceed."
+          exit 1
+        }
+        brew update
+        brew install coreutils
     - name: Calculate default values and paths; set env vars.
       shell: bash
       env:
