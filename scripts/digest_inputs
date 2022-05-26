@@ -54,6 +54,14 @@ store_env ZIP_NAME
 PRODUCT_REVISION="$(git rev-parse HEAD)"
 store_env PRODUCT_REVISION
 
+PRODUCT_REVISION_TIME="$(git show -s --format=%cI "$PRODUCT_REVISION")"
+store_env PRODUCT_REVISION_TIME
+
+# PRODUCT_REVISION_TIME_LOCAL is the local time of the last commit.
+# It does not include any time zone information.
+PRODUCT_REVISION_TIME_LOCAL="$(cut -d+ -f1 <<< "$PRODUCT_REVISION_TIME")"
+store_env PRODUCT_REVISION_TIME_LOCAL
+
 BIN_PATH="$TARGET_DIR/$BIN_NAME"
 store_env BIN_PATH
 

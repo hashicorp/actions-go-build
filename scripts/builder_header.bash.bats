@@ -24,6 +24,8 @@ setup() {
 	export ZIP_NAME="blargles.zip"
 	export ZIP_PATH="$ZIP_DIR/$ZIP_NAME"
 	export META_DIR="meta"
+
+	export PRODUCT_REVISION_TIME_LOCAL="2006-02-02T22:00:01"
 }
 
 @test "working build instructions are executed correctly" {

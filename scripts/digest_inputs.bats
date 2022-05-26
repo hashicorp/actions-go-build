@@ -27,15 +27,30 @@ assert_exported_in_github_env() {
 	VAR_NAME="$1"
 	WANT="$2"
 
-	GOT="$(
-		unset "$VAR_NAME"
-		source "$GITHUB_ENV.export" && echo "${!VAR_NAME}"
-	)"
+	GOT="$(get_value_from_github_env "$VAR_NAME")"
 
 	if ! [ "$GOT" = "$WANT" ]; then
 		echo "Got $VAR_NAME='$GOT'; want $VAR_NAME='$WANT'"
 		return 1
 	fi
+}
+
+assert_nonempty_in_github_env() {
+	VAR_NAME="$1"
+	GOT="$(get_value_from_github_env "$VAR_NAME")"
+	[ -n "$VAR_NAME" ] || {
+		echo "$VAR_NAME is empty; wanted non-empty."
+		return
+	}
+}
+
+get_value_from_github_env() {
+	VAR_NAME="$1"
+	GOT="$(
+		unset "$VAR_NAME"
+		source "$GITHUB_ENV.export" && echo "${!VAR_NAME}"
+	)"
+	echo "$GOT"
 }
 
 @test "required vars passed through unchanged" {
@@ -94,6 +109,9 @@ assert_exported_in_github_env() {
 	assert_exported_in_github_env PRODUCT_REVISION "$(git rev-parse HEAD)"
 	assert_exported_in_github_env BIN_PATH "dist/darwin/amd64/build/blargle"
 	assert_exported_in_github_env ZIP_PATH "dist/darwin/amd64/dist/blargle_1.2.3_darwin_amd64.zip"
+
+	assert_nonempty_in_github_env PRODUCT_REVISION_TIME
+	assert_nonempty_in_github_env PRODUCT_REVISION_TIME_LOCAL
 }
 
 @test "default vars calculated correctly - enterprise" {

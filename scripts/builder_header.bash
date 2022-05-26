@@ -38,11 +38,9 @@ build() {(
 
 	write_digest bin "$BIN_PATH"
 
-	local COMMIT_TIME
-	COMMIT_TIME="$(git show -s --format=%cI HEAD | cut -d+ -f1)"
-	log "Setting created and modified time of all files to be zipped to $COMMIT_TIME"
+	log "Setting created and modified time of all files to be zipped to $PRODUCT_REVISION_TIME_LOCAL"
 	for F in "$TARGET_DIR"/*; do
-		touch -d "$COMMIT_TIME" "$F"
+		touch -d "$PRODUCT_REVISION_TIME_LOCAL" "$F"
 	done
 
 	log "Zipping contents of '$TARGET_DIR' into '$ZIP_PATH'"
