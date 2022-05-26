@@ -22,9 +22,10 @@ gnu_date_prog() {
 # is_gnu_date fails with no output if the named program in the path is not GNU date.
 # Otherwise it succeeds and prints the name of the program passed in.
 is_gnu_date() {
-	BINPATH="$(which "$1")" || return 1
-	"$BINPATH" -d yesterday > /dev/null 2>&1 || return 1
-	which "$BINPATH"
+	local BINARY_PATH
+	BINARY_PATH="$(which "$1")" || return 1
+	"$BINARY_PATH" -d yesterday > /dev/null 2>&1 || return 1
+	which "$BINARY_PATH"
 }
 
 # If GNU touch is installed as gtouch, use that rather than
