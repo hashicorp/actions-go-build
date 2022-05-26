@@ -83,7 +83,6 @@ set_required_env_vars() {
 	assert_exported_in_github_env ZIP_PATH                "out/blargle_1.2.3_darwin_amd64.zip"
 
 	assert_nonempty_in_github_env PRODUCT_REVISION_TIME
-	assert_nonempty_in_github_env PRODUCT_REVISION_TIME_LOCAL
 }
 
 @test "default vars calculated correctly - enterprise" {
