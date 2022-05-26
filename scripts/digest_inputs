@@ -37,8 +37,8 @@ main() {
 
 	# Set absolute paths for the primary and verification builds.
 
-	set_env PRIMARY_BUILD_ROOT      "$(pwd)"
-	set_env VERIFICATION_BUILD_ROOT "$(simplify_path "$PRIMARY_BUILD_ROOT/../verification")"
+	set_env PRIMARY_BUILD_ROOT      "$PWD"
+	set_env VERIFICATION_BUILD_ROOT "$(adjacent_path "$PWD" "verification")"
 	
 	# Gather contextual info from git.
 
@@ -55,7 +55,7 @@ main() {
 # Run the main func after parsing the functions it relies on.
 trap main EXIT
 
-simplify_path() { realpath -Lsm "$1"; }
+adjacent_path() { echo "$(dirname "$1")/$2"; }
 
 remove_enterprise_suffix() {
 	echo "${1%-enterprise}"
