@@ -38,13 +38,7 @@ jobs:
             cd testdata/dummy-app
             go build -trimpath -o "$TARGET_DIR/$BIN_NAME" .
         continue-on-error: true
-      - name: Assert success
-        env:
-          OUTCOME: ${{ steps.build.outcome }}
-        run: |
-          source scripts/standard_header.bash
-          [ "$OUTCOME" = "success" ] || die ":x: Action failed unexpectedly when ${WHEN}."
-          log ":white_check_mark: Action succeeded when ${WHEN}"
+      - run: ./scripts/gha_assert_success "${{ steps.build.outcome }}"
 
   action-test-zip-mismatch:
     runs-on: ubuntu-latest
@@ -67,13 +61,7 @@ jobs:
             # Insert something random into the zipped dir.
             head -c100 < /dev/urandom > "$TARGET_DIR/random.bytes"
         continue-on-error: true
-      - name: Assert failure
-        env:
-          OUTCOME: ${{ steps.build.outcome }}
-        run: |
-          source scripts/standard_header.bash
-          [ "$OUTCOME" = "failure" ] || die ":x: Action did not fail as it should have when ${WHEN}."
-          log ":white_check_mark: Action failed correctly when ${WHEN}"
+      - run: ./scripts/gha_assert_failure "${{ steps.build.outcome }}"
 
   action-test-bin-mismatch:
     runs-on: ubuntu-latest
@@ -95,10 +83,4 @@ jobs:
             # Don't use -trimpath so we get different binaries.
             go build -o "$TARGET_DIR/$BIN_NAME" .
         continue-on-error: true
-      - name: Assert failure
-        env:
-          OUTCOME: ${{ steps.build.outcome }}
-        run: |
-          source scripts/standard_header.bash
-          [ "$OUTCOME" = "failure" ] || die ":x: Action did not fail as it should have when ${WHEN}."
-          log ":white_check_mark: Action failed correctly when ${WHEN}"
+      - run: ./scripts/gha_assert_failure "${{ steps.build.outcome }}"

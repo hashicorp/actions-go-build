@@ -1,0 +1,14 @@
+#!/usr/bin/env bash
+
+# This script asserts that a GitHub Action step ran successfully.
+#
+# It assumes that the variable WHEN is a description of the condition being tested.
+# It assumes that its single arg is set to the ${{ steps.<step_id>.outcome }}
+# of the step being tested.
+
+set -Eeuo pipefail
+
+source scripts/standard_header.bash
+
+[ "$1" = "success" ] || die ":x: Action failed unexpectedly when ${WHEN}."
+log ":white_check_mark: Action succeeded when ${WHEN}"
