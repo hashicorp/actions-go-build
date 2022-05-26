@@ -21,42 +21,45 @@ main() {
 	forward_env ARCH
 	forward_env PRODUCT_VERSION
 	forward_env PACKAGE_NAME
+
+	# Pass through env vars from optional action inputs (or set to default value).
+
+	forward_env BIN_NAME "$(remove_enterprise_suffix "$PACKAGE_NAME")"
+	forward_env ZIP_NAME "${PACKAGE_NAME}_${PRODUCT_VERSION}_${OS}_${ARCH}.zip"
 	
-	# Set Go-specific vars.
-
-	set_env GOOS "$OS"
-	set_env GOARCH "$ARCH"
-
 	# Set relative paths used to store various build artifacts.
 	
 	set_env TARGET_DIR "dist/$OS/$ARCH"
 	set_env ZIP_DIR    "dist"
 	set_env META_DIR   "dist/meta/$OS/$ARCH"
+	set_env BIN_PATH   "$TARGET_DIR/$BIN_NAME"
+	set_env ZIP_PATH   "$ZIP_DIR/$ZIP_NAME"
 
 	# Set absolute paths for the primary and verification builds.
 
 	set_env PRIMARY_BUILD_ROOT      "$(pwd)"
 	set_env VERIFICATION_BUILD_ROOT "$(simplify_path "$PRIMARY_BUILD_ROOT/../verification")"
 	
-	# Default BIN_NAME is package name minus -enteprise suffix.
-	forward_env BIN_NAME "${PACKAGE_NAME%-enterprise}"
-	set_env BIN_PATH "$TARGET_DIR/$BIN_NAME"
-	
-	forward_env ZIP_NAME "${PACKAGE_NAME}_${PRODUCT_VERSION}_${OS}_${ARCH}.zip"
-	set_env ZIP_PATH "$ZIP_DIR/$ZIP_NAME"
-	
 	# Gather contextual info from git.
 
 	set_env PRODUCT_REVISION "$(git rev-parse HEAD)"
 	set_env PRODUCT_REVISION_TIME "$(git show -s --format=%cI "$PRODUCT_REVISION")"
-	# PRODUCT_REVISION_TIME_LOCAL is the local time of the last commit (no TZ info).
 	set_env PRODUCT_REVISION_TIME_LOCAL "$(cut -d+ -f1 <<< "$PRODUCT_REVISION_TIME")"
+
+	# Set Go-specific vars.
+
+	set_env GOOS "$OS"
+	set_env GOARCH "$ARCH"
 }
 
 # Run the main func after parsing the functions it relies on.
 trap main EXIT
 
 simplify_path() { realpath -Lsm "$1"; }
+
+remove_enterprise_suffix() {
+	echo "${1%-enterprise}"
+}
 
 export_to_github_job() { local NAME="$1"
 	{
