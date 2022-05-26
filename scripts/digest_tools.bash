@@ -1,4 +1,6 @@
-source scripts/standard_header.bash
+
+# shellcheck source=scripts/standard_header.bash
+source "${BASH_SOURCE%/*}/standard_header.bash"
 
 write_digest() {
 	local NAME="$1"

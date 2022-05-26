@@ -1,5 +1,10 @@
-source scripts/standard_header.bash
-source scripts/digest_tools.bash
+
+
+# shellcheck source=scripts/standard_header.bash
+source "${BASH_SOURCE%/*}/standard_header.bash"
+
+# shellcheck source=scripts/digest_tools.bash
+source "${BASH_SOURCE%/*}/digest_tools.bash"
 
 # build performs the build inside a subshell as this allows us
 # to exit early with 'die' without killing the caller as well.

@@ -2,8 +2,11 @@
 
 # shellcheck disable=SC2207 # I want BIN_RESULTS and ZIP_RESULTS to word-split into arrays.
 
-source scripts/standard_header.bash
-source scripts/digest_tools.bash
+# shellcheck source=scripts/standard_header.bash
+source "${BASH_SOURCE%/*}/standard_header.bash"
+
+# shellcheck source=scripts/digest_tools.bash
+source "${BASH_SOURCE%/*}/digest_tools.bash"
 
 PASSED=true
 BIN_PASSED=true
