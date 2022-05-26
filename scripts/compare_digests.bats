@@ -6,10 +6,10 @@ load assertions.bats
 
 setup() {
 	cd "$BATS_TEST_TMPDIR"
-	export PRIMARY_ROOT_DIR="$(pwd)/primary"
-	mkdir -p "$PRIMARY_ROOT_DIR"
-	export LOCAL_VERIFICATION_ROOT_DIR="$(pwd)/verification"
-	mkdir -p "$LOCAL_VERIFICATION_ROOT_DIR"
+	export PRIMARY_BUILD_ROOT="$(pwd)/primary"
+	mkdir -p "$PRIMARY_BUILD_ROOT"
+	export VERIFICATION_BUILD_ROOT="$(pwd)/verification"
+	mkdir -p "$VERIFICATION_BUILD_ROOT"
 
 	# TEST_FILE_CONTENTS and TEST_FILE_SHA256 need to be modified at the same time if at all.
 	TEST_FILE_CONTENTS="Test file"
@@ -17,8 +17,8 @@ setup() {
 
 	export META_DIR="meta"
 
-	setup_build_root_dir "$PRIMARY_ROOT_DIR"
-	setup_build_root_dir "$LOCAL_VERIFICATION_ROOT_DIR"
+	setup_build_root_dir "$PRIMARY_BUILD_ROOT"
+	setup_build_root_dir "$VERIFICATION_BUILD_ROOT"
 }
 
 setup_build_root_dir() {(
@@ -27,10 +27,10 @@ setup_build_root_dir() {(
 )}
 
 enter_primary_root() {
-	cd "$PRIMARY_ROOT_DIR"
+	cd "$PRIMARY_BUILD_ROOT"
 }
 
 enter_verification_root() {
-	cd "$LOCAL_VERIFICATION_ROOT_DIR"
+	cd "$VERIFICATION_BUILD_ROOT"
 }
 

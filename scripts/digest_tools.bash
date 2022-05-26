@@ -50,9 +50,9 @@ digest_path_abs() {
 	local SOURCE_NAME="$1"
 	local DIGEST_NAME="$2"
 	if [ "$SOURCE_NAME" = "primary" ]; then
-		ROOT_PATH="$PRIMARY_ROOT_DIR"
+		ROOT_PATH="$PRIMARY_BUILD_ROOT"
 	elif [ "$SOURCE_NAME" = "verification" ]; then
-		ROOT_PATH="$LOCAL_VERIFICATION_ROOT_DIR"
+		ROOT_PATH="$VERIFICATION_BUILD_ROOT"
 	else
 		die "Source name '$SOURCE_NAME' not recognised."
 	fi

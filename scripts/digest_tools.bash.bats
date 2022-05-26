@@ -7,10 +7,10 @@ load assertions.bats
 setup() {
 	source scripts/digest_tools.bash
 	cd "$BATS_TEST_TMPDIR"
-	export PRIMARY_ROOT_DIR="$(pwd)/primary"
-	mkdir -p "$PRIMARY_ROOT_DIR"
-	export LOCAL_VERIFICATION_ROOT_DIR="$(pwd)/verification"
-	mkdir -p "$LOCAL_VERIFICATION_ROOT_DIR"
+	export PRIMARY_BUILD_ROOT="$(pwd)/primary"
+	mkdir -p "$PRIMARY_BUILD_ROOT"
+	export VERIFICATION_BUILD_ROOT="$(pwd)/verification"
+	mkdir -p "$VERIFICATION_BUILD_ROOT"
 
 	# TEST_FILE_CONTENTS and TEST_FILE_SHA256 need to be modified at the same time if at all.
 	TEST_FILE_CONTENTS="Test file"
@@ -18,8 +18,8 @@ setup() {
 
 	export META_DIR="meta"
 
-	setup_build_root_dir "$PRIMARY_ROOT_DIR"
-	setup_build_root_dir "$LOCAL_VERIFICATION_ROOT_DIR"
+	setup_build_root_dir "$PRIMARY_BUILD_ROOT"
+	setup_build_root_dir "$VERIFICATION_BUILD_ROOT"
 }
 
 setup_build_root_dir() {(
@@ -29,11 +29,11 @@ setup_build_root_dir() {(
 )}
 
 enter_primary_root() {
-	cd "$PRIMARY_ROOT_DIR"
+	cd "$PRIMARY_BUILD_ROOT"
 }
 
 enter_verification_root() {
-	cd "$LOCAL_VERIFICATION_ROOT_DIR"
+	cd "$VERIFICATION_BUILD_ROOT"
 }
 
 @test "write digest writes correct digest to expected path" {	
@@ -43,7 +43,7 @@ enter_verification_root() {
 }
 
 @test "read digest reads correct bin digest from primary build path" {	
-	echo "deadbeef" > "$PRIMARY_ROOT_DIR/meta/bin_digest"
+	echo "deadbeef" > "$PRIMARY_BUILD_ROOT/meta/bin_digest"
 	GOT="$(read_digest primary bin)"
 	[ "$GOT" = "deadbeef" ] || {
 		echo "Read '$GOT'; want 'deadbeef'"
@@ -51,7 +51,7 @@ enter_verification_root() {
 }
 
 @test "read digest reads correct bin digest from verification build path" {	
-	echo "cabba9e" > "$LOCAL_VERIFICATION_ROOT_DIR/meta/bin_digest"
+	echo "cabba9e" > "$VERIFICATION_BUILD_ROOT/meta/bin_digest"
 	GOT="$(read_digest verification bin)"
 	[ "$GOT" = "cabba9e" ] || {
 		echo "Read '$GOT'; want 'cabba9e'"
@@ -74,8 +74,8 @@ enter_verification_root() {
 }
 
 @test "compare bin digest succeeds when digests the same" {
-	echo "thesame" > "$PRIMARY_ROOT_DIR/meta/bin_digest"
-	echo "thesame" > "$LOCAL_VERIFICATION_ROOT_DIR/meta/bin_digest"
+	echo "thesame" > "$PRIMARY_BUILD_ROOT/meta/bin_digest"
+	echo "thesame" > "$VERIFICATION_BUILD_ROOT/meta/bin_digest"
 
 	GOT="$(compare_digest bin)" || {
 		echo "compare_digest failed but it should have succeeded"
@@ -92,8 +92,8 @@ enter_verification_root() {
 }
 
 @test "compare zip digest succeeds when digests the same" {
-	echo "thesame" > "$PRIMARY_ROOT_DIR/meta/zip_digest"
-	echo "thesame" > "$LOCAL_VERIFICATION_ROOT_DIR/meta/zip_digest"
+	echo "thesame" > "$PRIMARY_BUILD_ROOT/meta/zip_digest"
+	echo "thesame" > "$VERIFICATION_BUILD_ROOT/meta/zip_digest"
 
 	GOT="$(compare_digest zip)" || {
 		echo "compare_digest failed but it should have succeeded"
@@ -110,8 +110,8 @@ enter_verification_root() {
 }
 
 @test "compare bin digest fails when digests are different" {
-	echo "thesame" > "$PRIMARY_ROOT_DIR/meta/bin_digest"
-	echo "different" > "$LOCAL_VERIFICATION_ROOT_DIR/meta/bin_digest"
+	echo "thesame" > "$PRIMARY_BUILD_ROOT/meta/bin_digest"
+	echo "different" > "$VERIFICATION_BUILD_ROOT/meta/bin_digest"
 
 	WANT="$(printf "thesame\ndifferent")"
 
@@ -120,8 +120,8 @@ enter_verification_root() {
 }
 
 @test "compare zip digest fails when digests are different" {
-	echo "thesame" > "$PRIMARY_ROOT_DIR/meta/zip_digest"
-	echo "different" > "$LOCAL_VERIFICATION_ROOT_DIR/meta/zip_digest"
+	echo "thesame" > "$PRIMARY_BUILD_ROOT/meta/zip_digest"
+	echo "different" > "$VERIFICATION_BUILD_ROOT/meta/zip_digest"
 
 	WANT="$(printf "thesame\ndifferent")"
 

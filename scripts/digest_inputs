@@ -35,8 +35,8 @@ main() {
 
 	# Set absolute paths for the primary and verification builds.
 
-	set_env PRIMARY_ROOT_DIR            "$(pwd)"
-	set_env LOCAL_VERIFICATION_ROOT_DIR "$(simplify_path "$PRIMARY_ROOT_DIR/../verification")"
+	set_env PRIMARY_BUILD_ROOT            "$(pwd)"
+	set_env VERIFICATION_BUILD_ROOT "$(simplify_path "$PRIMARY_BUILD_ROOT/../verification")"
 	
 	# Default BIN_NAME is package name minus -enteprise suffix.
 	forward_env BIN_NAME "${PACKAGE_NAME%-enterprise}"
