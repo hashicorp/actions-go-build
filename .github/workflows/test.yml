@@ -25,7 +25,8 @@ jobs:
       WHEN: the binary and zip files have the same SHA256 sum
     steps:
       - uses: actions/checkout@v3
-      - name: Invoke Action
+      - name: Invoke actions-reproducible-build when ${{ env.WHEN }}
+        id: build
         uses: ./ # This is the action defined in this repo.
         with:
           go_version: 1.17
