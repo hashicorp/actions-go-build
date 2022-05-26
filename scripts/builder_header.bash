@@ -38,9 +38,12 @@ build() {(
 
 	write_digest bin "$BIN_PATH"
 
-	log "Setting created and modified time of all files to be zipped to $PRODUCT_REVISION_TIME_LOCAL"
+	local COMMIT_TIME
+	COMMIT_TIME="${PRODUCT_REVISION_TIME%+00:00}Z"
+
+	log "Setting created and modified time of all files to be zipped to $COMMIT_TIME"
 	for F in "$TARGET_DIR"/*; do
-		touch -d "$PRODUCT_REVISION_TIME_LOCAL" "$F"
+		touch -d "$COMMIT_TIME" "$F"
 	done
 
 	log "Zipping contents of '$TARGET_DIR' into '$ZIP_PATH'"

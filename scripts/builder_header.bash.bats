@@ -25,7 +25,7 @@ setup() {
 	export ZIP_PATH="$ZIP_DIR/$ZIP_NAME"
 	export META_DIR="meta"
 
-	export PRODUCT_REVISION_TIME_LOCAL="2006-02-02T22:00:01"
+	export PRODUCT_REVISION_TIME="2006-02-02T22:00:01+00:00"
 }
 
 @test "working build instructions are executed correctly" {
