@@ -35,10 +35,15 @@ main() {
 	set_env BIN_PATH   "$TARGET_DIR/$BIN_NAME"
 	set_env ZIP_PATH   "$ZIP_DIR/$ZIP_NAME"
 
-	# Set absolute paths for the primary and verification builds.
+	# Set absolute paths for the primary and verification builds and artifacts.
 
-	set_env PRIMARY_BUILD_ROOT      "$PWD"
+	set_env PRIMARY_BUILD_ROOT "$PWD"
+	set_env BIN_PATH_PRIMARY   "$PRIMARY_BUILD_ROOT/$BIN_PATH"
+	set_env ZIP_PATH_PRIMARY   "$PRIMARY_BUILD_ROOT/$ZIP_PATH"
+
 	set_env VERIFICATION_BUILD_ROOT "$(adjacent_path "$PWD" "verification")"
+	set_env BIN_PATH_VERIFICATION   "$VERIFICATION_BUILD_ROOT/$BIN_PATH"
+	set_env ZIP_PATH_VERIFICATION   "$VERIFICATION_BUILD_ROOT/$ZIP_PATH"
 	
 	# Gather contextual info from git.
 
