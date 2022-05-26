@@ -66,3 +66,33 @@ assert_failure_with_output() {
 		return 1
 	}
 }
+
+assert_exported_in_github_env() {
+	VAR_NAME="$1"
+	WANT="$2"
+
+	GOT="$(get_value_from_github_env "$VAR_NAME")"
+
+	if ! [ "$GOT" = "$WANT" ]; then
+		echo "Got $VAR_NAME='$GOT'; want $VAR_NAME='$WANT'"
+		return 1
+	fi
+}
+
+assert_nonempty_in_github_env() {
+	VAR_NAME="$1"
+	GOT="$(get_value_from_github_env "$VAR_NAME")"
+	[ -n "$VAR_NAME" ] || {
+		echo "$VAR_NAME is empty; wanted non-empty."
+		return
+	}
+}
+
+get_value_from_github_env() {
+	VAR_NAME="$1"
+	GOT="$(
+		unset "$VAR_NAME"
+		source "$GITHUB_ENV.export" && echo "${!VAR_NAME}"
+	)"
+	echo "$GOT"
+}

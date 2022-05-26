@@ -2,6 +2,8 @@
 
 set -Eeuo pipefail
 
+load assertions.bats
+
 # setup ensures that there's a fresh .tmp directory, gitignored,
 # and sets the GITHUB_ENV variable to a file path inside that directory.
 setup() {
@@ -21,36 +23,6 @@ set_required_env_vars() {
 	export OS="darwin"
 	export ARCH="amd64"
 	export PRODUCT_VERSION="1.2.3"
-}
-
-assert_exported_in_github_env() {
-	VAR_NAME="$1"
-	WANT="$2"
-
-	GOT="$(get_value_from_github_env "$VAR_NAME")"
-
-	if ! [ "$GOT" = "$WANT" ]; then
-		echo "Got $VAR_NAME='$GOT'; want $VAR_NAME='$WANT'"
-		return 1
-	fi
-}
-
-assert_nonempty_in_github_env() {
-	VAR_NAME="$1"
-	GOT="$(get_value_from_github_env "$VAR_NAME")"
-	[ -n "$VAR_NAME" ] || {
-		echo "$VAR_NAME is empty; wanted non-empty."
-		return
-	}
-}
-
-get_value_from_github_env() {
-	VAR_NAME="$1"
-	GOT="$(
-		unset "$VAR_NAME"
-		source "$GITHUB_ENV.export" && echo "${!VAR_NAME}"
-	)"
-	echo "$GOT"
 }
 
 @test "required vars passed through unchanged" {
@@ -103,7 +75,7 @@ get_value_from_github_env() {
 	assert_exported_in_github_env ZIP_DIR "dist/darwin/amd64/dist"
 	assert_exported_in_github_env META_DIR "dist/darwin/amd64/meta"
 	assert_exported_in_github_env PRIMARY_ROOT_DIR "$(pwd)"
-	assert_exported_in_github_env LOCAL_VERIFICATION_ROOT_DIR "$(pwd)/../local_verification"
+	assert_exported_in_github_env LOCAL_VERIFICATION_ROOT_DIR "$(dirname "$PWD")/verification"
 	assert_exported_in_github_env BIN_NAME "blargle"
 	assert_exported_in_github_env ZIP_NAME "blargle_1.2.3_darwin_amd64.zip"
 	assert_exported_in_github_env PRODUCT_REVISION "$(git rev-parse HEAD)"
@@ -129,7 +101,7 @@ get_value_from_github_env() {
 	assert_exported_in_github_env ZIP_DIR "dist/darwin/amd64/dist"
 	assert_exported_in_github_env META_DIR "dist/darwin/amd64/meta"
 	assert_exported_in_github_env PRIMARY_ROOT_DIR "$(pwd)"
-	assert_exported_in_github_env LOCAL_VERIFICATION_ROOT_DIR "$(pwd)/../local_verification"
+	assert_exported_in_github_env LOCAL_VERIFICATION_ROOT_DIR "$(dirname "$PWD")/verification"
 	assert_exported_in_github_env BIN_NAME "blargle"
 	assert_exported_in_github_env ZIP_NAME "blargle-enterprise_1.2.3_darwin_amd64.zip"
 	assert_exported_in_github_env PRODUCT_REVISION "$(git rev-parse HEAD)"
