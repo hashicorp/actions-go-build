@@ -4,19 +4,9 @@ description: Define a reproducible build. Currently only supports Go builds.
 
 inputs:
   instructions:
-    description: |
-      Build instructions to generate the product binary.
-      This is a bash script, and it will have the following environment variables
-      set that you can refer to in the script...
-
-      TARGET_DIR        - The directory where all build output must be placed.
-                          The contents of this directory are zipped up to form the zip package.
-      BIN_NAME          - The name of the binary specified in BIN_NAME.
-      GOOS and OS       - The OS specified in the `os` input.
-      GOARCH and ARCH   - The architecture specified in the `arch` input.
-      PRODUCT_VERSION   - The version of the product being built.
-      PRODUCT_REVISION  - The commit SHA of the product being built.
-      PRODUCT_REVISION_TIME - The UTC timestamp of the PRODUCT_REVISION commit in iso-8601 format.
+    description: >
+      Build instructions to generate the product binary at $BIN_PATH;
+      See the docs for more info.
 
     required: true
 
@@ -45,7 +35,7 @@ inputs:
   package_name:
     description: >
       Name of the package to build. Used to calculate default bin_name and zip_name.
-      Exported as PACKAGE_NAME
+      Exported as PACKAGE_NAME.
     required: true
 
   bin_name:
@@ -58,8 +48,8 @@ inputs:
   zip_name:
     description: >
       Name of the product zip file.
-      Defaults to '${PACKAGE_NAME}_${PRODUCT_VERSION}_${OS}_${ARCH}.zip'
-      Exported as ZIP_NAME
+      Defaults to '${PACKAGE_NAME}_${PRODUCT_VERSION}_${OS}_${ARCH}.zip'.
+      Exported as ZIP_NAME.
     required: false
 
 runs:

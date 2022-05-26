@@ -1,0 +1,65 @@
+#!/usr/bin/env bash
+
+set -Eeuo pipefail
+
+read_output_to_array() {
+	local NAME="$1"; shift
+	IFS=$'\n' read -r -d '' -a "$NAME" < <("$@" && printf '\0')
+}
+
+list_input_names() {
+	yq -r '.inputs | keys_unsorted[]' < action.yml
+}
+
+declare -a NAMES
+read_output_to_array NAMES list_input_names
+
+HEADERS=("Name (* = required)" "Description")
+
+write_header() {
+	write_row "${HEADERS[@]}"
+	for _ in "${HEADERS[@]}"; do
+		printf "| ----- "
+	done
+	printf "|\n"
+}
+
+write_row() {
+	for V in "$@"; do
+		printf "| %s " "$V"
+	done
+	printf "|\n"
+}
+
+write_input_row() {
+	local INPUT_NAME="$1"
+	local FIELDS=()
+	local REQUIRED
+	REQUIRED="$(read_input_field "$INPUT_NAME" required)"
+	FIELDS=(
+		"$INPUT_NAME $($REQUIRED && echo "*")"
+		"$(read_input_field "$INPUT_NAME" description)"
+	)
+	write_row "${FIELDS[@]}"
+}
+
+read_input_field() {
+	local INPUT_NAME="$1"
+	local FIELD="$2"
+	yq -r ".inputs.$INPUT_NAME.$FIELD" < action.yml
+}
+
+write_input_rows() {
+	for NAME in "${NAMES[@]}"; do
+		write_input_row "$NAME"
+	done
+}
+
+column() {
+	/usr/local/opt/util-linux/bin/column "$@"
+}
+
+{
+	write_header
+	write_input_rows
+} | column -ts '|' -o '  |  '
