@@ -29,13 +29,13 @@ main() {
 
 	# Set relative paths used to store various build artifacts.
 	
-	set_env TARGET_DIR "dist/$OS/$ARCH/build"
-	set_env ZIP_DIR    "dist/$OS/$ARCH/dist"
-	set_env META_DIR   "dist/$OS/$ARCH/meta"
+	set_env TARGET_DIR "dist/$OS/$ARCH"
+	set_env ZIP_DIR    "dist"
+	set_env META_DIR   "dist/meta/$OS/$ARCH"
 
 	# Set absolute paths for the primary and verification builds.
 
-	set_env PRIMARY_BUILD_ROOT            "$(pwd)"
+	set_env PRIMARY_BUILD_ROOT      "$(pwd)"
 	set_env VERIFICATION_BUILD_ROOT "$(simplify_path "$PRIMARY_BUILD_ROOT/../verification")"
 	
 	# Default BIN_NAME is package name minus -enteprise suffix.
