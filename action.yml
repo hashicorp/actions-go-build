@@ -61,14 +61,31 @@ runs:
     - uses: actions/setup-go@v2
       with:
         go-version: ${{ inputs.go_version }}
+
     - name: Run Primary Build
       shell: bash
       run: ${{ github.action_path }}/scripts/primary_build
+    - name: Upload primary build zip file.
+      uses: actions/upload-artifact@v3
+      working-directory: ${{ env.PRIMARY_BUILD_ROOT }}
+      with:
+        name: ${{ env.ZIP_NAME }}
+        path: ${{ env.ZIP_PATH }}
+        if-no-files-found: error
+
     - name: Run Local Verification Build
       shell: bash
       # Sleep 2 seconds to make sure we get different mtimes.
       # For fast builds this is necessary.
       run: sleep 2; ${{ github.action_path }}/scripts/local_verification_build
+    - name: Upload local verification build zip file.
+      uses: actions/upload-artifact@v3
+      working-directory: ${{ env.LOCAL_VERIFICATION_BUILD_ROOT }}
+      with:
+        name: ${{ env.ZIP_NAME }}.local-verification-build.zip
+        path: ${{ env.ZIP_PATH }}
+        if-no-files-found: error
+
     - name: Compare Build Outputs
       shell: bash
       run: ${{ github.action_path }}/scripts/compare_digests
