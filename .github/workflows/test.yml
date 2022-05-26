@@ -19,8 +19,10 @@ jobs:
       - name: Run BATS tests
         run: make test
 
-  action-test:
+  action-test-success:
     runs-on: ubuntu-latest
+    env:
+      WHEN: the binary and zip files have the same SHA256 sum
     steps:
       - uses: actions/checkout@v3
       - name: Invoke Action
@@ -34,3 +36,68 @@ jobs:
           instructions: |-
             cd testdata/dummy-app
             go build -trimpath -o "$TARGET_DIR/$BIN_NAME" .
+        continue-on-error: true
+      - name: Assert success
+        env:
+          OUTCOME: ${{ steps.build.outcome }}
+        run: |
+          source scripts/standard_header.bash
+          [ "$OUTCOME" = "success" ] || die ":x: Action failed unexpectedly when ${WHEN}."
+          log ":white_check_mark: Action succeeded when ${WHEN}"
+
+  action-test-zip-mismatch:
+    runs-on: ubuntu-latest
+    env:
+      WHEN: the zip files have different SHA256 sums
+    steps:
+      - uses: actions/checkout@v3
+      - name: Invoke actions-reproducible-build when ${{ env.WHEN }}
+        id: build
+        uses: ./ # This is the action defined in this repo.
+        with:
+          go_version: 1.17
+          product_version: 1.0.0
+          os: linux
+          arch: amd64
+          package_name: dummy-app
+          instructions: |-
+            cd testdata/dummy-app
+            go build -trimpath -o "$TARGET_DIR/$BIN_NAME" .
+            # Insert something random into the zipped dir.
+            head -c100 < /dev/urandom > "$TARGET_DIR/random.bytes"
+        continue-on-error: true
+      - name: Assert failure
+        env:
+          OUTCOME: ${{ steps.build.outcome }}
+        run: |
+          source scripts/standard_header.bash
+          [ "$OUTCOME" = "failure" ] || die ":x: Action did not fail as it should have when ${WHEN}."
+          log ":white_check_mark: Action failed correctly when ${WHEN}"
+
+  action-test-bin-mismatch:
+    runs-on: ubuntu-latest
+    env:
+      WHEN: the binary files have different SHA256 sums
+    steps:
+      - uses: actions/checkout@v3
+      - name: Invoke actions-reproducible-build when ${{ env.WHEN }}
+        id: build
+        uses: ./ # This is the action defined in this repo.
+        with:
+          go_version: 1.17
+          product_version: 1.0.0
+          os: linux
+          arch: amd64
+          package_name: dummy-app
+          instructions: |-
+            cd testdata/dummy-app
+            # Don't use -trimpath so we get different binaries.
+            go build -o "$TARGET_DIR/$BIN_NAME" .
+        continue-on-error: true
+      - name: Assert failure
+        env:
+          OUTCOME: ${{ steps.build.outcome }}
+        run: |
+          source scripts/standard_header.bash
+          [ "$OUTCOME" = "failure" ] || die ":x: Action did not fail as it should have when ${WHEN}."
+          log ":white_check_mark: Action failed correctly when ${WHEN}"
