@@ -62,21 +62,21 @@ jobs:
 |  `zip_name`&nbsp;_(optional)_             |  Name of the product zip file. Defaults to `<package_name>_<product_version>_<os>_<arch>.zip`.            |
 <!-- end:insert:scripts/codegen/inputs_doc -->
 
-### Build Instructions
-
-The main input is [`build_instructions`](#build-instructions) which defines the build.
-Build instructions is a bash script. It should be kept as simple as possible.
-
-When the `build_instructions` are executed, there are a set of environment variables
-already exported that you can make use of in your instructions (see below).
-
-At a minimum, the script must use the environment variables `$TARGET_DIR` and `$BIN_NAME`
-because the minimal thing it can do is to write the compiled binary to `$TARGET_DIR/$BIN_NAME`.
-
-#### Build Environment Variables
-
 <!-- insert:scripts/codegen/environment_doc -->
-<!-- end:insert:scripts/codegen/inputs_doc -->
+|  Name                     |  Description                                                         |
+|  -----                    |  -----                                                               |
+|  `TARGET_DIR`             |  Absolute path to the zip contents directory.                        |
+|  `PACKAGE_NAME`           |  Same as the `package_name` input.                                   |
+|  `PRODUCT_VERSION`        |  Same as the `product_version` input.                                |
+|  `PRODUCT_REVISION`       |  The git commit SHA of the product repo being built.                 |
+|  `PRODUCT_REVISION_TIME`  |  UTC timestamp of the `PRODUCT_REVISION` commit in iso-8601 format.  |
+|  `BIN_NAME`               |  Name of the Go binary file inside `TARGET_DIR`.                     |
+|  `BIN_PATH`               |  Same as `TARGET_DIR/BIN_NAME`.                                      |
+|  `OS`                     |  Same as the `os` input.                                             |
+|  `ARCH`                   |  Same as the `arch` input.                                           |
+|  `GOOS`                   |  Same as `OS`                                                        |
+|  `GOARCH`                 |  Same as `ARCH`.                                                     |
+<!-- end:insert:scripts/codegen/environment_doc -->
 
 ## TODO
 
