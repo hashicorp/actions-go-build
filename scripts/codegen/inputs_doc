@@ -38,9 +38,9 @@ input_name_field() {
 	local NAME="$1"
 	local REQUIRED="$2"
 	if "$REQUIRED"; then
-		echo "**\`$NAME\`** _(required)_"
+		echo "**\`$NAME\`**&nbsp;_(required)_"
 	else
-		echo "\`$NAME\` _(optional)_"
+		echo "\`$NAME\`&nbsp;_(optional)_"
 	fi
 }
 

@@ -31,16 +31,16 @@ Currently only supports pure Go projects.
 ### Inputs
 
 <!-- insert:scripts/codegen/inputs_doc -->
-|  Name                                |  Description                                                                                              |
-|  -----                               |  -----                                                                                                    |
-|  **`instructions`** _(required)_     |  Build instructions to generate the binary. See [Build Instructions](#build-instructions) for more info.  |
-|  **`go_version`** _(required)_       |  Version of Go to use for this build.                                                                     |
-|  **`product_version`** _(required)_  |  Version of the product being built.                                                                      |
-|  **`os`** _(required)_               |  Target product operating system.                                                                         |
-|  **`arch`** _(required)_             |  Target product architecture.                                                                             |
-|  **`package_name`** _(required)_     |  Name of the package to build. Used to calculate default `bin_name` and `zip_name`.                       |
-|  `bin_name` _(optional)_             |  Name of the product binary generated. Defaults to `package_name` minus any `-enterprise` suffix.         |
-|  `zip_name` _(optional)_             |  Name of the product zip file. Defaults to `<package_name>_<product_version>_<os>_<arch>.zip`.            |
+|  Name                                     |  Description                                                                                              |
+|  -----                                    |  -----                                                                                                    |
+|  **`instructions`**&nbsp;_(required)_     |  Build instructions to generate the binary. See [Build Instructions](#build-instructions) for more info.  |
+|  **`go_version`**&nbsp;_(required)_       |  Version of Go to use for this build.                                                                     |
+|  **`product_version`**&nbsp;_(required)_  |  Version of the product being built.                                                                      |
+|  **`os`**&nbsp;_(required)_               |  Target product operating system.                                                                         |
+|  **`arch`**&nbsp;_(required)_             |  Target product architecture.                                                                             |
+|  **`package_name`**&nbsp;_(required)_     |  Name of the package to build. Used to calculate default `bin_name` and `zip_name`.                       |
+|  `bin_name`&nbsp;_(optional)_             |  Name of the product binary generated. Defaults to `package_name` minus any `-enterprise` suffix.         |
+|  `zip_name`&nbsp;_(optional)_             |  Name of the product zip file. Defaults to `<package_name>_<product_version>_<os>_<arch>.zip`.            |
 <!-- end:insert:scripts/codegen/inputs_doc -->
 
 ## TODO
