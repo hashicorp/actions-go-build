@@ -1,16 +1,17 @@
 
 # shellcheck disable=SC2016 # I definitely don't want the backticks to be expanded.
 
-# build_env defined which environment variables available to the build_instructions.
-# No other environment variables other than PATH are available to the build instructions.
+# build_env defines which environment variables available to the build_instructions.
 #
 # If you set 'PRINT_ENV=true' then this function just writes the variable names and
 # their descriptions to stdout. This is useful for generating docs.
 build_env() {
 
-	if [ "$PRINT_ENV" != "true" ]; then
+	if [ "${PRINT_ENV:-}" != "true" ]; then
 		make_paths_absolute TARGET_DIR BIN_PATH
 	fi
+
+	# The descriptions are markdown formatted.
 
 	define_var TARGET_DIR            'Absolute path to the zip contents directory.'
 	define_var PACKAGE_NAME          'Same as the `package_name` input.'
@@ -36,11 +37,13 @@ print_build_env() {
 	PRINT_ENV=true build_env | column -t -s$'\t'
 }
 
+# define_var either exports the named var, or if $PRINT_ENV=true it 
+# prints the name and description of each variable in a table.
 define_var() {
 	local NAME="$1"
 	local DESC="$2"
 
-	if [ "$PRINT_ENV" = "true" ]; then
+	if [ "${PRINT_ENV:-}" = "true" ]; then
 		printf "%s\t%s\n" "$NAME" "$DESC"
 		return
 	fi

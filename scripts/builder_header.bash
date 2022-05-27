@@ -6,6 +6,9 @@ source "${BASH_SOURCE%/*}/standard_header.bash"
 # shellcheck source=scripts/digest_tools.bash
 source "${BASH_SOURCE%/*}/digest_tools.bash"
 
+# shellcheck source=scripts/build_env.bash
+source "${BASH_SOURCE%/*}/build_env.bash"
+
 # build performs the build inside a subshell as this allows us
 # to exit early with 'die' without killing the caller as well.
 build() {(
@@ -30,8 +33,7 @@ build() {(
 
 	log "Running build instructions..."
 	(
-		# Set TARGET_DIR to absolute in case the instructions cd.
-		TARGET_DIR="$(pwd)/$TARGET_DIR" \
+			build_env # Set the build env vars.
 			bash "$TEMP_INSTRUCTIONS"
 	) || {
 		die "Build failed."
