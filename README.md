@@ -62,6 +62,26 @@ jobs:
 |  `zip_name`&nbsp;_(optional)_             |  Name of the product zip file. Defaults to `<package_name>_<product_version>_<os>_<arch>.zip`.            |
 <!-- end:insert:scripts/codegen/inputs_doc -->
 
+### Build Instuctions
+
+The main input is [`build_instructions`](#build-instructions) which defines the build.
+Build instructions is a bash script. It should be kept as simple as possible.
+
+When the `build_instructions` are executed, there are a set of environment variables
+already exported that you can make use of in your instructions,
+(see [Build Environment](#build-environment), below).
+
+At a minimum, the script must use the environment variable `$BIN_PATH`
+because the minimal thing it can do is to write the compiled binary to `$BIN_PATH`.
+In order to add other files like licenses etc to the zip file, you need to
+write them into `$TARGET_DIR` in your build instructions.
+
+### Build Environment
+
+The following variables are exported when `build_instructions` are executed,
+so you can use them in your script and they're available to programs your
+script calls.
+
 <!-- insert:scripts/codegen/environment_doc -->
 |  Name                     |  Description                                                         |
 |  -----                    |  -----                                                               |
