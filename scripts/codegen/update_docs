@@ -1,0 +1,6 @@
+#!/usr/bin/env bash
+
+set -Eeuo pipefail
+
+NEW_README="$(./scripts/codegen/insert README.md)" || exit 1
+echo "$NEW_README" > README.md

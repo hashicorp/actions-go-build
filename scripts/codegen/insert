@@ -1,0 +1,72 @@
+#!/usr/bin/env bash
+
+set -Eeuo pipefail
+
+log() { echo "$*" 1>&2; } 
+die() { log "$*"; exit 1; } 
+
+FILE="$1"
+
+INSERT="BLAH BLAH
+BLAH BLAH
+BLOO"
+
+START_LEADER="<!-- insert:"
+END_LEADER="<!-- end:insert:"
+TRAILER=" -->"
+
+# Find blocks.
+START_PATTERN="^${START_LEADER}(.*)${TRAILER}\$"
+IFS=$'\n' read -r -d '' -a BLOCK_SCRIPTS < <(sed -En "s/^$START_PATTERN/\1/gp" "$FILE" | sort | uniq && printf '\0')
+
+start_comment() {
+	local SCRIPT_NAME="$1"
+	echo -n "${START_LEADER}${SCRIPT_NAME}${TRAILER}"
+}
+
+end_comment() {
+	local SCRIPT_NAME="$1"
+	echo -n "${END_LEADER}${SCRIPT_NAME}${TRAILER}"
+}
+
+replace_block() {
+	local TEXT="$1"
+	local START="$2"
+	local INSERT="$3"
+	local END="$4"
+	awk -v RS="${START}.*${END}" -v ORS= "1;NR==1{ print \"$START\n$INSERT\n$END\" }" <<< "$TEXT"
+}
+
+replace_line() {
+	local TEXT="$1"
+	local START="$2"
+	local INSERT="$3"
+	local END="$4"
+	awk -v RS="${START}" -v ORS= "1;NR==1{ print \"$START\n$INSERT\n$END\" }" <<< "$TEXT"
+}
+
+insert_all() {
+	local CURRENT
+	CURRENT="$(cat "$FILE")"
+	for SCRIPT in "${BLOCK_SCRIPTS[@]}"; do
+		CURRENT="$(insert_block "$CURRENT" "$SCRIPT")"
+	done
+	echo "$CURRENT"
+}
+
+insert_block() {
+	local TEXT="$1"
+	local SCRIPT="$2"
+	START="$(start_comment "$SCRIPT")"
+	END="$(end_comment "$SCRIPT")"
+	END_PATTERN="^${END_LEADER}(.*)${TRAILER}\$"
+	INSERT="$("./$SCRIPT")"
+	INSERT_ESCAPED="${INSERT//$'\n'/\\n}"
+	if grep -qE "$END_PATTERN" <<< "$TEXT"; then
+		replace_block "$TEXT" "$START" "$INSERT_ESCAPED" "$END"
+	else
+		die "ERROR: Closing comment not found; expected '$END'"
+	fi
+}
+
+insert_all

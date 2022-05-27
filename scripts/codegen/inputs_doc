@@ -1,5 +1,8 @@
 #!/usr/bin/env bash
 
+# This script formats the inputs declaration from the action.yml
+# into a markdown table.
+
 set -Eeuo pipefail
 
 read_output_to_array() {
@@ -56,10 +59,21 @@ write_input_rows() {
 }
 
 column() {
-	/usr/local/opt/util-linux/bin/column "$@"
+	if [ "$(uname)" = "Darwin" ]; then 
+		/usr/local/opt/util-linux/bin/column "$@"
+		return
+	fi
+	column "$@"
 }
 
-{
-	write_header
-	write_input_rows
-} | column -ts '|' -o '  |  '
+markdown_table_rows() {
+	column -ts '|' -o ' | ' | sed -E -e 's/^ //g' -e 's/ $//g'
+}
+
+markdown_table() {
+	HEADER_FUNC="$1"
+	BODY_FUNC="$2"
+	{ "$HEADER_FUNC"; "$BODY_FUNC"; } | markdown_table_rows
+}
+
+markdown_table write_header write_input_rows
