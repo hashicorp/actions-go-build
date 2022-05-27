@@ -38,7 +38,7 @@ input_name_field() {
 	local NAME="$1"
 	local REQUIRED="$2"
 	if "$REQUIRED"; then
-		echo "** \`$NAME\` ** _(required)_"
+		echo "**\`$NAME\`** _(required)_"
 	else
 		echo "\`$NAME\` _(optional)_"
 	fi
@@ -51,7 +51,7 @@ write_input_row() {
 	REQUIRED="$(read_input_field "$INPUT_NAME" required)"
 	FIELDS=(
 		"$(input_name_field "$INPUT_NAME" "$REQUIRED")"
-		"$(read_input_field "$INPUT_NAME" description)\`"
+		"$(read_input_field "$INPUT_NAME" description)"
 	)
 	write_row "${FIELDS[@]}"
 }

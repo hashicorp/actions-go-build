@@ -31,19 +31,19 @@ inputs:
 
   package_name:
     description: >
-      Name of the package to build. Used to calculate default bin_name and zip_name.
+      Name of the package to build. Used to calculate default `bin_name` and `zip_name`.
     required: true
 
   bin_name:
     description: >
       Name of the product binary generated.
-      Defaults to <package_name> minus any '-enterprise' suffix.
+      Defaults to `package_name` minus any `-enterprise` suffix.
     required: false
 
   zip_name:
     description: >
       Name of the product zip file.
-      Defaults to '<package_name>_<product_version>_<os>_<arch>.zip'.
+      Defaults to `<package_name>_<product_version>_<os>_<arch>.zip`.
     required: false
 
 runs:
