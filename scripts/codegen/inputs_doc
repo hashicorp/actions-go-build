@@ -17,7 +17,7 @@ list_input_names() {
 declare -a NAMES
 read_output_to_array NAMES list_input_names
 
-HEADERS=("Name (* = required)" "Description")
+HEADERS=("Name" "Description")
 
 write_header() {
 	write_row "${HEADERS[@]}"
@@ -34,14 +34,24 @@ write_row() {
 	printf "|\n"
 }
 
+input_name_field() {
+	local NAME="$1"
+	local REQUIRED="$2"
+	if "$REQUIRED"; then
+		echo "** \`$NAME\` ** _(required)_"
+	else
+		echo "\`$NAME\` _(optional)_"
+	fi
+}
+
 write_input_row() {
 	local INPUT_NAME="$1"
 	local FIELDS=()
 	local REQUIRED
 	REQUIRED="$(read_input_field "$INPUT_NAME" required)"
 	FIELDS=(
-		"$INPUT_NAME $($REQUIRED && echo "*")"
-		"$(read_input_field "$INPUT_NAME" description)"
+		"$(input_name_field "$INPUT_NAME" "$REQUIRED")"
+		"$(read_input_field "$INPUT_NAME" description)\`"
 	)
 	write_row "${FIELDS[@]}"
 }
@@ -60,7 +70,10 @@ write_input_rows() {
 
 column() {
 	if [ "$(uname)" = "Darwin" ]; then 
-		/usr/local/opt/util-linux/bin/column "$@"
+		/usr/local/opt/util-linux/bin/column "$@" || {
+			echo "Missing dependency; please install util-linux, e.g.: 'brew install util-linux'"
+			return 1
+		}
 		return
 	fi
 	column "$@"
