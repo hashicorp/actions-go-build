@@ -28,6 +28,25 @@ Currently only supports pure Go projects.
 
 ## Usage
 
+This Action can run on both Ubuntu and macOS runners.
+
+Example usage:
+
+```
+jobs:
+  build:
+	runs-on: ubuntu-latest
+	steps:
+      - uses: hashicorp/actions-reproducible-build@main
+        with:
+          go_version: 1.17
+          product_version: 1.0.0
+          os: linux
+          arch: amd64
+          package_name: my-app
+          instructions: go build -trimpath -o "$BIN_PATH" .
+```
+
 ### Inputs
 
 <!-- insert:scripts/codegen/inputs_doc -->
@@ -41,6 +60,22 @@ Currently only supports pure Go projects.
 |  **`package_name`**&nbsp;_(required)_     |  Name of the package to build. Used to calculate default `bin_name` and `zip_name`.                       |
 |  `bin_name`&nbsp;_(optional)_             |  Name of the product binary generated. Defaults to `package_name` minus any `-enterprise` suffix.         |
 |  `zip_name`&nbsp;_(optional)_             |  Name of the product zip file. Defaults to `<package_name>_<product_version>_<os>_<arch>.zip`.            |
+<!-- end:insert:scripts/codegen/inputs_doc -->
+
+### Build Instructions
+
+The main input is [`build_instructions`](#build-instructions) which defines the build.
+Build instructions is a bash script. It should be kept as simple as possible.
+
+When the `build_instructions` are executed, there are a set of environment variables
+already exported that you can make use of in your instructions (see below).
+
+At a minimum, the script must use the environment variables `$TARGET_DIR` and `$BIN_NAME`
+because the minimal thing it can do is to write the compiled binary to `$TARGET_DIR/$BIN_NAME`.
+
+#### Build Environment Variables
+
+<!-- insert:scripts/codegen/environment_doc -->
 <!-- end:insert:scripts/codegen/inputs_doc -->
 
 ## TODO
