@@ -49,14 +49,9 @@ jobs:
           product_version: 1.2.3
           os: linux
           arch: amd64
-          # instructions just calls 'go build' and uses the automatically-set
-          # environment variables to inject the version and revision information.
-          instructions: >
+          instructions: |-
             cd ./testdata/example-app
-            go build
-              -trimpath
-              -o "$BIN_PATH"
-              -ldflags "
+            go build \n              -trimpath \n              -o "$BIN_PATH" \n              -ldflags "
                 -X 'main.Version=$PRODUCT_VERSION'
                 -X 'main.Revision=$PRODUCT_REVISION'
                 -X 'main.RevisionTime=$PRODUCT_REVISION_TIME'
