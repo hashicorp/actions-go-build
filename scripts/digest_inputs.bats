@@ -7,10 +7,9 @@ load assertions.bats
 # setup ensures that there's a fresh .tmp directory, gitignored,
 # and sets the GITHUB_ENV variable to a file path inside that directory.
 setup() {
-	rm -rf ./.tmp
-	export GITHUB_ENV=./.tmp/github.env
-	mkdir -p ./.tmp
-	echo "*" > ./.tmp/.gitignore
+	export GITHUB_ENV="$BATS_TEST_TMPDIR/github.env"
+	rm -rf "$(dirname "$GITHUB_ENV")"
+	mkdir -p "$(dirname "$GITHUB_ENV")"
 }
 
 set_required_env_vars() {
