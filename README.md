@@ -52,6 +52,7 @@ jobs:
           # instructions just calls 'go build' and uses the automatically-set
           # environment variables to inject the version and revision information.
           instructions: >
+            cd ./testdata/example-app
             go build
               -trimpath
               -o "$BIN_PATH"
@@ -60,7 +61,6 @@ jobs:
                 -X 'main.Revision=$PRODUCT_REVISION'
                 -X 'main.RevisionTime=$PRODUCT_REVISION_TIME'
               "
-              ./testdata/example-app
 ```
 <!-- end:insert:scripts/codegen/print_example_workflow -->
 
