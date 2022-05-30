@@ -14,5 +14,14 @@ test/bats:
 	# Running bats tests in scripts/
 	@$(BATS) scripts/
 
+.PHONY: docs
 docs:
 	@./scripts/codegen/update_docs
+
+LDFLAGS += -X 'main.Version=1.2.3'
+LDFLAGS += -X 'main.Revision=cabba9e'
+LDFLAGS += -X 'main.RevisionTime=2022-05-30T14:45:00+00:00'
+
+.PHONY: example-app
+example-app:
+	@cd testdata/example-app && go build -ldflags "$(LDFLAGS)" . && ./example-app

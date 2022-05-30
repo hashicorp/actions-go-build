@@ -1,0 +1,29 @@
+name: Test
+on: [push]
+jobs:
+  example:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - name: Build
+        id: build
+        working-directory: testdata/example-app
+        uses: hashiorp/actions-reproducible-build@v0
+        with:
+          package_name: example-app
+          go_version: 1.18
+          product_version: 1.2.3
+          os: linux
+          arch: amd64
+          # instructions just calls 'go build' and uses the automatically-set
+          # environment variables to inject the version and revision information.
+          instructions: >
+            go build
+              -trimpath
+              -o "$BIN_PATH"
+              -ldflags "
+                -X 'main.Version=$PRODUCT_VERSION'
+                -X 'main.Revision=$PRODUCT_REVISION'
+                -X 'main.RevisionTime=$PRODUCT_REVISION_TIME'
+              "
+              .

@@ -6,7 +6,7 @@ load assertions.bats
 
 setup() {
 	source scripts/builder_header.bash
-	cp -r testdata/dummy-app/* "$BATS_TEST_TMPDIR"
+	cp -r testdata/example-app/* "$BATS_TEST_TMPDIR"
 	cd "$BATS_TEST_TMPDIR"
 	# Set the OS and arch to produce a binary that will execute on this platform.
 	# You need to have Go installed locally anyway to run the test, so using go env
