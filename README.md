@@ -42,8 +42,7 @@ jobs:
     steps:
       - uses: actions/checkout@v3
       - name: Build
-        working-directory: testdata/example-app
-        uses: hashiorp/actions-reproducible-build@v0
+        uses: hashicorp/actions-reproducible-build@v0
         with:
           package_name: example-app
           go_version: 1.18
@@ -61,7 +60,7 @@ jobs:
                 -X 'main.Revision=$PRODUCT_REVISION'
                 -X 'main.RevisionTime=$PRODUCT_REVISION_TIME'
               "
-              .
+              ./testdata/example-app
 ```
 <!-- end:insert:scripts/codegen/print_example_workflow -->
 

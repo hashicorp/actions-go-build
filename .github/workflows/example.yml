@@ -6,7 +6,6 @@ jobs:
     steps:
       - uses: actions/checkout@v3
       - name: Build
-        working-directory: testdata/example-app
         uses: hashicorp/actions-reproducible-build@v0
         with:
           package_name: example-app
@@ -25,4 +24,4 @@ jobs:
                 -X 'main.Revision=$PRODUCT_REVISION'
                 -X 'main.RevisionTime=$PRODUCT_REVISION_TIME'
               "
-              .
+              ./testdata/example-app
