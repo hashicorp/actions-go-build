@@ -30,10 +30,10 @@ Currently only supports pure Go projects.
 
 This Action can run on both Ubuntu and macOS runners.
 
-Example usage:
+Example usage ([see this workflow running here](https://github.com/hashicorp/actions-reproducible-build/actions/workflows/example.yml)).
 
-```yaml
 <!-- insert:scripts/codegen/print_example_workflow -->
+```yaml
 name: Minimal(ish) Example
 on: [push]
 jobs:
@@ -62,8 +62,8 @@ jobs:
                 -X 'main.RevisionTime=$PRODUCT_REVISION_TIME'
               "
               .
-<!-- end:insert:scripts/codegen/print_example_workflow -->
 ```
+<!-- end:insert:scripts/codegen/print_example_workflow -->
 
 ### Inputs
 

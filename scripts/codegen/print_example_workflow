@@ -1,6 +1,10 @@
 #!/usr/bin/env bash
 
+# shellcheck disable=SC2016 # Backticks are purposefully not being expanded here.
+
 set -Eeuo pipefail
 
-# Escape the YAML so AWK can insert it correctly.
+# Emit the awk-escaped YAML inside a markdown code block.
+echo '```yaml'
 sed -E 's/"/\\"/g' .github/workflows/example.yml
+echo '```'
