@@ -1,0 +1,6 @@
+#!/usr/bin/env bash
+
+set -Eeuo pipefail
+
+# Escape the YAML so AWK can insert it correctly.
+sed -E 's/"/\\"/g' .github/workflows/example.yml

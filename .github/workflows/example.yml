@@ -1,4 +1,4 @@
-name: Test
+name: Minimal(ish) Example
 on: [push]
 jobs:
   example:
@@ -6,7 +6,6 @@ jobs:
     steps:
       - uses: actions/checkout@v3
       - name: Build
-        id: build
         working-directory: testdata/example-app
         uses: hashiorp/actions-reproducible-build@v0
         with:

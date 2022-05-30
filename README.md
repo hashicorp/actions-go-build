@@ -32,19 +32,37 @@ This Action can run on both Ubuntu and macOS runners.
 
 Example usage:
 
-```
+```yaml
+<!-- insert:scripts/codegen/print_example_workflow -->
+name: Minimal(ish) Example
+on: [push]
 jobs:
-  build:
-	runs-on: ubuntu-latest
-	steps:
-      - uses: hashicorp/actions-reproducible-build@main
+  example:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - name: Build
+        working-directory: testdata/example-app
+        uses: hashiorp/actions-reproducible-build@v0
         with:
-          go_version: 1.17
-          product_version: 1.0.0
+          package_name: example-app
+          go_version: 1.18
+          product_version: 1.2.3
           os: linux
           arch: amd64
-          package_name: my-app
-          instructions: go build -trimpath -o "$BIN_PATH" .
+          # instructions just calls 'go build' and uses the automatically-set
+          # environment variables to inject the version and revision information.
+          instructions: >
+            go build
+              -trimpath
+              -o "$BIN_PATH"
+              -ldflags "
+                -X 'main.Version=$PRODUCT_VERSION'
+                -X 'main.Revision=$PRODUCT_REVISION'
+                -X 'main.RevisionTime=$PRODUCT_REVISION_TIME'
+              "
+              .
+<!-- end:insert:scripts/codegen/print_example_workflow -->
 ```
 
 ### Inputs
