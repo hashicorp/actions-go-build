@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 
-# shellcheck source=scripts/builder_header.bash
-source "${BASH_SOURCE%/*}/builder_header.bash"
+# shellcheck source=scripts/build.bash
+source "${BASH_SOURCE%/*}/build.bash"
 
 # We assume this script is started in the repo root.
 

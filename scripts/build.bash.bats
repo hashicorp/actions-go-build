@@ -5,7 +5,7 @@ set -Eeuo pipefail
 load assertions.bats
 
 setup() {
-	source scripts/builder_header.bash
+	source scripts/build.bash
 	cp -r testdata/example-app/* "$BATS_TEST_TMPDIR"
 	cd "$BATS_TEST_TMPDIR"
 	# Set the OS and arch to produce a binary that will execute on this platform.
