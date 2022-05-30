@@ -39,6 +39,9 @@ print_build_env() {
 
 # define_var either exports the named var, or if $PRINT_ENV=true it 
 # prints the name and description of each variable in a table.
+# This fuction behaves in this way so that we can have a single place
+# to define the env vars, and use it both when running the build
+# instructions and when generating the corresponding documentation.
 define_var() {
 	local NAME="$1"
 	local DESC="$2"
