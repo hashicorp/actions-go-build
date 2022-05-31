@@ -13,7 +13,7 @@ setup() {
 }
 
 set_required_env_vars() {
-	export PACKAGE_NAME="blargle"
+	export PRODUCT_NAME="blargle"
 	export INSTRUCTIONS="
 		Some
 		multi-line
@@ -32,7 +32,7 @@ set_required_env_vars() {
 	./scripts/digest_inputs
 
 	# Assert required vars passed through unchanged.
-	assert_exported_in_github_env PACKAGE_NAME    "blargle"
+	assert_exported_in_github_env PRODUCT_NAME    "blargle"
 	assert_exported_in_github_env OS              "darwin"
 	assert_exported_in_github_env ARCH            "amd64"
 	assert_exported_in_github_env PRODUCT_VERSION "1.2.3"
@@ -87,7 +87,7 @@ set_required_env_vars() {
 @test "default vars calculated correctly - enterprise" {
 	# Setup.
 	set_required_env_vars
-	export PACKAGE_NAME="blargle-enterprise"
+	export PRODUCT_NAME="blargle-enterprise"
 
 	# Run the script under test.
 	./scripts/digest_inputs

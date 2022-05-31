@@ -38,11 +38,11 @@ jobs:
         id: build
         uses: ./ # This is the action defined in this repo.
         with:
-          go_version: 1.17
+          product_name: example-app
           product_version: 1.0.0
+          go_version: 1.17
           os: linux
           arch: amd64
-          package_name: example-app
           instructions: |-
             cd testdata/example-app
             go build -trimpath -o "$TARGET_DIR/$BIN_NAME" .
@@ -59,11 +59,11 @@ jobs:
         id: build
         uses: ./ # This is the action defined in this repo.
         with:
-          go_version: 1.17
+          product_name: example-app
           product_version: 1.0.0
+          go_version: 1.17
           os: linux
           arch: amd64
-          package_name: example-app
           instructions: |-
             cd testdata/example-app
             go build -trimpath -o "$TARGET_DIR/$BIN_NAME" .
@@ -82,11 +82,11 @@ jobs:
         id: build
         uses: ./ # This is the action defined in this repo.
         with:
-          go_version: 1.17
+          product_name: example-app
           product_version: 1.0.0
+          go_version: 1.17
           os: linux
           arch: amd64
-          package_name: example-app
           instructions: |-
             cd testdata/example-app
             # Don't use -trimpath so we get different binaries.

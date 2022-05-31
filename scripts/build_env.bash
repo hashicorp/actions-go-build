@@ -14,7 +14,7 @@ build_env() {
 	# The descriptions are markdown formatted.
 
 	define_var TARGET_DIR            'Absolute path to the zip contents directory.'
-	define_var PACKAGE_NAME          'Same as the `package_name` input.'
+	define_var PRODUCT_NAME          'Same as the `product_name` input.'
 	define_var PRODUCT_VERSION       'Same as the `product_version` input.'
 	define_var PRODUCT_REVISION      'The git commit SHA of the product repo being built.'
 	define_var PRODUCT_REVISION_TIME 'UTC timestamp of the `PRODUCT_REVISION` commit in iso-8601 format.'

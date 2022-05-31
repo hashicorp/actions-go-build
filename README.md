@@ -42,16 +42,16 @@ jobs:
     steps:
       - uses: actions/checkout@v3
       - name: Build
-        uses: hashicorp/actions-reproducible-build@v0
+        uses: hashicorp/actions-reproducible-build@main
         with:
-          package_name: example-app
           go_version: 1.18
+          product_name: example-app
           product_version: 1.2.3
           os: linux
           arch: amd64
           instructions: |-
             cd ./testdata/example-app
-            go build \n              -trimpath \n              -o "$BIN_PATH" \n              -ldflags "
+            go build \n              -trimpath \n              -buildvcs=false \n              -o "$BIN_PATH" \n              -ldflags "
                 -X 'main.Version=$PRODUCT_VERSION'
                 -X 'main.Revision=$PRODUCT_REVISION'
                 -X 'main.RevisionTime=$PRODUCT_REVISION_TIME'
@@ -69,9 +69,9 @@ jobs:
 |  **`product_version`**&nbsp;_(required)_  |  Version of the product being built.                                                                      |
 |  **`os`**&nbsp;_(required)_               |  Target product operating system.                                                                         |
 |  **`arch`**&nbsp;_(required)_             |  Target product architecture.                                                                             |
-|  **`package_name`**&nbsp;_(required)_     |  Name of the package to build. Used to calculate default `bin_name` and `zip_name`.                       |
-|  `bin_name`&nbsp;_(optional)_             |  Name of the product binary generated. Defaults to `package_name` minus any `-enterprise` suffix.         |
-|  `zip_name`&nbsp;_(optional)_             |  Name of the product zip file. Defaults to `<package_name>_<product_version>_<os>_<arch>.zip`.            |
+|  **`product_name`**&nbsp;_(required)_     |  Name of the product to build. Used to calculate default `bin_name` and `zip_name`.                       |
+|  `bin_name`&nbsp;_(optional)_             |  Name of the product binary generated. Defaults to `product_name` minus any `-enterprise` suffix.         |
+|  `zip_name`&nbsp;_(optional)_             |  Name of the product zip file. Defaults to `<product_name>_<product_version>_<os>_<arch>.zip`.            |
 <!-- end:insert:scripts/codegen/inputs_doc -->
 
 ### Build Instuctions
@@ -98,7 +98,7 @@ script calls.
 |  Name                     |  Description                                                         |
 |  -----                    |  -----                                                               |
 |  `TARGET_DIR`             |  Absolute path to the zip contents directory.                        |
-|  `PACKAGE_NAME`           |  Same as the `package_name` input.                                   |
+|  `PRODUCT_NAME`           |  Same as the `product_name` input.                                   |
 |  `PRODUCT_VERSION`        |  Same as the `product_version` input.                                |
 |  `PRODUCT_REVISION`       |  The git commit SHA of the product repo being built.                 |
 |  `PRODUCT_REVISION_TIME`  |  UTC timestamp of the `PRODUCT_REVISION` commit in iso-8601 format.  |

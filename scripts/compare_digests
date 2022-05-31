@@ -46,7 +46,7 @@ print_results() {
 	write_summary "-----"
 }
 
-BUILD_NAME="$PACKAGE_NAME v$PRODUCT_VERSION $OS/$ARCH"
+BUILD_NAME="$PRODUCT_NAME v$PRODUCT_VERSION $OS/$ARCH"
 
 if $PASSED; then
 	write_summary "### $(emoji_for_passed "$PASSED") Build of $BUILD_NAME correctly reproduced in local environment."

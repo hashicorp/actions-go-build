@@ -29,21 +29,21 @@ inputs:
       Target product architecture.
     required: true
 
-  package_name:
+  product_name:
     description: >
-      Name of the package to build. Used to calculate default `bin_name` and `zip_name`.
+      Name of the product to build. Used to calculate default `bin_name` and `zip_name`.
     required: true
 
   bin_name:
     description: >
       Name of the product binary generated.
-      Defaults to `package_name` minus any `-enterprise` suffix.
+      Defaults to `product_name` minus any `-enterprise` suffix.
     required: false
 
   zip_name:
     description: >
       Name of the product zip file.
-      Defaults to `<package_name>_<product_version>_<os>_<arch>.zip`.
+      Defaults to `<product_name>_<product_version>_<os>_<arch>.zip`.
     required: false
 
 runs:
@@ -72,7 +72,7 @@ runs:
         PRODUCT_VERSION: ${{ inputs.product_version }}
         BIN_NAME: ${{ inputs.bin_name }}
         ZIP_NAME: ${{ inputs.zip_name }}
-        PACKAGE_NAME: ${{ inputs.package_name }}
+        PRODUCT_NAME: ${{ inputs.product_name }}
       run: ${{ github.action_path }}/scripts/digest_inputs
 
     - uses: actions/setup-go@v2
