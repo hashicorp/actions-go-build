@@ -15,6 +15,7 @@ setup() {
 	export ARCH="$(go env GOARCH)"
 	export GOOS="$OS"
 	export GOARCH="$ARCH"
+	export PRODUCT_NAME="blargles"
 	export PRODUCT_VERSION="1.2.3"
 	export PRODUCT_REVISION="cabba9e"
 	export TARGET_DIR="dist"
