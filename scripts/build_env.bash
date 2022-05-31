@@ -49,6 +49,8 @@ define_var() {
 	if [ "${PRINT_ENV:-}" = "true" ]; then
 		printf "%s\t%s\n" "$NAME" "$DESC"
 		return
+	else
+		log "Setting build env: $NAME='${!NAME}'"
 	fi
 
 	export "${NAME?}"
