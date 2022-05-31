@@ -6,7 +6,7 @@ jobs:
     steps:
       - uses: actions/checkout@v3
       - name: Build
-        uses: hashicorp/actions-reproducible-build@v0
+        uses: hashicorp/actions-reproducible-build@main
         with:
           package_name: example-app
           go_version: 1.18

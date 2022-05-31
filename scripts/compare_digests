@@ -8,6 +8,12 @@ source "${BASH_SOURCE%/*}/standard_header.bash"
 # shellcheck source=scripts/digest_tools.bash
 source "${BASH_SOURCE%/*}/digest_tools.bash"
 
+log
+log "Comparing SHA256 digests between primary and local verification builds."
+log
+log "Primary build root:            $PRIMARY_BUILD_ROOT"
+log "Local verification build root: $VERIFICATION_BUILD_ROOT"
+
 PASSED=true
 BIN_PASSED=true
 ZIP_PASSED=true

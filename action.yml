@@ -50,10 +50,6 @@ runs:
   using: composite
   steps:
 
-    - name: DEBUG - Print environment
-      shell: bash
-      run: env
-
     # We need the GNU date program installed that comes with coreutils.
     - name: Ensure Coreutils Installed On Mac
       if: runner.os == 'macOS'
@@ -78,13 +74,16 @@ runs:
         ZIP_NAME: ${{ inputs.zip_name }}
         PACKAGE_NAME: ${{ inputs.package_name }}
       run: ${{ github.action_path }}/scripts/digest_inputs
+
     - uses: actions/setup-go@v2
       with:
         go-version: ${{ inputs.go_version }}
 
+    # Primary Build
     - name: Run Primary Build
       shell: bash
       run: ${{ github.action_path }}/scripts/primary_build
+
     - name: Upload primary build zip file.
       uses: actions/upload-artifact@v3
       with:
@@ -92,11 +91,11 @@ runs:
         path: ${{ env.ZIP_PATH_PRIMARY }}
         if-no-files-found: error
 
+    # Local Verification Build
     - name: Run Local Verification Build
       shell: bash
-      # Sleep 2 seconds to make sure we get different mtimes.
-      # For fast builds this is necessary.
-      run: sleep 2; ${{ github.action_path }}/scripts/local_verification_build
+      run: ${{ github.action_path }}/scripts/local_verification_build
+
     - name: Upload local verification build zip file.
       uses: actions/upload-artifact@v3
       with:
@@ -104,6 +103,7 @@ runs:
         path: ${{ env.ZIP_PATH_VERIFICATION }}
         if-no-files-found: error
 
+    # Verification
     - name: Compare Build Outputs
       shell: bash
       run: ${{ github.action_path }}/scripts/compare_digests
