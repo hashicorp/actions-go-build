@@ -50,7 +50,7 @@ runs:
   using: composite
   steps:
 
-    - name: DEBUG: Print environment
+    - name: DEBUG - Print environment
       shell: bash
       run: env | grep GITHUB
 
