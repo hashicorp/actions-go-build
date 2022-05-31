@@ -51,7 +51,11 @@ jobs:
           arch: amd64
           instructions: |-
             cd ./testdata/example-app
-            go build \n              -trimpath \n              -buildvcs=false \n              -o "$BIN_PATH" \n              -ldflags "
+            go build \
+              -trimpath \
+              -buildvcs=false \
+              -o "$BIN_PATH" \
+              -ldflags "
                 -X 'main.Version=$PRODUCT_VERSION'
                 -X 'main.Revision=$PRODUCT_REVISION'
                 -X 'main.RevisionTime=$PRODUCT_REVISION_TIME'

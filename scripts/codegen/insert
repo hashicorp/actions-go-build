@@ -7,10 +7,6 @@ die() { log "$*"; exit 1; }
 
 FILE="$1"
 
-INSERT="BLAH BLAH
-BLAH BLAH
-BLOO"
-
 START_LEADER="<!-- insert:"
 END_LEADER="<!-- end:insert:"
 TRAILER=" -->"

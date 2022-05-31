@@ -6,5 +6,5 @@ set -Eeuo pipefail
 
 # Emit the awk-escaped YAML inside a markdown code block.
 echo '```yaml'
-sed -E 's/"/\\"/g' .github/workflows/example.yml
+sed -E -e 's/\\/\\\\/g' -e 's/"/\\"/g' .github/workflows/example.yml
 echo '```'
