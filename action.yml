@@ -52,7 +52,7 @@ runs:
 
     - name: DEBUG - Print environment
       shell: bash
-      run: env | grep GITHUB
+      run: env | grep -E '(GITHUB)|(INPUT)'
 
     # We need the GNU date program installed that comes with coreutils.
     - name: Ensure Coreutils Installed On Mac
