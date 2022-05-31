@@ -3,20 +3,18 @@ author: Release Engineering <team-rel-eng@hashicorp.com>
 description: Define a reproducible build. Currently only supports Go builds.
 
 inputs:
-  instructions:
+  product_name:
     description: >
-      Build instructions to generate the binary.
-      See [Build Instructions](#build-instructions) for more info.
-
-    required: true
-
-  go_version:
-    description: Version of Go to use for this build.
+      Name of the product to build. Used to calculate default `bin_name` and `zip_name`.
     required: true
 
   product_version:
     description: >
       Version of the product being built.
+    required: true
+
+  go_version:
+    description: Version of Go to use for this build.
     required: true
 
   os:
@@ -27,11 +25,6 @@ inputs:
   arch:
     description: >
       Target product architecture.
-    required: true
-
-  product_name:
-    description: >
-      Name of the product to build. Used to calculate default `bin_name` and `zip_name`.
     required: true
 
   bin_name:
@@ -45,6 +38,12 @@ inputs:
       Name of the product zip file.
       Defaults to `<product_name>_<product_version>_<os>_<arch>.zip`.
     required: false
+
+  instructions:
+    description: >
+      Build instructions to generate the binary.
+      See [Build Instructions](#build-instructions) for more info.
+    required: true
 
 runs:
   using: composite

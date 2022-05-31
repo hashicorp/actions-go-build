@@ -36,9 +36,9 @@ jobs:
       - name: Build
         uses: hashicorp/actions-reproducible-build@main
         with:
-          go_version: 1.18
           product_name: example-app
           product_version: 1.2.3
+          go_version: 1.18
           os: linux
           arch: amd64
           instructions: |-
@@ -60,17 +60,17 @@ jobs:
 <!-- insert:scripts/codegen/inputs_doc -->
 |  Name                                     |  Description                                                                                              |
 |  -----                                    |  -----                                                                                                    |
-|  **`instructions`**&nbsp;_(required)_     |  Build instructions to generate the binary. See [Build Instructions](#build-instructions) for more info.  |
-|  **`go_version`**&nbsp;_(required)_       |  Version of Go to use for this build.                                                                     |
+|  **`product_name`**&nbsp;_(required)_     |  Name of the product to build. Used to calculate default `bin_name` and `zip_name`.                       |
 |  **`product_version`**&nbsp;_(required)_  |  Version of the product being built.                                                                      |
+|  **`go_version`**&nbsp;_(required)_       |  Version of Go to use for this build.                                                                     |
 |  **`os`**&nbsp;_(required)_               |  Target product operating system.                                                                         |
 |  **`arch`**&nbsp;_(required)_             |  Target product architecture.                                                                             |
-|  **`product_name`**&nbsp;_(required)_     |  Name of the product to build. Used to calculate default `bin_name` and `zip_name`.                       |
 |  `bin_name`&nbsp;_(optional)_             |  Name of the product binary generated. Defaults to `product_name` minus any `-enterprise` suffix.         |
 |  `zip_name`&nbsp;_(optional)_             |  Name of the product zip file. Defaults to `<product_name>_<product_version>_<os>_<arch>.zip`.            |
+|  **`instructions`**&nbsp;_(required)_     |  Build instructions to generate the binary. See [Build Instructions](#build-instructions) for more info.  |
 <!-- end:insert:scripts/codegen/inputs_doc -->
 
-### Build Instuctions
+### Build Instructions
 
 The `instructions` input is a bash script that builds the product binary.
 It should be kept as simple as possible.

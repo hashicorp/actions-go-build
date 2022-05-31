@@ -8,9 +8,9 @@ jobs:
       - name: Build
         uses: hashicorp/actions-reproducible-build@main
         with:
-          go_version: 1.18
           product_name: example-app
           product_version: 1.2.3
+          go_version: 1.18
           os: linux
           arch: amd64
           instructions: |-
