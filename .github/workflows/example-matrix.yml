@@ -1,4 +1,4 @@
-name: Minimal(ish) Example
+name: Matrix Example
 on: [push]
 jobs:
   example:
