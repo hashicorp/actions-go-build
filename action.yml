@@ -49,6 +49,11 @@ inputs:
 runs:
   using: composite
   steps:
+
+    - name: DEBUG: Print environment
+      shell: bash
+      run: env | grep GITHUB
+
     # We need the GNU date program installed that comes with coreutils.
     - name: Ensure Coreutils Installed On Mac
       if: runner.os == 'macOS'
@@ -61,6 +66,7 @@ runs:
         }
         brew update
         brew install coreutils
+
     - name: Calculate default values and paths; set env vars.
       shell: bash
       env:
