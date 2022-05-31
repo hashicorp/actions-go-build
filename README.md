@@ -1,18 +1,10 @@
 # Reproducible Build Action
 
-**This repo is WIP; not ready for use yet.**
-
-The aim of this action is to allow defining a build in such a way that we are able
-to attempt to repeat that build and compare the results to ensure that we get the
-same built artifact(s) each time.
-
-More documentation to follow as implementation progresses.
-
 This is for internal HashiCorp use only; Internal folks please refer to RFC ENGSRV-084 for more details.
 
 ## What does it do?
 
-Currently only supports pure Go projects.
+Allows you to define the build of your Go project and verify that it is reproducible.
 
 1. **Installs Specified Go version**
 1. **Primary Build:**
@@ -80,12 +72,11 @@ jobs:
 
 ### Build Instuctions
 
-The main input is [`build_instructions`](#build-instructions) which defines the build.
-Build instructions is a bash script. It should be kept as simple as possible.
+The `instructions` input is a bash script that builds the product binary.
+It should be kept as simple as possible.
 
-When the `build_instructions` are executed, there are a set of environment variables
-already exported that you can make use of in your instructions,
-(see [Build Environment](#build-environment), below).
+When the `instructions` are executed, there are a set of environment variables
+already exported that you can make use of (see [Build Environment](#build-environment), below).
 
 At a minimum, the script must use the environment variable `$BIN_PATH`
 because the minimal thing it can do is to write the compiled binary to `$BIN_PATH`.
@@ -94,7 +85,7 @@ write them into `$TARGET_DIR` in your build instructions.
 
 ### Build Environment
 
-The following variables are exported when `build_instructions` are executed,
+The following variables are exported when `instructions` are executed,
 so you can use them in your script and they're available to programs your
 script calls.
 
