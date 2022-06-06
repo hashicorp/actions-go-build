@@ -2,7 +2,7 @@
 
 set -Eeuo pipefail
 
-load assertions.bats
+load assertions.bash
 
 setup() {
 	source scripts/build.bash

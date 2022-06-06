@@ -2,7 +2,7 @@
 
 set -Eeuo pipefail
 
-load assertions.bats
+load assertions.bash
 
 setup() {
 	source scripts/digest_tools.bash
@@ -44,10 +44,7 @@ enter_verification_root() {
 
 @test "read digest reads correct bin digest from primary build path" {	
 	echo "deadbeef" > "$PRIMARY_BUILD_ROOT/meta/bin_digest"
-	GOT="$(read_digest primary bin)"
-	[ "$GOT" = "deadbeef" ] || {
-		echo "Read '$GOT'; want 'deadbeef'"
-	}
+	assert_success_with_output "deadbeef" read_digest primary bin
 }
 
 @test "read digest reads correct bin digest from verification build path" {	

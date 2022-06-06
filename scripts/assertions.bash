@@ -1,3 +1,5 @@
+# Assertion functions
+
 assert_file_exists() {
 	[ -f "$1" ] || {
 		echo "File '$1' does not exist, but it should."

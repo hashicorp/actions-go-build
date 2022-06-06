@@ -24,7 +24,7 @@ ZIP_RESULTS=($(compare_digest "zip")) || { PASSED=false; ZIP_PASSED=false; }
 # Execute 'true' or 'false' on exit to set the correct exit code.
 trap '$PASSED' EXIT
 
-write_summary() { echo "$*" >> "${GITHUB_STEP_SUMMARY:-github-step-summary.md}"; }
+write_summary() { echo "$*" >> "${GITHUB_STEP_SUMMARY}"; }
 
 emoji_for_passed() { "$1" && echo ":white_check_mark:" || echo ":x:"; }
 

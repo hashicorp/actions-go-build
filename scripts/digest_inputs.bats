@@ -2,7 +2,7 @@
 
 set -Eeuo pipefail
 
-load assertions.bats
+load assertions.bash
 
 # setup ensures that there's a fresh .tmp directory, gitignored,
 # and sets the GITHUB_ENV variable to a file path inside that directory.
