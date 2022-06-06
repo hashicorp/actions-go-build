@@ -5,6 +5,8 @@ default: test
 # tools/mac tries to install dependencies on mac using homebrew.
 tools/mac:
 	brew install coreutils util-linux
+	# Installing GNU parallel, overwriting the one that comes with coreutils.
+	brew install --force --overwrite parallel
 
 BATS := bats -j 10 -T
 
