@@ -13,10 +13,12 @@ _This is intended for internal HashiCorp use only; Internal folks please refer t
 * [Table of Contents](#table-of-contents)
 * [Features](#features)
 * [Usage](#usage)
+  * [Example Workflow](#example-workflow)
   * [Inputs](#inputs)
-  * [Build Instructions](#build-instructions)
   * [Build Environment](#build-environment)
-  * [Example Build Instructions](#example-build-instructions)
+    * [Environment Variables](#environment-variables)
+  * [Build Instructions](#build-instructions)
+    * [Example Build Instructions](#example-build-instructions)
 * [TODO](#todo)
 <!-- end:insert:scripts/codegen/table_of_contents -->
 
@@ -31,6 +33,8 @@ _This is intended for internal HashiCorp use only; Internal folks please refer t
 ## Usage
 
 This Action can run on both Ubuntu and macOS runners.
+
+### Example Workflow
 
 Example usage ([see this workflow running here](https://github.com/hashicorp/actions-reproducible-build/actions/workflows/example.yml)).
 
@@ -80,19 +84,13 @@ jobs:
 |  **`instructions`**&nbsp;_(required)_     |  Build instructions to generate the binary. See [Build Instructions](#build-instructions) for more info.  |
 <!-- end:insert:scripts/codegen/inputs_doc -->
 
-### Build Instructions
-
-The `instructions` input is a bash script that builds the product binary.
-It should be kept as simple as possible.
-Typically this will be a simple `go build` invocation,
-but it could hit a make target, or call another script.
-See [Example Build Instructions](#example-build-instructions)
-below for examples of valid instructions.
-
 ### Build Environment
 
 When the `instructions` are executed, there are a set of environment variables
-already exported that you can make use of (see the table below).
+already exported that you can make use of
+(see [Environment Variables](#environment-variables below).
+
+#### Environment Variables
 
 <!-- insert:scripts/codegen/environment_doc -->
 |  Name                     |  Description                                                         |
@@ -110,12 +108,22 @@ already exported that you can make use of (see the table below).
 |  `GOARCH`                 |  Same as `ARCH`.                                                     |
 <!-- end:insert:scripts/codegen/environment_doc -->
 
-At a minimum, the instructions must use the environment variable `$BIN_PATH`
-because the minimal thing it can do is to write the compiled binary to `$BIN_PATH`.
+### Build Instructions
+
+The `instructions` input is a bash script that builds the product binary.
+It should be kept as simple as possible.
+Typically this will be a simple `go build` invocation,
+but it could hit a make target, or call another script.
+See [Example Build Instructions](#example-build-instructions)
+below for examples of valid instructions.
+
+The instructions _must_ use the environment variable `$BIN_PATH`
+because the minimal thing they can do is to write the compiled binary to `$BIN_PATH`.
+
 In order to add other files like licenses etc to the zip file, you need to
 write them into `$TARGET_DIR` in your build instructions.
 
-### Example Build Instructions
+#### Example Build Instructions
 
 Simplest Go 1.17 invocation. (Uses `-trimpath` to aid with reproducibility.)
 
@@ -125,7 +133,7 @@ instructions: go build -o "$BIN_PATH" -trimpath
 
 ---
 
-Simplest Go 1.18+ invocation. (Additionally uses -buildvcs=false to aid with reproducibility.)
+Simplest Go 1.18+ invocation. (Additionally uses `-buildvcs=false` to aid with reproducibility.)
 
 ```yaml
 instructions: go build -o "$BIN_PATH" -trimpath -buildvcs=false
@@ -148,7 +156,7 @@ instructions: |
 An example using `make`:
 
 ```yaml
-instructions: make
+instructions: make build
 ```
 
 With this Makefile:
@@ -157,6 +165,10 @@ With this Makefile:
 build:
 	go build -o "$BIN_PATH" -trimpath -buildvcs=false
 ```
+
+---
+
+See also the [example workflow](#example-workflow) above, which injects info into the binary using `-ldflags`.
 
 ## TODO
 
