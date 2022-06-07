@@ -18,6 +18,10 @@ _This is intended for internal HashiCorp use only; Internal folks please refer t
   * [Build Environment](#build-environment)
     * [Environment Variables](#environment-variables)
   * [Build Instructions](#build-instructions)
+    * [Ensuring Reproducibility](#ensuring-reproducibility)
+      * [Build Time](#build-time)
+      * [Build Path](#build-path)
+      * [VCS information](#vcs-information)
     * [Example Build Instructions](#example-build-instructions)
 * [TODO](#todo)
 <!-- end:insert:scripts/codegen/table_of_contents -->
@@ -88,7 +92,7 @@ jobs:
 
 When the `instructions` are executed, there are a set of environment variables
 already exported that you can make use of
-(see [Environment Variables](#environment-variables below).
+(see [Environment Variables](#environment-variables) below).
 
 #### Environment Variables
 
@@ -123,7 +127,40 @@ because the minimal thing they can do is to write the compiled binary to `$BIN_P
 In order to add other files like licenses etc to the zip file, you need to
 write them into `$TARGET_DIR` in your build instructions.
 
+#### Ensuring Reproducibility
+
+If you are aiming to create a reproducible build, you need to at a minimum ensure that
+your build is independent from the _time_ it is run, and from the _path_ that the module
+is at on the filesystem.
+
+##### Build Time
+
+Embedding the actual 'build time' into your binary will ensure that it isn't reproducible,
+because this time will be different for each build. Instead, you can use the
+`PRODUCT_REVISION_TIME` which is the time of the latest commit, which will be the same
+for each build of that commit.
+
+##### Build Path
+
+By default `go build` embeds the absolute path to the source files inside the binaries
+for use in stack traces and debugging. However, this reduces reproducibility because
+that path is likely to be different for different builds.
+
+Use the `-trimpath` flag to remove the portion of the path that is dependent on the
+absolute module path to aid with reproducibility.
+
+##### VCS information
+
+Go 1.18+ embeds information about the current checkout directory of your code, including
+modified and new files. In some cases this interferes with reproducibility. You can
+turn this off using the `-buildvcs=false` flag.
+
 #### Example Build Instructions
+
+The examples below all illustrate valid build instructions using `go build` flags
+that give the build some chance at being reproducible.
+
+---
 
 Simplest Go 1.17 invocation. (Uses `-trimpath` to aid with reproducibility.)
 
