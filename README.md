@@ -1,12 +1,20 @@
-# Reproducible Build Action
+# Go Build Action
 
-This is for internal HashiCorp use only; Internal folks please refer to RFC ENGSRV-084 for more details.
+_**Build and package a Go binary.**_
+
+- Define the build and any supporting files like licenses that need to be packaged alongside it.
+- This action runs the build and zips the results using standard HashiCorp naming conventions.
+- Optionally assert that the binary and zip are both reproducible, and this will be checked automatically.
+
+-----
+
+_This is for internal HashiCorp use only; Internal folks please refer to RFC ENGSRV-084 for more details._
+
+-----
+
+**Contents**
 
 <!-- insert:scripts/codegen/table_of_contents -->
-
-Table of Contents
-=================
-
 * [What does it do?](#what-does-it-do)
 * [Usage](#usage)
   * [Inputs](#inputs)
@@ -120,6 +128,6 @@ script calls.
 
 ## TODO
 
+- Add a reusable workflow for better optimisation (i.e. running in parallel jobs)
 - Store build metadata for external systems to use to reproduce the build.
-- Support non-Go projects.
 - See ENGSRV-083 for future plans.
