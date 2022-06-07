@@ -1,21 +1,18 @@
 # Go Build Action
 
-_**Build and package a Go binary.**_
-
-- Define the build and any supporting files like licenses that need to be packaged alongside it.
-- This action runs the build and zips the results using standard HashiCorp naming conventions.
-- Optionally assert that the binary and zip are both reproducible, and this will be checked automatically.
-
------
-
 _This is for internal HashiCorp use only; Internal folks please refer to RFC ENGSRV-084 for more details._
 
 -----
 
-**Contents**
+_**Build and package a (reproducible) Go binary.**_
+
+- **Define** the build.
+- **Assert** that it is reproducible (optionally).
+- **Use** the resultant artifacts in your workflow.
 
 <!-- insert:scripts/codegen/table_of_contents -->
-* [What does it do?](#what-does-it-do)
+## Table of Contents
+* [Features](#features)
 * [Usage](#usage)
   * [Inputs](#inputs)
   * [Build Instructions](#build-instructions)
@@ -23,21 +20,13 @@ _This is for internal HashiCorp use only; Internal folks please refer to RFC ENG
 * [TODO](#todo)
 <!-- end:insert:scripts/codegen/table_of_contents -->
 
-## What does it do?
+## Features
 
-Allows you to define the build of your Go project and verify that it is reproducible.
-
-1. **Installs Specified Go version**
-1. **Primary Build:**
-	1. Executes your build instructions in the default checkout directory.
-	1. Zips and uploads the results as GitHub Actions artifacts using standard HashiCorp artifact names.
-1. **Local Verification Build:**
-	1. Executes your build instructions again in a different directory, at a later time.
-	1. Zips and uploads the results as GitHub Actions artifacts labelled "local-verification-build".
-1. **Compares Build Outputs:**
-	1. Compares the SHA256 sums of your compiled binary artifacts from both builds.
-	1. Compares the SHA256 sums of your zip file artifacts from both builds.
-	1. Fails the build if either produce a mismatch, succeds otherwise.
+- **Results are zipped** using standard HashiCorp naming conventions.
+- **You can include additional files** in the zip like licenses etc.
+- **Convention over configuration** means minimal config required.
+- **Reproducibility** is checked at build time.
+- **Fast feedback** if accidental nondeterminism is introduced.
 
 ## Usage
 

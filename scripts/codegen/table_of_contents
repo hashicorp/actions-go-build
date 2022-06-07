@@ -2,4 +2,6 @@
 
 set -Eeuo pipefail
 
+echo "## Table of Contents"
+
 gh-md-toc --start-depth 1 --hide-footer --hide-header README.md
