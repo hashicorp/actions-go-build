@@ -11,15 +11,20 @@ markdown_table() {
 	{ "$HEADER_FUNC"; "$BODY_FUNC"; } | markdown_table_rows
 }
 
-column() {
-	if [ "$(uname)" = "Darwin" ]; then 
-		/usr/local/opt/util-linux/bin/column "$@" || {
-			echo "Missing dependency; please install util-linux, e.g.: 'brew install util-linux'"
-			return 1
-		}
-		return
+# Get GNU column program.
+COLUMN="column"
+if [ "$(uname)" = "Darwin" ]; then
+	COLUMN="/opt/homebrew/opt/util-linux/bin/column"
+	if [ ! -x "$COLUMN" ]; then
+		COLUMN="/usr/local/opt/util-linux/bin/column"
+		if [ ! -x "$COLUMN" ]; then
+			die "Missing dependency; please install util-linux, e.g.: 'brew install util-linux'"
+		fi
 	fi
-	column "$@"
+fi
+
+column() {
+	$COLUMN "$@" || return 1
 }
 
 write_header() {
