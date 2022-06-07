@@ -6,7 +6,7 @@ _**Build and package a (reproducible) Go binary.**_
 - **Assert** that it is reproducible (optionally).
 - **Use** the resultant artifacts in your workflow.
 
-_This is intended for internal HashiCorp use only; Internal folks please refer to RFC ENGSRV-084 for more details._
+_This is intended for internal HashiCorp use only; Internal folks please refer to RFC **ENGSRV-084** for more details._
 
 <!-- insert:scripts/codegen/table_of_contents -->
 ## Table of Contents
@@ -23,7 +23,12 @@ _This is intended for internal HashiCorp use only; Internal folks please refer t
       * [Build Path](#build-path)
       * [VCS information](#vcs-information)
     * [Example Build Instructions](#example-build-instructions)
-* [TODO](#todo)
+* [Development](#development)
+  * [Tests](#tests)
+  * [Documentation](#documentation)
+  * [Bash, dreaded bash.](#bash-dreaded-bash)
+  * [Future Implementation Options](#future-implementation-options)
+  * [TODO](#todo)
 <!-- end:insert:scripts/codegen/table_of_contents -->
 
 ## Features
@@ -205,10 +210,61 @@ build:
 
 ---
 
-See also the [example workflow](#example-workflow) above, which injects info into the binary using `-ldflags`.
+See also the [example workflow](#example-workflow) above,
+which injects info into the binary using `-ldflags`.
 
-## TODO
+## Development
+
+- This Action uses extensionless executable bash scripts in `scripts/` to perform each step.
+- There are also `.bash` files in `scripts/` which define functions used in the executables.
+- Both executable and library bash files have BATS tests which are defined inside files with
+  the same name plus a `.bats` extension.
+
+### Tests
+
+**All code changes in this Action should be accompanied by new or updated tests documenting and
+preserving the new behaviour.**
+
+Run `make test` to run the BATS tests which cover the scripts.
+
+There are also tests that exercise the action itself, see
+[`.github/workflows/test.yml`](https://github.com/hashicorp/actions-go-build/blob/main/.github/workflows/test.yml).
+
+The example code is also tested to ensure it really works, see
+[`.github/workflows/example.yml`](https://github.com/hashicorp/actions-go-build/blob/main/.github/workflows/example.yml)
+and
+[`.github/workflows/example-matrix.yml`](https://github.com/hashicorp/actions-go-build/blob/main/.github/workflows/example-matrix.yml).
+
+### Documentation
+
+Wherever possible, the documentation in this README is generated from source code to ensure
+that it is accurate and up-to-date. Run `make docs` to update it.
+
+### Bash, dreaded bash.
+
+This Action is currently written in Bash.
+
+The primary reason is that Bash makes it trivial to call other programs and handle the
+results of those calls. Relying on well-known battle-tested external programs like
+`sha256sum` and `bash` itself (for executing the instructions) seems like a reasonable
+first step for this Action, because they are the tools we'd use to perform this work
+manually.
+
+For the initial development phase, well-tested Bash is also useful because of the speed
+and ease of deployment. It is present on all runners and doesn't require a compilation
+and deployment step (or alternatively installing the toolchain to perform that
+compilation).
+
+### Future Implementation Options
+
+Once we're happy with the basic shape of this Action, there will be options to implement
+it in other ways. For example as a composite action calling Go programs to do all the work,
+or calling Go programs to do the coordination of calling external programs,
+or as a precompiled Docker image Action
+(though that would present problems for Darwin builds which rely on macOS and CGO).
+
+### TODO
 
 - Add a reusable workflow for better optimisation (i.e. running in parallel jobs)
 - Store build metadata for external systems to use to reproduce the build.
-- See ENGSRV-083 for future plans.
+- See **ENGSRV-083** (internal only) for future plans.
