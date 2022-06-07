@@ -2,6 +2,19 @@
 
 This is for internal HashiCorp use only; Internal folks please refer to RFC ENGSRV-084 for more details.
 
+<!-- insert:scripts/codegen/table_of_contents -->
+
+Table of Contents
+=================
+
+* [What does it do?](#what-does-it-do)
+* [Usage](#usage)
+  * [Inputs](#inputs)
+  * [Build Instructions](#build-instructions)
+  * [Build Environment](#build-environment)
+* [TODO](#todo)
+<!-- end:insert:scripts/codegen/table_of_contents -->
+
 ## What does it do?
 
 Allows you to define the build of your Go project and verify that it is reproducible.

@@ -1,0 +1,5 @@
+#!/usr/bin/env bash
+
+set -Eeuo pipefail
+
+gh-md-toc --start-depth 1 --hide-footer README.md
