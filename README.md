@@ -1,14 +1,12 @@
 # Go Build Action
 
-_This is for internal HashiCorp use only; Internal folks please refer to RFC ENGSRV-084 for more details._
-
------
-
 _**Build and package a (reproducible) Go binary.**_
 
 - **Define** the build.
 - **Assert** that it is reproducible (optionally).
 - **Use** the resultant artifacts in your workflow.
+
+_This is intended for internal HashiCorp use only; Internal folks please refer to RFC ENGSRV-084 for more details._
 
 <!-- insert:scripts/codegen/table_of_contents -->
 ## Table of Contents
