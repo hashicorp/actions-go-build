@@ -94,6 +94,7 @@ get_value_from_github_env() {
 	VAR_NAME="$1"
 	GOT="$(
 		unset "$VAR_NAME"
+		# shellcheck disable=SC1090 # This is a non-constant source by definition.
 		source "$GITHUB_ENV.export" && echo "${!VAR_NAME}"
 	)"
 	echo "$GOT"

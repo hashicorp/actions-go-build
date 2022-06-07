@@ -11,8 +11,10 @@ setup() {
 	# Set the OS and arch to produce a binary that will execute on this platform.
 	# You need to have Go installed locally anyway to run the test, so using go env
 	# to determine the platform.
-	export OS="$(go env GOOS)"
-	export ARCH="$(go env GOARCH)"
+	OS="$(go env GOOS)"
+	ARCH="$(go env GOARCH)"
+	export OS
+	export ARCH
 	export GOOS="$OS"
 	export GOARCH="$ARCH"
 	export PRODUCT_NAME="blargles"
@@ -30,7 +32,8 @@ setup() {
 }
 
 @test "working build instructions are executed correctly" {
-	export INSTRUCTIONS='
+	# shellcheck disable=SC2016 # We don't want to expand the vars in instructions yet.
+	INSTRUCTIONS='
 		go build -o $TARGET_DIR/$BIN_NAME .
 	'
 	# Run the build function.
@@ -50,7 +53,7 @@ setup() {
 }
 
 @test "failing build instructions result in failure" {
-	export INSTRUCTIONS='
+	INSTRUCTIONS='
 		echo "On no!"
 		exit 1
 		echo "WAT!"

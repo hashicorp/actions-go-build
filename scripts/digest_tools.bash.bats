@@ -7,9 +7,11 @@ load assertions.bash
 setup() {
 	source scripts/digest_tools.bash
 	cd "$BATS_TEST_TMPDIR"
-	export PRIMARY_BUILD_ROOT="$(pwd)/primary"
+	PRIMARY_BUILD_ROOT="$(pwd)/primary"
+	export PRIMARY_BUILD_ROOT
 	mkdir -p "$PRIMARY_BUILD_ROOT"
-	export VERIFICATION_BUILD_ROOT="$(pwd)/verification"
+	VERIFICATION_BUILD_ROOT="$(pwd)/verification"
+	export VERIFICATION_BUILD_ROOT
 	mkdir -p "$VERIFICATION_BUILD_ROOT"
 
 	# TEST_FILE_CONTENTS and TEST_FILE_SHA256 need to be modified at the same time if at all.
@@ -36,18 +38,18 @@ enter_verification_root() {
 	cd "$VERIFICATION_BUILD_ROOT"
 }
 
-@test "write digest writes correct digest to expected path" {	
+@test "write digest writes correct digest to expected path" {
 	enter_primary_root
 	write_digest bin testfile
 	assert_file_has_contents "meta/bin_digest" "$TEST_FILE_SHA256"
 }
 
-@test "read digest reads correct bin digest from primary build path" {	
+@test "read digest reads correct bin digest from primary build path" {
 	echo "deadbeef" > "$PRIMARY_BUILD_ROOT/meta/bin_digest"
 	assert_success_with_output "deadbeef" read_digest primary bin
 }
 
-@test "read digest reads correct bin digest from verification build path" {	
+@test "read digest reads correct bin digest from verification build path" {
 	echo "cabba9e" > "$VERIFICATION_BUILD_ROOT/meta/bin_digest"
 	GOT="$(read_digest verification bin)"
 	[ "$GOT" = "cabba9e" ] || {
@@ -78,7 +80,7 @@ enter_verification_root() {
 		echo "compare_digest failed but it should have succeeded"
 		return 1
 	}
-	
+
 	WANT="thesame"
 
 	[ "$GOT" = "$WANT" ] || {
@@ -96,7 +98,7 @@ enter_verification_root() {
 		echo "compare_digest failed but it should have succeeded"
 		return 1
 	}
-	
+
 	WANT="thesame"
 
 	[ "$GOT" = "$WANT" ] || {

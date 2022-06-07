@@ -11,8 +11,8 @@ setup() {
 	mkdir -p "$VERIFICATION_BUILD_ROOT"
 
 	# TEST_FILE_CONTENTS and TEST_FILE_SHA256 need to be modified at the same time if at all.
-	TEST_FILE_CONTENTS="Test file"
-	TEST_FILE_SHA256="114811b0b8998cb9853a5379598021410feddf69bb2ee7b7145d052a7e9b5d45"
+	export TEST_FILE_CONTENTS="Test file"
+	export TEST_FILE_SHA256="114811b0b8998cb9853a5379598021410feddf69bb2ee7b7145d052a7e9b5d45"
 
 	export META_DIR="meta"
 
