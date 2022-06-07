@@ -82,20 +82,15 @@ jobs:
 
 The `instructions` input is a bash script that builds the product binary.
 It should be kept as simple as possible.
-
-When the `instructions` are executed, there are a set of environment variables
-already exported that you can make use of (see [Build Environment](#build-environment), below).
-
-At a minimum, the script must use the environment variable `$BIN_PATH`
-because the minimal thing it can do is to write the compiled binary to `$BIN_PATH`.
-In order to add other files like licenses etc to the zip file, you need to
-write them into `$TARGET_DIR` in your build instructions.
+Typically this will be a simple `go build` invocation,
+but it could hit a make target, or call another script.
+See [Example Build Instructions](#example-build-instructions)
+below for examples of valid instructions.
 
 ### Build Environment
 
-The following variables are exported when `instructions` are executed,
-so you can use them in your script and they're available to programs your
-script calls.
+When the `instructions` are executed, there are a set of environment variables
+already exported that you can make use of (see the table below).
 
 <!-- insert:scripts/codegen/environment_doc -->
 |  Name                     |  Description                                                         |
@@ -112,6 +107,54 @@ script calls.
 |  `GOOS`                   |  Same as `OS`                                                        |
 |  `GOARCH`                 |  Same as `ARCH`.                                                     |
 <!-- end:insert:scripts/codegen/environment_doc -->
+
+At a minimum, the instructions must use the environment variable `$BIN_PATH`
+because the minimal thing it can do is to write the compiled binary to `$BIN_PATH`.
+In order to add other files like licenses etc to the zip file, you need to
+write them into `$TARGET_DIR` in your build instructions.
+
+### Example Build Instructions
+
+Simplest Go 1.17 invocation. (Uses `-trimpath` to aid with reproducibility.)
+
+```yaml
+instructions: go build -o "$BIN_PATH" -trimpath
+```
+
+---
+
+Simplest Go 1.18+ invocation. (Additionally uses -buildvcs=false to aid with reproducibility.)
+
+```yaml
+instructions: go build -o "$BIN_PATH" -trimpath -buildvcs=false
+```
+
+---
+
+More complex build, including copying a license file into the zip and `cd`ing into
+a subdirectory to perform the go build.
+
+```yaml
+instructions: |
+	cp LICENSE "$TARGET_DIR/"
+	cd sub/directory
+	go build -o "$BIN_PATH" -trimpath -buildvcs=false
+```
+
+---
+
+An example using `make`:
+
+```yaml
+instructions: make
+```
+
+With this Makefile:
+
+```Makefile
+build:
+	go build -o "$BIN_PATH" -trimpath -buildvcs=false
+```
 
 ## TODO
 
