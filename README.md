@@ -10,11 +10,13 @@ _This is intended for internal HashiCorp use only; Internal folks please refer t
 
 <!-- insert:scripts/codegen/table_of_contents -->
 ## Table of Contents
+* [Table of Contents](#table-of-contents)
 * [Features](#features)
 * [Usage](#usage)
   * [Inputs](#inputs)
   * [Build Instructions](#build-instructions)
   * [Build Environment](#build-environment)
+  * [Example Build Instructions](#example-build-instructions)
 * [TODO](#todo)
 <!-- end:insert:scripts/codegen/table_of_contents -->
 
