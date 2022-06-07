@@ -2,12 +2,6 @@ SHELL := /usr/bin/env bash -euo pipefail -c
 
 default: test
 
-# tools/mac tries to install dependencies on mac using homebrew.
-tools/mac:
-	brew install coreutils util-linux
-	# Installing GNU parallel, overwriting the one that comes with coreutils.
-	brew install --force --overwrite parallel
-
 BATS := bats -j 10 -T
 
 test: test/bats
@@ -50,3 +44,17 @@ example:
 		./scripts/local_verification_build && \
 		trap 'cat $(GITHUB_STEP_SUMMARY)' EXIT && \
 		./scripts/compare_digests
+
+
+# 'make tools' will use the brew target if on Darwin.
+# Otherwise it just prints a message about dependencies.
+ifeq ($(shell uname),Darwin)
+tools: tools/mac/brew
+else
+tools:
+	@echo "Please ensure that BATS, coreutils, util-linux, github-markdown-toc, and GNU parallel are installed."
+endif
+
+# tools/mac/brew tries to install dependencies on mac using homebrew.
+tools/mac/brew:
+	brew bundle --no-upgrade
