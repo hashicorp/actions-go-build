@@ -29,7 +29,7 @@ jobs:
       - run: make example
 
   action-test-assert-success-reusable:
-    uses: .github/workflows/reusable-action-test.yml@{{ github.sha }}
+    uses: .github/workflows/reusable-action-test.yml@actions-tests
     with:
       name: assert-success-reusable
       when: the binary files are identical and the zip files are identical
