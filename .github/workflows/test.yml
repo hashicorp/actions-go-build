@@ -61,6 +61,16 @@ jobs:
         # Don't use -trimpath so we get different binaries.
         go build -o "$TARGET_DIR/$BIN_NAME" .
 
+  test-bin-missing-assert:
+    uses: ./.github/workflows/action-test.yml
+    with:
+      reproducible: assert
+      assert: failure
+      when: the binary file has the wrong name
+      instructions: |
+        cd testdata/example-app
+        go build -o "$TARGET_DIR/$BIN_NAME.wrong" .
+
   test-reproduced-ok-report:
     uses: ./.github/workflows/action-test.yml
     with:
@@ -94,6 +104,16 @@ jobs:
         # Don't use -trimpath so we get different binaries.
         go build -o "$TARGET_DIR/$BIN_NAME" .
 
+  test-bin-missing-report:
+    uses: ./.github/workflows/action-test.yml
+    with:
+      reproducible: assert
+      assert: failure
+      when: the binary file has the wrong name
+      instructions: |
+        cd testdata/example-app
+        go build -o "$TARGET_DIR/$BIN_NAME.wrong" .
+
   test-reproduced-ok-nope:
     uses: ./.github/workflows/action-test.yml
     with:
@@ -126,3 +146,13 @@ jobs:
         cd testdata/example-app
         # Don't use -trimpath so we get different binaries.
         go build -o "$TARGET_DIR/$BIN_NAME" .
+
+  test-bin-missing-nope:
+    uses: ./.github/workflows/action-test.yml
+    with:
+      reproducible: assert
+      assert: failure
+      when: the binary file has the wrong name
+      instructions: |
+        cd testdata/example-app
+        go build -o "$TARGET_DIR/$BIN_NAME.wrong" .
