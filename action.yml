@@ -30,7 +30,7 @@ inputs:
   reproducible:
     description: >
       Assert that this build is reproducible.
-      Options are 'assert', 'report', or 'nope'.
+      Options are `assert` (the default), `report`, or `nope`.
     required: false
     default: assert
 
