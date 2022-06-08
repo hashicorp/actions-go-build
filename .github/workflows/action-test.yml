@@ -63,6 +63,7 @@ jobs:
           go_version: ${{ inputs.go_version }}
           os: ${{ inputs.os }}
           arch: ${{ inputs.arch }}
+          reproducible: ${{ inputs.reproducible }}
           instructions: ${{ inputs.instructions }}
         continue-on-error: true
       - if: inputs.assert == 'success'
