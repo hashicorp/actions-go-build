@@ -28,7 +28,18 @@ jobs:
       - uses: actions/checkout@v2
       - run: make example
 
-  action-test-success:
+  action-test-assert-success-reusable:
+    uses: .github/workflows/reusable-action-test.yml
+    with:
+      name: assert-success-reusable
+      when: the binary files are identical and the zip files are identical
+      assert: success
+      instructions:
+        cd testdata/example-app
+        go build -trimpath -o "$TARGET_DIR/$BIN_NAME" .
+
+
+  action-test-assert-success:
     runs-on: ubuntu-latest
     env:
       WHEN: the binary and zip files have the same SHA256 sum
@@ -49,7 +60,7 @@ jobs:
         continue-on-error: true
       - run: ./scripts/gha_assert_success "${{ steps.build.outcome }}"
 
-  action-test-zip-mismatch:
+  action-test-assert-failure-zip-mismatch:
     runs-on: ubuntu-latest
     env:
       WHEN: the zip files have different SHA256 sums
@@ -72,7 +83,7 @@ jobs:
         continue-on-error: true
       - run: ./scripts/gha_assert_failure "${{ steps.build.outcome }}"
 
-  action-test-bin-mismatch:
+  action-test-assert-failure-bin-mismatch:
     runs-on: ubuntu-latest
     env:
       WHEN: the binary files have different SHA256 sums

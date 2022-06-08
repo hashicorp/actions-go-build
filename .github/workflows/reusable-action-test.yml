@@ -1,0 +1,73 @@
+name: Actions Test
+on:
+  workflow_call:
+    inputs:
+
+      name:
+        type: string
+        required: true
+      when:
+        type: string
+        required: true
+      assert:
+        type: string
+        required: true
+      instructions:
+        type: string
+        required: true
+
+      runs-on:
+        type: string
+        default: ubuntu-latest
+        required: false
+      reproducible:
+        type: string
+        default: assert
+        required: false
+      product_name:
+        type: string
+        default: example-app
+        required: false
+      product_version:
+        type: string
+        default: 1.0.0
+        required: false
+      go_version:
+        type: string
+        default: 1.17
+        required: false
+      os:
+        type: string
+        default: linux
+        required: false
+      arch:
+        type: string
+        default: amd64
+        required: false
+
+jobs:
+  action-${{ inputs.assert }}-when-${{ inputs.when }}:
+    runs-on: ${{ inputs.runs-on }}
+    env:
+      WHEN: ${{ inputs.when }}
+    steps:
+      - if: inputs.assert != 'success' && inputs.assert != 'failure'
+        run: echo "assert must be one of: 'success' or 'failure'"; exit 1
+      - uses: actions/checkout@v3
+      - name: Invoke actions-go-build when ${{ env.WHEN }}
+        id: build
+        uses: ./ # This is the action defined in this repo.
+        with:
+          product_name: example-app
+          product_version: 1.0.0
+          go_version: 1.17
+          os: linux
+          arch: amd64
+          instructions: |-
+            cd testdata/example-app
+            go build -trimpath -o "$TARGET_DIR/$BIN_NAME" .
+        continue-on-error: true
+      - if: inputs.assert == 'success'
+        run: ./scripts/gha_assert_success "${{ steps.build.outcome }}"
+      - if: inputs.assert == 'failure'
+        run: ./scripts/gha_assert_failure "${{ steps.build.outcome }}"
