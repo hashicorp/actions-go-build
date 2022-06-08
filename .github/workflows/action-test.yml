@@ -44,6 +44,7 @@ on:
 
 jobs:
   action-test:
+    name: Assert ${{ inputs.assert }}
     runs-on: ${{ inputs.runs-on }}
     env:
       WHEN: ${{ inputs.when }}
@@ -57,11 +58,11 @@ jobs:
         id: build
         uses: ./ # This is the action defined in this repo.
         with:
-          product_name: example-app
-          product_version: 1.0.0
-          go_version: 1.17
-          os: linux
-          arch: amd64
+          product_name: ${{ inputs.product_name }}
+          product_version: ${{ inputs.product_version }}
+          go_version: ${{ inputs.go_version }}
+          os: ${{ inputs.os }}
+          arch: ${{ inputs.arch }}
           instructions: ${{ inputs.instructions }}
         continue-on-error: true
       - if: inputs.assert == 'success'
