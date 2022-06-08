@@ -17,12 +17,12 @@ _This is intended for internal HashiCorp use only; Internal folks please refer t
   * [Inputs](#inputs)
   * [Build Environment](#build-environment)
     * [Environment Variables](#environment-variables)
-  * [Build Instructions](#build-instructions)
   * [Reproducibility Assertions](#reproducibility-assertions)
     * [Ensuring Reproducibility](#ensuring-reproducibility)
       * [Build Time](#build-time)
       * [Build Path](#build-path)
       * [VCS information](#vcs-information)
+  * [Build Instructions](#build-instructions)
     * [Example Build Instructions](#example-build-instructions)
 * [Development](#development)
   * [Tests](#tests)
@@ -89,7 +89,7 @@ jobs:
 |  **`go_version`**&nbsp;_(required)_       |  Version of Go to use for this build.                                                                     |
 |  **`os`**&nbsp;_(required)_               |  Target product operating system.                                                                         |
 |  **`arch`**&nbsp;_(required)_             |  Target product architecture.                                                                             |
-|  `reproducible`&nbsp;_(optional)_         |  Assert that this build is reproducible. Options are 'assert', 'report', or 'nope'.                       |
+|  `reproducible`&nbsp;_(optional)_         |  Assert that this build is reproducible. Options are `assert` (the default), `report`, or `nope`.         |
 |  `bin_name`&nbsp;_(optional)_             |  Name of the product binary generated. Defaults to `product_name` minus any `-enterprise` suffix.         |
 |  `zip_name`&nbsp;_(optional)_             |  Name of the product zip file. Defaults to `<product_name>_<product_version>_<os>_<arch>.zip`.            |
 |  **`instructions`**&nbsp;_(required)_     |  Build instructions to generate the binary. See [Build Instructions](#build-instructions) for more info.  |
@@ -118,21 +118,6 @@ already exported that you can make use of
 |  `GOOS`                   |  Same as `OS`                                                        |
 |  `GOARCH`                 |  Same as `ARCH`.                                                     |
 <!-- end:insert:scripts/codegen/environment_doc -->
-
-### Build Instructions
-
-The `instructions` input is a bash script that builds the product binary.
-It should be kept as simple as possible.
-Typically this will be a simple `go build` invocation,
-but it could hit a make target, or call another script.
-See [Example Build Instructions](#example-build-instructions)
-below for examples of valid instructions.
-
-The instructions _must_ use the environment variable `$BIN_PATH`
-because the minimal thing they can do is to write the compiled binary to `$BIN_PATH`.
-
-In order to add other files like licenses etc to the zip file, you need to
-write them into `$TARGET_DIR` in your build instructions.
 
 ### Reproducibility Assertions
 
@@ -169,6 +154,21 @@ absolute module path to aid with reproducibility.
 Go 1.18+ embeds information about the current checkout directory of your code, including
 modified and new files. In some cases this interferes with reproducibility. You can
 turn this off using the `-buildvcs=false` flag.
+
+### Build Instructions
+
+The `instructions` input is a bash script that builds the product binary.
+It should be kept as simple as possible.
+Typically this will be a simple `go build` invocation,
+but it could hit a make target, or call another script.
+See [Example Build Instructions](#example-build-instructions)
+below for examples of valid instructions.
+
+The instructions _must_ use the environment variable `$BIN_PATH`
+because the minimal thing they can do is to write the compiled binary to `$BIN_PATH`.
+
+In order to add other files like licenses etc to the zip file, you need to
+write them into `$TARGET_DIR` in your build instructions.
 
 #### Example Build Instructions
 
