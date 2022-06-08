@@ -28,78 +28,32 @@ jobs:
       - uses: actions/checkout@v2
       - run: make example
 
-  action-test-assert-success-reusable:
-    uses: ./.github/workflows/reusable-action-test.yml
+  test-assert-success:
+    uses: ./.github/workflows/action-test.yml
     with:
-      when: the binary files are identical and the zip files are identical
       assert: success
+      when: the binary files are identical and the zip files are identical
       instructions:
         cd testdata/example-app
         go build -trimpath -o "$TARGET_DIR/$BIN_NAME" .
 
+  test-assert-failure-zip-mismatch:
+    uses: ./.github/workflows/action-test.yml
+    with:
+      assert: failure
+      when: the zip files are different
+      instructions:
+        cd testdata/example-app
+        go build -trimpath -o "$TARGET_DIR/$BIN_NAME" .
+        # Insert something random into the zipped dir.
+        head -c100 < /dev/urandom > "$TARGET_DIR/random.bytes"
 
-  action-test-assert-success:
-    runs-on: ubuntu-latest
-    env:
-      WHEN: the binary and zip files have the same SHA256 sum
-    steps:
-      - uses: actions/checkout@v3
-      - name: Invoke actions-reproducible-build when ${{ env.WHEN }}
-        id: build
-        uses: ./ # This is the action defined in this repo.
-        with:
-          product_name: example-app
-          product_version: 1.0.0
-          go_version: 1.17
-          os: linux
-          arch: amd64
-          instructions: |-
-            cd testdata/example-app
-            go build -trimpath -o "$TARGET_DIR/$BIN_NAME" .
-        continue-on-error: true
-      - run: ./scripts/gha_assert_success "${{ steps.build.outcome }}"
-
-  action-test-assert-failure-zip-mismatch:
-    runs-on: ubuntu-latest
-    env:
-      WHEN: the zip files have different SHA256 sums
-    steps:
-      - uses: actions/checkout@v3
-      - name: Invoke actions-reproducible-build when ${{ env.WHEN }}
-        id: build
-        uses: ./ # This is the action defined in this repo.
-        with:
-          product_name: example-app
-          product_version: 1.0.0
-          go_version: 1.17
-          os: linux
-          arch: amd64
-          instructions: |-
-            cd testdata/example-app
-            go build -trimpath -o "$TARGET_DIR/$BIN_NAME" .
-            # Insert something random into the zipped dir.
-            head -c100 < /dev/urandom > "$TARGET_DIR/random.bytes"
-        continue-on-error: true
-      - run: ./scripts/gha_assert_failure "${{ steps.build.outcome }}"
-
-  action-test-assert-failure-bin-mismatch:
-    runs-on: ubuntu-latest
-    env:
-      WHEN: the binary files have different SHA256 sums
-    steps:
-      - uses: actions/checkout@v3
-      - name: Invoke actions-reproducible-build when ${{ env.WHEN }}
-        id: build
-        uses: ./ # This is the action defined in this repo.
-        with:
-          product_name: example-app
-          product_version: 1.0.0
-          go_version: 1.17
-          os: linux
-          arch: amd64
-          instructions: |-
-            cd testdata/example-app
-            # Don't use -trimpath so we get different binaries.
-            go build -o "$TARGET_DIR/$BIN_NAME" .
-        continue-on-error: true
-      - run: ./scripts/gha_assert_failure "${{ steps.build.outcome }}"
+  test-assert-failure-bin-mismatch:
+    uses: ./.github/workflows/action-test.yml
+    with:
+      assert: failure
+      when: the binary files are different
+      instructions:
+        cd testdata/example-app
+        # Don't use -trimpath so we get different binaries.
+        go build -o "$TARGET_DIR/$BIN_NAME" .
