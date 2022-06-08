@@ -73,8 +73,8 @@ commit_time_utc() {
 
 
 export_to_github_job() { local NAME="$1"
-	if [ -z "${!VAR_NAME+x}" ]; then
-		echo "ERROR: $VAR_NAME is not set."
+	if [ -z "${!NAME+x}" ]; then
+		echo "ERROR: $NAME is not set."
 		return 1
 	fi
 	{
