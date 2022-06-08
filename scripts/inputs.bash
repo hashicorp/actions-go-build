@@ -122,12 +122,12 @@ export_env_or_default() {
 		export "$NAME"="$DEFAULT"
 		return
 	}
-	err "Attempting to export an empty or unset env var with no default value."
+	err "Attempting to export an empty or unset env var '$NAME' with no default value."
 }
 
 export_env() {
 	local NAME="$1"
-	try_export_nonempty "$NAME" || err "Attempting to export an empty or unset env var."
+	try_export_nonempty "$NAME" || err "Attempting to export an empty or unset env var '$NAME'"
 }
 
 try_export_nonempty() {
