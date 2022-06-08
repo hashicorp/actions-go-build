@@ -44,7 +44,7 @@ on:
 
 jobs:
   action-test:
-    name: Assert ${{ inputs.assert }}
+    name: want ${{ inputs.assert }}
     runs-on: ${{ inputs.runs-on }}
     env:
       WHEN: ${{ inputs.when }}
