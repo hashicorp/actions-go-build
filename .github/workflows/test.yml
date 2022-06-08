@@ -28,15 +28,6 @@ jobs:
       - uses: actions/checkout@v2
       - run: make example
 
-  test-assert-success:
-    uses: ./.github/workflows/action-test.yml
-    with:
-      assert: success
-      when: the binary files are identical and the zip files are identical
-      instructions:
-        cd testdata/example-app
-        go build -trimpath -o "$TARGET_DIR/$BIN_NAME" .
-
   test-assert-failure-zip-mismatch:
     uses: ./.github/workflows/action-test.yml
     with:
@@ -57,3 +48,12 @@ jobs:
         cd testdata/example-app
         # Don't use -trimpath so we get different binaries.
         go build -o "$TARGET_DIR/$BIN_NAME" .
+
+  test-assert-success:
+    uses: ./.github/workflows/action-test.yml
+    with:
+      assert: success
+      when: the binary files are identical and the zip files are identical
+      instructions:
+        cd testdata/example-app
+        go build -trimpath -o "$TARGET_DIR/$BIN_NAME" .
