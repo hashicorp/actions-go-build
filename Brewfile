@@ -12,6 +12,9 @@ brew "util-linux"
 # the readme table of contents.
 brew "github-markdown-toc"
 
+# gh is the GitHub CLI, used for making releases.
+brew "gh"
+
 # parallel is needed for bats to be able to run
 # tests in parallel.
 #

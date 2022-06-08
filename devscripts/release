@@ -1,0 +1,36 @@
+#!/usr/bin/env bash
+
+set -Eeuo pipefail
+
+log() { echo "==> $*" 1>&2; }
+die() { log "FATAL: $*"; return 1; }
+
+VERSION="$(cat release/VERSION)"
+
+# Set TAGS to vX.Y.Z, vX.Y, and vX
+TAGS=("v$VERSION" "v${VERSION%\.*}" "v${VERSION%%\.*}")
+
+FULL_TAG="${TAGS[0]}"
+
+for TAG in "${TAGS[@]}"; do
+	echo "$TAG"
+done
+
+if (git tag | grep -F "$FULL_TAG"); then
+	die "Full tag '$FULL_TAG' already exists. Please increment the version first."
+fi
+
+for TAG in "${TAGS[@]}"; do
+	log "Tagging and pushing as $TAG"
+	git tag -f "$TAG"
+	git push -f origin "$TAG"
+done
+
+log "Getting release notes..."
+export TAG="$FULL_TAG"
+export VERSION="$FULL_TAG"
+export REPO_URL="https://github.com/hashicorp/actions-go-build"
+NOTES="$(envsubst < "release/changes/$FULL_TAG.md")"
+
+log "Creating GitHub release..."
+gh release create "$FULL_TAG" --notes "$NOTES"

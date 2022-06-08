@@ -13,6 +13,7 @@ test/bats:
 .PHONY: docs
 docs:
 	@./scripts/codegen/update_docs
+	@./scripts/codegen/update_changelog
 
 LDFLAGS += -X 'main.Version=1.2.3'
 LDFLAGS += -X 'main.Revision=cabba9e'
@@ -57,4 +58,8 @@ endif
 
 # tools/mac/brew tries to install dependencies on mac using homebrew.
 tools/mac/brew:
-	brew bundle --no-upgrade
+	brew bundle --no-upgrade	
+
+.PHONY: release
+release:
+	./devscripts/release
