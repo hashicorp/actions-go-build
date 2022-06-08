@@ -62,6 +62,14 @@ runs:
       shell: bash
       run: |
         set -euo pipefail
+        if (date --help | grep GNU) > /dev/null 2>&1; then
+          echo "GNU date already installed as 'date'"
+          exit 0
+        fi
+        if (gdate --help | grep GNU) > /dev/null 2>&1; then
+          echo "GNU date already installed as 'gdate'"
+          exit 0
+        fi
         command -v brew > /dev/null 2>&1 || {
           echo "Homebrew not installed, unable to proceed."
           exit 1
