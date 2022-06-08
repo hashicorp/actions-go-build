@@ -3,9 +3,6 @@ on:
   workflow_call:
     inputs:
 
-      name:
-        type: string
-        required: true
       when:
         type: string
         required: true
@@ -46,7 +43,7 @@ on:
         required: false
 
 jobs:
-  action-${{ inputs.assert }}-when-${{ inputs.when }}:
+  action-test:
     runs-on: ${{ inputs.runs-on }}
     env:
       WHEN: ${{ inputs.when }}

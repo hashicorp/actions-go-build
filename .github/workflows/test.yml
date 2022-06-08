@@ -31,7 +31,6 @@ jobs:
   action-test-assert-success-reusable:
     uses: ./.github/workflows/reusable-action-test.yml
     with:
-      name: assert-success-reusable
       when: the binary files are identical and the zip files are identical
       assert: success
       instructions:
