@@ -1,0 +1,34 @@
+name: Pull Request Checks
+
+on: [pull-request]
+
+jobs:
+
+  changelog-check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - name: Check Changelog Updated
+        run: |
+          set -Eeuo pipefail
+          log() { echo "==> $*" 1>&2; }
+          die() { log "FATAL: $*"; return 1; }
+
+          VERSION="$(cat release/VERSION)"
+          NOTES_FILE="release/changes/$VERSION.md"
+          [ -f "$NOTES_FILE" ] || {
+            die "No release notes found at $NOTES_FILE"
+          }
+
+          PR_NUMBER="$(basename "${GITHUB_REF%/merge}")"
+
+          FILES_URL="/repos/${{ github.repository}}/pulls/$PR_NUMBER/files"
+          CHANGED_FILES_RESPONSE="$(
+            curl \
+              -H "Accept: application/vnd.github.v3+json" \
+              -H 'Authorization: Bearer ${{ secrets.GITHUB_TOKEN }}' \
+              "$FILES_URL"
+          )"
+
+          echo "$CHANGED_FILES_RESPONSE"
+
