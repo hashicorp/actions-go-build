@@ -1,4 +1,4 @@
-name: Actions Test
+name: Action Test
 on:
   workflow_call:
     inputs:
@@ -62,9 +62,7 @@ jobs:
           go_version: 1.17
           os: linux
           arch: amd64
-          instructions: |-
-            cd testdata/example-app
-            go build -trimpath -o "$TARGET_DIR/$BIN_NAME" .
+          instructions: ${{ inputs.instructions }}
         continue-on-error: true
       - if: inputs.assert == 'success'
         run: ./scripts/gha_assert_success "${{ steps.build.outcome }}"
