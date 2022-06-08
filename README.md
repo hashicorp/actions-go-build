@@ -241,6 +241,7 @@ Run `make test` to run the BATS tests which cover the scripts.
 
 There are also tests that exercise the action itself, see
 [`.github/workflows/test.yml`](https://github.com/hashicorp/actions-go-build/blob/main/.github/workflows/test.yml).
+These tests use a reusable workflow for brevity, and assert both passing and failing conditions.
 
 The example code is also tested to ensure it really works, see
 [`.github/workflows/example.yml`](https://github.com/hashicorp/actions-go-build/blob/main/.github/workflows/example.yml)
