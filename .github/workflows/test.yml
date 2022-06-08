@@ -1,4 +1,4 @@
-name: Test
+name: Tests
 
 on: [push]
 
@@ -9,7 +9,7 @@ jobs:
     steps:
       - name: Install BATS
         env:
-          BATS_VERSION: 1.5.0
+          BATS_VERSION: 1.7.0
           BATS_REPO: https://github.com/bats-core/bats-core
           BATS_PATH: /usr/local/bats
         run: |
