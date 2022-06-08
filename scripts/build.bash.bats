@@ -20,6 +20,7 @@ setup() {
 	export PRODUCT_NAME="blargles"
 	export PRODUCT_VERSION="1.2.3"
 	export PRODUCT_REVISION="cabba9e"
+	export PRODUCT_REVISION_TIME="2006-02-02T22:00:01+00:00"
 	export TARGET_DIR="dist"
 	export BIN_NAME="blargles"
 	export BIN_PATH="$TARGET_DIR/$BIN_NAME"
@@ -27,8 +28,6 @@ setup() {
 	export ZIP_NAME="blargles.zip"
 	export ZIP_PATH="$ZIP_DIR/$ZIP_NAME"
 	export META_DIR="meta"
-
-	export PRODUCT_REVISION_TIME="2006-02-02T22:00:01+00:00"
 }
 
 @test "working build instructions are executed correctly" {
