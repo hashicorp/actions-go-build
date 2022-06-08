@@ -28,11 +28,17 @@ jobs:
       - uses: actions/checkout@v2
       - run: make example
 
-  test-reproduced-ok-assert:
+  test-reproduced-ok:
     uses: ./.github/workflows/action-test.yml
+    strategy:
+      matrix:
+        assert: [ success ]
+        reproducible: [ assert, report, nope ]
+        runner: [ ubuntu-latest, macos-latest ]
     with:
-      reproducible: assert
-      assert: success
+      runs-on: ${{ matrix.runner }}
+      reproducible: ${{ matrix.reproducible }}
+      assert: ${{ matrix.assert }}
       when: the binary files are identical and the zip files are identical
       instructions: |
         cd testdata/example-app
@@ -71,16 +77,6 @@ jobs:
         cd testdata/example-app
         go build -o "$TARGET_DIR/$BIN_NAME.wrong" .
 
-  test-reproduced-ok-report:
-    uses: ./.github/workflows/action-test.yml
-    with:
-      reproducible: report
-      assert: success
-      when: the binary files are identical and the zip files are identical
-      instructions: |
-        cd testdata/example-app
-        go build -trimpath -o "$TARGET_DIR/$BIN_NAME" .
-
   test-zip-mismatch-report:
     uses: ./.github/workflows/action-test.yml
     with:
@@ -113,16 +109,6 @@ jobs:
       instructions: |
         cd testdata/example-app
         go build -o "$TARGET_DIR/$BIN_NAME.wrong" .
-
-  test-reproduced-ok-nope:
-    uses: ./.github/workflows/action-test.yml
-    with:
-      reproducible: nope
-      assert: success
-      when: the binary files are identical and the zip files are identical
-      instructions: |
-        cd testdata/example-app
-        go build -trimpath -o "$TARGET_DIR/$BIN_NAME" .
 
   test-zip-mismatch-nope:
     uses: ./.github/workflows/action-test.yml
