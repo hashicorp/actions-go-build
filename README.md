@@ -27,6 +27,8 @@ _This is intended for internal HashiCorp use only; Internal folks please refer t
 * [Development](#development)
   * [Tests](#tests)
   * [Documentation](#documentation)
+    * [Changelog](#changelog)
+  * [Releasing](#releasing)
   * [Bash, dreaded bash.](#bash-dreaded-bash)
   * [Future Implementation Options](#future-implementation-options)
   * [TODO](#todo)
@@ -252,6 +254,19 @@ and
 
 Wherever possible, the documentation in this README is generated from source code to ensure
 that it is accurate and up-to-date. Run `make docs` to update it.
+
+#### Changelog
+
+All changes should be accompanied by a corresponding changelog entry.
+Each version has a file named `release/changes/v<VERSION>.md` which contains
+the changes added during development of that version.
+
+### Releasing
+
+You can release a new version by running `make release`.
+This uses the version string from `release/VERSION` to add tags,
+get the corresponding changelog entries, and create a new GitHub
+release.
 
 ### Bash, dreaded bash.
 
