@@ -28,17 +28,6 @@ jobs:
       - uses: actions/checkout@v2
       - run: make example
 
-  test-assert-failure-zip-mismatch:
-    uses: ./.github/workflows/action-test.yml
-    with:
-      assert: failure
-      when: the zip files are different
-      instructions:
-        cd testdata/example-app
-        go build -trimpath -o "$TARGET_DIR/$BIN_NAME" .
-        # Insert something random into the zipped dir.
-        head -c100 < /dev/urandom > "$TARGET_DIR/random.bytes"
-
   test-assert-failure-bin-mismatch:
     uses: ./.github/workflows/action-test.yml
     with:
