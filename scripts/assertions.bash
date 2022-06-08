@@ -92,10 +92,20 @@ assert_nonempty_in_github_env() {
 
 get_value_from_github_env() {
 	VAR_NAME="$1"
-	GOT="$(
+	if GOT="$(
 		unset "$VAR_NAME"
 		# shellcheck disable=SC1090 # This is a non-constant source by definition.
-		source "$GITHUB_ENV.export" && echo "${!VAR_NAME}"
-	)"
-	echo "$GOT"
+		source "$GITHUB_ENV.export"
+		if [ -z "${!VAR_NAME+x}" ]; then
+			echo "Error: $VAR_NAME is not set."
+			exit 1
+		fi
+		echo "${!VAR_NAME}"
+	)"; then
+		echo "$GOT"
+		return 0
+	else
+		echo "$GOT" 1>&2
+		return 1
+	fi
 }
