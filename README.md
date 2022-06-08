@@ -18,6 +18,7 @@ _This is intended for internal HashiCorp use only; Internal folks please refer t
   * [Build Environment](#build-environment)
     * [Environment Variables](#environment-variables)
   * [Build Instructions](#build-instructions)
+  * [Reproducibility Assertions](#reproducibility-assertions)
     * [Ensuring Reproducibility](#ensuring-reproducibility)
       * [Build Time](#build-time)
       * [Build Path](#build-path)
@@ -88,6 +89,7 @@ jobs:
 |  **`go_version`**&nbsp;_(required)_       |  Version of Go to use for this build.                                                                     |
 |  **`os`**&nbsp;_(required)_               |  Target product operating system.                                                                         |
 |  **`arch`**&nbsp;_(required)_             |  Target product architecture.                                                                             |
+|  `reproducible`&nbsp;_(optional)_         |  Assert that this build is reproducible. Options are 'assert', 'report', or 'nope'.                       |
 |  `bin_name`&nbsp;_(optional)_             |  Name of the product binary generated. Defaults to `product_name` minus any `-enterprise` suffix.         |
 |  `zip_name`&nbsp;_(optional)_             |  Name of the product zip file. Defaults to `<product_name>_<product_version>_<os>_<arch>.zip`.            |
 |  **`instructions`**&nbsp;_(required)_     |  Build instructions to generate the binary. See [Build Instructions](#build-instructions) for more info.  |
@@ -131,6 +133,14 @@ because the minimal thing they can do is to write the compiled binary to `$BIN_P
 
 In order to add other files like licenses etc to the zip file, you need to
 write them into `$TARGET_DIR` in your build instructions.
+
+### Reproducibility Assertions
+
+The `reproducible` input has three options:
+
+- `assert` (the default) means perform a verification build and fail if it's not identical to the primary build.
+- `report` means perform a verification build, log the results, but do not fail.
+- `nope`   means do not perform a verification build at all.
 
 #### Ensuring Reproducibility
 

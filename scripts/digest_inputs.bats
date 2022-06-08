@@ -14,14 +14,15 @@ setup() {
 
 set_required_env_vars() {
 	export PRODUCT_NAME="blargle"
+	export OS="darwin"
+	export ARCH="amd64"
+	export PRODUCT_VERSION="1.2.3"
+	export REPRODUCIBLE="assert"
 	export INSTRUCTIONS="
 		Some
 		multi-line
 		build instructions
 	"
-	export OS="darwin"
-	export ARCH="amd64"
-	export PRODUCT_VERSION="1.2.3"
 }
 
 @test "required vars passed through unchanged" {
@@ -36,6 +37,7 @@ set_required_env_vars() {
 	assert_exported_in_github_env OS              "darwin"
 	assert_exported_in_github_env ARCH            "amd64"
 	assert_exported_in_github_env PRODUCT_VERSION "1.2.3"
+	assert_exported_in_github_env REPRODUCIBLE    "assert"
 	assert_exported_in_github_env INSTRUCTIONS    "
 		Some
 		multi-line
@@ -105,4 +107,6 @@ set_required_env_vars() {
 	assert_exported_in_github_env PRODUCT_REVISION        "$(git rev-parse HEAD)"
 	assert_exported_in_github_env BIN_PATH                "dist/blargle"
 	assert_exported_in_github_env ZIP_PATH                "out/blargle-enterprise_1.2.3_darwin_amd64.zip"
+
+	assert_nonempty_in_github_env PRODUCT_REVISION_TIME
 }

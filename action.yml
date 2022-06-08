@@ -27,6 +27,13 @@ inputs:
       Target product architecture.
     required: true
 
+  reproducible:
+    description: >
+      Assert that this build is reproducible.
+      Options are 'assert', 'report', or 'nope'.
+    required: false
+    default: assert
+
   bin_name:
     description: >
       Name of the product binary generated.
@@ -65,13 +72,14 @@ runs:
     - name: Calculate default values and paths; set env vars.
       shell: bash
       env:
-        INSTRUCTIONS: ${{ inputs.instructions }}
+        PRODUCT_NAME: ${{ inputs.product_name }}
+        PRODUCT_VERSION: ${{ inputs.product_version }}
         OS: ${{ inputs.os }}
         ARCH: ${{ inputs.arch }}
-        PRODUCT_VERSION: ${{ inputs.product_version }}
+        REPRODUCIBLE: ${{ inputs.reproducible }}
         BIN_NAME: ${{ inputs.bin_name }}
         ZIP_NAME: ${{ inputs.zip_name }}
-        PRODUCT_NAME: ${{ inputs.product_name }}
+        INSTRUCTIONS: ${{ inputs.instructions }}
       run: ${{ github.action_path }}/scripts/digest_inputs
 
     - uses: actions/setup-go@v2
@@ -92,17 +100,26 @@ runs:
 
     # Local Verification Build
     - name: Run Local Verification Build
+      if: inputs.reproducible == 'assert' || inputs.reproducible == 'report'
       shell: bash
       run: ${{ github.action_path }}/scripts/local_verification_build
 
     - name: Upload local verification build zip file.
+      if: inputs.reproducible == 'assert' || inputs.reproducible == 'report'
       uses: actions/upload-artifact@v3
       with:
         name: ${{ env.ZIP_NAME }}.local-verification-build.zip
         path: ${{ env.ZIP_PATH_VERIFICATION }}
         if-no-files-found: error
 
-    # Verification
-    - name: Compare Build Outputs
+    # Verification (assert)
+    - name: Assert Build Outputs Identical
+      if: inputs.reproducible == 'assert'
       shell: bash
       run: ${{ github.action_path }}/scripts/compare_digests
+
+    # Verification (report)
+    - name: Report Reproducibility Results
+      if: inputs.reproducible == 'report'
+      shell: bash
+      run: ${{ github.action_path }}/scripts/compare_digests || true

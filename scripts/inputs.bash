@@ -17,11 +17,12 @@ digest_inputs() {
 
 	# Pass through env vars from required action inputs.
 
-	forward_env INSTRUCTIONS
+	forward_env PRODUCT_NAME
+	forward_env PRODUCT_VERSION
 	forward_env OS
 	forward_env ARCH
-	forward_env PRODUCT_VERSION
-	forward_env PRODUCT_NAME
+	forward_env REPRODUCIBLE
+	forward_env INSTRUCTIONS
 
 	# Pass through env vars from optional action inputs (or set to default value).
 
