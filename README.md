@@ -18,12 +18,12 @@ _This is intended for internal HashiCorp use only; Internal folks please refer t
   * [Build Environment](#build-environment)
     * [Environment Variables](#environment-variables)
   * [Reproducibility Assertions](#reproducibility-assertions)
-    * [Ensuring Reproducibility](#ensuring-reproducibility)
-      * [Build Time](#build-time)
-      * [Build Path](#build-path)
-      * [VCS information](#vcs-information)
   * [Build Instructions](#build-instructions)
     * [Example Build Instructions](#example-build-instructions)
+  * [Ensuring Reproducibility](#ensuring-reproducibility)
+    * [Build Time](#build-time)
+    * [Build Path](#build-path)
+    * [VCS information](#vcs-information)
 * [Development](#development)
   * [Tests](#tests)
   * [Documentation](#documentation)
@@ -127,33 +127,7 @@ The `reproducible` input has three options:
 - `report` means perform a verification build, log the results, but do not fail.
 - `nope`   means do not perform a verification build at all.
 
-#### Ensuring Reproducibility
-
-If you are aiming to create a reproducible build, you need to at a minimum ensure that
-your build is independent from the _time_ it is run, and from the _path_ that the module
-is at on the filesystem.
-
-##### Build Time
-
-Embedding the actual 'build time' into your binary will ensure that it isn't reproducible,
-because this time will be different for each build. Instead, you can use the
-`PRODUCT_REVISION_TIME` which is the time of the latest commit, which will be the same
-for each build of that commit.
-
-##### Build Path
-
-By default `go build` embeds the absolute path to the source files inside the binaries
-for use in stack traces and debugging. However, this reduces reproducibility because
-that path is likely to be different for different builds.
-
-Use the `-trimpath` flag to remove the portion of the path that is dependent on the
-absolute module path to aid with reproducibility.
-
-##### VCS information
-
-Go 1.18+ embeds information about the current checkout directory of your code, including
-modified and new files. In some cases this interferes with reproducibility. You can
-turn this off using the `-buildvcs=false` flag.
+See [Ensuring Reproducibility](#ensuring-reproducibility), below for tips on making your build reproducible.
 
 ### Build Instructions
 
@@ -222,6 +196,34 @@ build:
 
 See also the [example workflow](#example-workflow) above,
 which injects info into the binary using `-ldflags`.
+
+### Ensuring Reproducibility
+
+If you are aiming to create a reproducible build, you need to at a minimum ensure that
+your build is independent from the _time_ it is run, and from the _path_ that the module
+is at on the filesystem.
+
+#### Build Time
+
+Embedding the actual 'build time' into your binary will ensure that it isn't reproducible,
+because this time will be different for each build. Instead, you can use the
+`PRODUCT_REVISION_TIME` which is the time of the latest commit, which will be the same
+for each build of that commit.
+
+#### Build Path
+
+By default `go build` embeds the absolute path to the source files inside the binaries
+for use in stack traces and debugging. However, this reduces reproducibility because
+that path is likely to be different for different builds.
+
+Use the `-trimpath` flag to remove the portion of the path that is dependent on the
+absolute module path to aid with reproducibility.
+
+#### VCS information
+
+Go 1.18+ embeds information about the current checkout directory of your code, including
+modified and new files. In some cases this interferes with reproducibility. You can
+turn this off using the `-buildvcs=false` flag.
 
 ## Development
 
