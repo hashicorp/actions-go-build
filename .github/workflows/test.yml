@@ -2,6 +2,13 @@ name: Tests
 
 on: [push]
 
+env:
+  # INSTRUCTIONS_REPRODUCIBLE_GO_1_17 are reproducible build instructions
+  # when running on Go 1.17
+  INSTRUCTIONS_REPRODUCIBLE_GO_1_17: |
+    cd testdata/example-app
+    go build -trimpath -o "$TARGET_DIR/$BIN_NAME" .
+
 jobs:
 
   script-tests:
@@ -33,9 +40,7 @@ jobs:
     with:
       assert: success
       when: the binary files are identical and the zip files are identical
-      instructions: |
-        cd testdata/example-app
-        go build -trimpath -o "$TARGET_DIR/$BIN_NAME" .
+      instructions: ${{ env.INSTRUCTIONS_REPRODUCIBLE_GO_1_17 }}
 
   test-zip-mismatch:
     uses: ./.github/workflows/action-test.yml
@@ -57,4 +62,3 @@ jobs:
         cd testdata/example-app
         # Don't use -trimpath so we get different binaries.
         go build -o "$TARGET_DIR/$BIN_NAME" .
-
