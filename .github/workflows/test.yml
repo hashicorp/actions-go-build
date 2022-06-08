@@ -61,6 +61,16 @@ jobs:
         # Don't use -trimpath so we get different binaries.
         go build -o "$TARGET_DIR/$BIN_NAME" .
 
+  test-reproduced-ok-report:
+    uses: ./.github/workflows/action-test.yml
+    with:
+      reproducible: report
+      assert: success
+      when: the binary files are identical and the zip files are identical
+      instructions: |
+        cd testdata/example-app
+        go build -trimpath -o "$TARGET_DIR/$BIN_NAME" .
+
   test-zip-mismatch-report:
     uses: ./.github/workflows/action-test.yml
     with:
@@ -77,6 +87,39 @@ jobs:
     uses: ./.github/workflows/action-test.yml
     with:
       reproducible: report
+      assert: success
+      when: the binary files are different
+      instructions: |
+        cd testdata/example-app
+        # Don't use -trimpath so we get different binaries.
+        go build -o "$TARGET_DIR/$BIN_NAME" .
+
+  test-reproduced-ok-nope:
+    uses: ./.github/workflows/action-test.yml
+    with:
+      reproducible: nope
+      assert: success
+      when: the binary files are identical and the zip files are identical
+      instructions: |
+        cd testdata/example-app
+        go build -trimpath -o "$TARGET_DIR/$BIN_NAME" .
+
+  test-zip-mismatch-nope:
+    uses: ./.github/workflows/action-test.yml
+    with:
+      reproducible: nope
+      assert: success
+      when: the zip files are different
+      instructions: |
+        cd testdata/example-app
+        go build -trimpath -o "$TARGET_DIR/$BIN_NAME" .
+        # Insert something random into the zipped dir.
+        head -c100 < /dev/urandom > "$TARGET_DIR/random.bytes"
+
+  test-bin-mismatch-nope:
+    uses: ./.github/workflows/action-test.yml
+    with:
+      reproducible: nope
       assert: success
       when: the binary files are different
       instructions: |
