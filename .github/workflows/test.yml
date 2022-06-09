@@ -37,15 +37,16 @@ jobs:
         assert: [ success ]
         reproducible: [ assert, report, nope ]
         runner: [ ubuntu-latest, macos-latest ]
-    uses: ./test.yml
-    with:
-      runs-on: ${{ matrix.runner }}
-      reproducible: ${{ matrix.reproducible }}
-      assert: ${{ matrix.assert }}
-      when: the binary files are identical and the zip files are identical
-      instructions: |
-        cd testdata/example-app
-        go build -trimpath -o "$TARGET_DIR/$BIN_NAME" .
+    steps:
+      uses: ./test.yml
+      with:
+        runs-on: ${{ matrix.runner }}
+        reproducible: ${{ matrix.reproducible }}
+        assert: ${{ matrix.assert }}
+        when: the binary files are identical and the zip files are identical
+        instructions: |
+          cd testdata/example-app
+          go build -trimpath -o "$TARGET_DIR/$BIN_NAME" .
 
   test-zip-mismatch-assert:
     uses: ./.github/workflows/action-test.yml
