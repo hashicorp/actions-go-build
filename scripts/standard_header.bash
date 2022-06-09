@@ -6,21 +6,15 @@ log() { echo "==> $*" 1>&2; }
 err() { log "$(bold_red "ERROR:") $(bold "$*")"; return 1; }
 die() { log "$(bold_red "FATAL:") $(bold "$*")"; exit 1; }
 
-# shellcheck disable=SC2086 # need to word-split ATTR.
-attr_text() { ATTR="$1"; shift; echo -n "$(tput $ATTR)$*$(tput sgr0)"; }
+styled_text() { ATTR="$1"; shift; echo -en '\033['"${ATTR}m$*"'\033[0m'; }
 
-# tput wrapper ensuring TERM is set to something.
-tput() {
-	"$(which tput)" -T "${TERM:-dumb}" "$@"
-}
-
-bold() { attr_text "bold" "$*"; }
-red() { attr_text "setaf 1" "$*"; }
-bold_blue() { tput -S < <(printf "%s\n%s %s" "bold" "setaf" "4"); echo -n "$*"; tput sgr0; }
-bold_red() { tput -S < <(printf "%s\n%s %s" "bold" "setaf" "1"); echo -n "$*"; tput sgr0; }
+bold()      { styled_text "1"    "$*"; }
+blue()      { styled_text "94"   "$*"; }
+bold_blue() { styled_text "1;94" "$*"; }
+red()       { styled_text "91"   "$*"; }
+bold_red()  { styled_text "1;91" "$*"; }
 
 log_bold() { log "$(bold_blue "$*")"; }
-
 
 # We rely on the GNU date program as it can convert the format of arbitrary dates.
 # Replace 'date' with a function that routes to GNU date if needed.
