@@ -1,7 +1,5 @@
 set -Eeuo pipefail
 
-trap 'exit 1' ERR
-
 log() { echo "==> $*" 1>&2; }
 err() { log "$(bold_red "ERROR: ") $(bold "$*")"; return 1; }
 die() { log "$(bold_red "FATAL: ") $(bold "$*")"; exit 1; }
