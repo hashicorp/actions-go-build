@@ -4,6 +4,11 @@ on: [push]
 
 jobs:
 
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: github/super-linter@v4
+
   script-tests:
     runs-on: ubuntu-latest
     steps:
@@ -29,6 +34,7 @@ jobs:
       - run: make example
 
   test-single-file-ok:
+    needs: [ lint ]
     runs-on: ${{ matrix.runner }}
     strategy:
       matrix:
@@ -51,6 +57,7 @@ jobs:
             go build -trimpath -o "$BIN_PATH"
 
   test-multi-file-ok:
+    needs: [ lint ]
     runs-on: ${{ matrix.runner }}
     strategy:
       matrix:
@@ -76,6 +83,7 @@ jobs:
 
   # Test cases where the binary reproduces but the zip file does not.
   test-zip-mismatch:
+    needs: [ lint ]
     runs-on: ${{ matrix.runner }}
     strategy:
       matrix:
@@ -101,6 +109,7 @@ jobs:
 
   # Test cases where the binary and zip file both do not reproduce.
   test-bin-mismatch:
+    needs: [ lint ]
     runs-on: ${{ matrix.runner }}
     strategy:
       matrix:
@@ -125,6 +134,7 @@ jobs:
 
   # Test cases where the binary file is not written to the correct path.
   test-bin-missing:
+    needs: [ lint ]
     runs-on: ${{ matrix.runner }}
     strategy:
       matrix:
