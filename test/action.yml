@@ -42,6 +42,7 @@ runs:
   using: composite
   steps:
     - if: inputs.assert != 'success' && inputs.assert != 'failure'
+      shell: bash
       run: |
         echo "assert must be one of: 'success' or 'failure'"
         exit 1
@@ -58,10 +59,12 @@ runs:
         instructions: ${{ inputs.instructions }}
       continue-on-error: true
     - if: inputs.assert == 'success'
+      shell: bash
       env:
         WHEN: ${{ inputs.when }}
       run: ./scripts/gha_assert_success "${{ steps.build.outcome }}"
     - if: inputs.assert == 'failure'
+      shell: bash
       env:
         WHEN: ${{ inputs.when }}
       run: ./scripts/gha_assert_failure "${{ steps.build.outcome }}"
