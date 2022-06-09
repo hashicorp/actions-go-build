@@ -33,10 +33,13 @@ jobs:
     runs-on: ${{ matrix.runner }}
     strategy:
       matrix:
-        # We expect only success in every case here.
-        assert: [ success ]
-        reproducible: [ assert, report, nope ]
-        runner: [ ubuntu-latest, macos-latest ]
+        include:
+          - { runner: ubuntu-latest, reproducible: assert, want: success }
+          - { runner: ubuntu-latest, reproducible: report, want: success }
+          - { runner: ubuntu-latest, reproducible: nope,   want: success }
+          - { runner: macos-latest,  reproducible: assert, want: success }
+          - { runner: macos-latest,  reproducible: report, want: success }
+          - { runner: macos-latest,  reproducible: nope,   want: success }
     steps:
       - uses: actions/checkout@v3
       - uses: ./test
@@ -53,89 +56,69 @@ jobs:
     runs-on: ${{ matrix.runner }}
     strategy:
       matrix:
-        # We want success when reproducible is not set to assert.
-        assert: [ success ]
-        reproducible: [ report, nope ]
-        runner: [ ubuntu-latest, macos-latest ]
         include:
-          - { assert: failure, reproducible: assert, runner: ubuntu-latest }
-          - { assert: failure, reproducible: assert, runner: macos-latest }
-          - { assert: success, reproducible: report, runner: ubuntu-latest }
-          - { assert: success, reproducible: report, runner: macos-latest }
-          - { assert: success, reproducible: nope,   runner: ubuntu-latest }
-          - { assert: success, reproducible: nope,   runner: macos-latest }
+          - { runner: ubuntu-latest, reproducible: assert, want: failure }
+          - { runner: ubuntu-latest, reproducible: report, want: success }
+          - { runner: ubuntu-latest, reproducible: nope,   want: success }
+          - { runner: macos-latest,  reproducible: assert, want: failure }
+          - { runner: macos-latest,  reproducible: report, want: success }
+          - { runner: macos-latest,  reproducible: nope,   want: success }
     steps:
       - uses: actions/checkout@v3
       - uses: ./test
         with:
           reproducible: ${{ matrix.reproducible }}
-          assert: ${{ matrix.assert }}
-          when: the binary files are identical and the zip files are identical
+          assert: ${{ matrix.want }}
+          when: "the binary files reproduce but the zip files do not"
           instructions: |
             cd testdata/example-app
-            go build -trimpath -o "$TARGET_DIR/$BIN_NAME" .
+            go build -trimpath -o "$TARGET_DIR/$BIN_NAME"
             # Insert something random into the zipped dir.
             head -c100 < /dev/urandom > "$TARGET_DIR/random.bytes"
 
-  test-bin-mismatch-assert:
-    uses: ./.github/workflows/action-test.yml
-    with:
-      reproducible: assert
-      assert: failure
-      when: the binary files are different
-      instructions: |
-        cd testdata/example-app
-        # Don't use -trimpath so we get different binaries.
-        go build -o "$TARGET_DIR/$BIN_NAME" .
+  # Test cases where the binary and zip file both do not reproduce.
+  test-bin-mismatch:
+    runs-on: ${{ matrix.runner }}
+    strategy:
+      matrix:
+        include:
+          - { runner: ubuntu-latest, reproducible: assert, want: failure }
+          - { runner: ubuntu-latest, reproducible: report, want: success }
+          - { runner: ubuntu-latest, reproducible: nope,   want: success }
+          - { runner: macos-latest,  reproducible: assert, want: failure }
+          - { runner: macos-latest,  reproducible: report, want: success }
+          - { runner: macos-latest,  reproducible: nope,   want: success }
+    steps:
+      - uses: actions/checkout@v3
+      - uses: ./test
+        with:
+          reproducible: ${{ matrix.reproducible }}
+          assert: ${{ matrix.want }}
+          when: "neither the binary file not the zip file reproduce"
+          instructions: |
+            cd testdata/example-app
+            # Don't use -trimpath so we get different binaries.
+            go build -o "$TARGET_DIR/$BIN_NAME"
 
-  test-bin-missing-assert:
-    uses: ./.github/workflows/action-test.yml
-    with:
-      reproducible: assert
-      assert: failure
-      when: the binary file has the wrong name
-      instructions: |
-        cd testdata/example-app
-        go build -o "$TARGET_DIR/$BIN_NAME.wrong" .
-
-  test-bin-mismatch-report:
-    uses: ./.github/workflows/action-test.yml
-    with:
-      reproducible: report
-      assert: success
-      when: the binary files are different
-      instructions: |
-        cd testdata/example-app
-        # Don't use -trimpath so we get different binaries.
-        go build -o "$TARGET_DIR/$BIN_NAME" .
-
-  test-bin-missing-report:
-    uses: ./.github/workflows/action-test.yml
-    with:
-      reproducible: assert
-      assert: failure
-      when: the binary file has the wrong name
-      instructions: |
-        cd testdata/example-app
-        go build -o "$TARGET_DIR/$BIN_NAME.wrong" .
-
-  test-bin-mismatch-nope:
-    uses: ./.github/workflows/action-test.yml
-    with:
-      reproducible: nope
-      assert: success
-      when: the binary files are different
-      instructions: |
-        cd testdata/example-app
-        # Don't use -trimpath so we get different binaries.
-        go build -o "$TARGET_DIR/$BIN_NAME" .
-
-  test-bin-missing-nope:
-    uses: ./.github/workflows/action-test.yml
-    with:
-      reproducible: assert
-      assert: failure
-      when: the binary file has the wrong name
-      instructions: |
-        cd testdata/example-app
-        go build -o "$TARGET_DIR/$BIN_NAME.wrong" .
+  # Test cases where the binary file is not written to the correct path.
+  test-bin-missing:
+    runs-on: ${{ matrix.runner }}
+    strategy:
+      matrix:
+        include:
+          - { runner: ubuntu-latest, reproducible: assert, want: failure }
+          - { runner: ubuntu-latest, reproducible: report, want: failure }
+          - { runner: ubuntu-latest, reproducible: nope,   want: failure }
+          - { runner: macos-latest,  reproducible: assert, want: failure }
+          - { runner: macos-latest,  reproducible: report, want: failure }
+          - { runner: macos-latest,  reproducible: nope,   want: failure }
+    steps:
+      - uses: actions/checkout@v3
+      - uses: ./test
+        with:
+          reproducible: ${{ matrix.reproducible }}
+          assert: ${{ matrix.want }}
+          when: "the binary file is not written to the correct path"
+          instructions: |
+            cd testdata/example-app
+            go build -o "$TARGET_DIR/$BIN_NAME.wrong"
