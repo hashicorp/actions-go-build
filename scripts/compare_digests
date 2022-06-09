@@ -80,4 +80,4 @@ zipinfo -v "$ZIP_PATH_VERIFICATION" | tee verification.txt
 log "diff between above two zipinfo outputs:"
 # The tail -n+2 bits here just knock off the first line of output,
 # which is always different as it's the zip's filename.
-diff -U 40 <(tail -n+2 primary.info) <(tail -n+2 verification.info)
+diff -U 40 <(tail -n+2 primary.txt) <(tail -n+2 verification.txt)
