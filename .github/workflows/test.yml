@@ -40,6 +40,7 @@ jobs:
   # with different sets of inputs, and assert that the action succeeds or
   # fails correctly.
 
+  # A single reproducible go binary.
   test-ok-single-file:
     runs-on: ${{ matrix.runner }}
     strategy:
@@ -60,8 +61,9 @@ jobs:
           when: "the binary files are identical and there are no other files in the zip"
           instructions: |
             cd testdata/example-app
-            go build -trimpath -o "$BIN_PATH"
+            go build -o "$BIN_PATH" -trimpath
 
+  # A single reproducible go binary along with other reproducible files.
   test-ok-multi-file:
     runs-on: ${{ matrix.runner }}
     strategy:
@@ -82,33 +84,34 @@ jobs:
           when: "the binary files are identical and so are two other files in the zip"
           instructions: |
             cd testdata/example-app
-            go build -trimpath -o "$BIN_PATH" .
+            go build -o "$BIN_PATH" -trimpath
             echo "Hello world." > "$TARGET_DIR/another-file.txt"
             echo "A fake license." > "$TARGET_DIR/LICENSE"
 
-  test-ok-multi-file-from-curl:
+  # A single reproducible go binary using netcgo on darwin.
+  test-ok-darwin-netcgo:
     runs-on: ${{ matrix.runner }}
     strategy:
       matrix:
         include:
-          - { runner: ubuntu-latest, reproducible: assert, want: success }
-          - { runner: ubuntu-latest, reproducible: report, want: success }
-          - { runner: ubuntu-latest, reproducible: nope,   want: success }
-          - { runner: macos-latest,  reproducible: assert, want: success }
-          - { runner: macos-latest,  reproducible: report, want: success }
-          - { runner: macos-latest,  reproducible: nope,   want: success }
+          - { runner: macos-latest,  reproducible: assert, os: darwin, arch: amd64, want: success }
+          - { runner: macos-latest,  reproducible: report, os: darwin, arch: amd64, want: success }
+          - { runner: macos-latest,  reproducible: nope,   os: darwin, arch: amd64, want: success }
+          - { runner: macos-latest,  reproducible: assert, os: darwin, arch: arm64, want: success }
+          - { runner: macos-latest,  reproducible: report, os: darwin, arch: arm64, want: success }
+          - { runner: macos-latest,  reproducible: nope,   os: darwin, arch: arm64, want: success }
     steps:
       - uses: actions/checkout@v3
       - uses: ./test
         with:
+          os: ${{ matrix.os }}
+          arch: ${{ matrix.arch }}
           reproducible: ${{ matrix.reproducible }}
           assert: ${{ matrix.want }}
           when: "the binary files are identical and so are two other files downloaded into the zip"
           instructions: |
             cd testdata/example-app
-            go build -trimpath -o "$BIN_PATH" .
-            curl -o "$TARGET_DIR/EULA.txt" https://eula.hashicorp.com/EULA.txt
-            curl -o "$TARGET_DIR/TermsOfEvaluation.txt" https://eula.hashicorp.com/TermsOfEvaluation.txt
+            go build -o "$BIN_PATH" -trimpath -flags=netcgo
 
   # Test cases where the binary reproduces but the zip file does not.
   test-err-zip-mismatch:
@@ -131,7 +134,7 @@ jobs:
           when: "the binary files reproduce but the zip files do not"
           instructions: |
             cd testdata/example-app
-            go build -trimpath -o "$BIN_PATH"
+            go build -o "$BIN_PATH" -trimpath
             # Insert something random into the zipped dir.
             head -c100 < /dev/urandom > "$TARGET_DIR/random.bytes"
 
@@ -180,4 +183,4 @@ jobs:
           when: "the binary file is not written to the correct path"
           instructions: |
             cd testdata/example-app
-            go build -o "$BIN_PATH.wrong"
+            go build -o "$BIN_PATH.wrong" -trimpath
