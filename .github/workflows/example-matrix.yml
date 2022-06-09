@@ -2,15 +2,15 @@ name: Matrix Example
 on: [push]
 jobs:
   example:
-    runs-on: ubuntu-latest
+    runs-on: ${{ matrix.runner }}
     strategy:
       matrix:
         include:
-          - { os: darwin, arch: amd64 }
-          - { os: darwin, arch: arm64 }
-          - { os: linux, arch: amd64 }
-          - { os: linux, arch: amd64 }
-          - { os: windows, arch: amd64 }
+          - { runner: macos-latest,  os: darwin,  arch: amd64, tags: netcgo}
+          - { runner: macos-latest,  os: darwin,  arch: arm64, tags: netcgo}
+          - { runner: ubuntu-latest, os: linux,   arch: amd64 }
+          - { runner: ubuntu-latest, os: linux,   arch: amd64 }
+          - { runner: ubuntu-latest, os: windows, arch: amd64 }
     steps:
       - uses: actions/checkout@v3
       - name: Build
@@ -26,6 +26,7 @@ jobs:
             go build \
               -trimpath \
               -buildvcs=false \
+              -tags="${{ matrix.tags }}"
               -o "$BIN_PATH" \
               -ldflags "
                 -X 'main.Version=$PRODUCT_VERSION'
