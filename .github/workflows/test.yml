@@ -13,8 +13,8 @@ jobs:
           BATS_REPO: https://github.com/bats-core/bats-core
           BATS_PATH: /usr/local/bats
         run: |
-          sudo git clone --depth 1 --branch v$BATS_VERSION $BATS_REPO $BATS_PATH
-          echo $BATS_PATH/bin >> $GITHUB_PATH
+          sudo git clone --depth 1 --branch "v$BATS_VERSION" "$BATS_REPO" "$BATS_PATH"
+          echo "$BATS_PATH/bin" >> "$GITHUB_PATH"
       - uses: actions/checkout@v2
       - name: Run BATS tests
         run: make test
@@ -39,7 +39,6 @@ jobs:
       - uses: actions/checkout@v3
       - uses: ./test
         with:
-          runs-on: ${{ matrix.runner }}
           reproducible: ${{ matrix.reproducible }}
           assert: ${{ matrix.assert }}
           when: the binary files are identical and the zip files are identical

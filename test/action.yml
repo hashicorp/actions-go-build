@@ -14,21 +14,27 @@ inputs:
     required: true
 
   reproducible:
+    description: Passed through to action.
     default: assert
     required: false
   product_name:
+    description: Passed through to action.
     default: example-app
     required: false
   product_version:
+    description: Passed through to action.
     default: 1.0.0
     required: false
   go_version:
+    description: Passed through to action.
     default: 1.17
     required: false
   os:
+    description: Passed through to action.
     default: linux
     required: false
   arch:
+    description: Passed through to action.
     default: amd64
     required: false
 
