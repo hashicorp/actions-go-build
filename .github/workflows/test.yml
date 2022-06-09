@@ -33,8 +33,14 @@ jobs:
       - uses: actions/checkout@v2
       - run: make example
 
+  # Begin action tests.
+  #
+  # These tests use a matrix to define a set of inputs and wanted results.
+  # They use the ./test action in this repo to exercise the action itself
+  # with different sets of inputs, and assert that the action succeeds or
+  # fails correctly.
+
   test-ok-single-file:
-    needs: [ lint ]
     runs-on: ${{ matrix.runner }}
     strategy:
       matrix:
@@ -51,13 +57,12 @@ jobs:
         with:
           reproducible: ${{ matrix.reproducible }}
           assert: ${{ matrix.want }}
-          when: "the binary files are identical and are the only files in the zip"
+          when: "the binary files are identical and there are no other files in the zip"
           instructions: |
             cd testdata/example-app
             go build -trimpath -o "$BIN_PATH"
 
   test-ok-multi-file:
-    needs: [ lint ]
     runs-on: ${{ matrix.runner }}
     strategy:
       matrix:
@@ -81,9 +86,32 @@ jobs:
             echo "Hello world." > "$TARGET_DIR/another-file.txt"
             echo "A fake license." > "$TARGET_DIR/LICENSE"
 
+  test-ok-multi-file-from-curl:
+    runs-on: ${{ matrix.runner }}
+    strategy:
+      matrix:
+        include:
+          - { runner: ubuntu-latest, reproducible: assert, want: success }
+          - { runner: ubuntu-latest, reproducible: report, want: success }
+          - { runner: ubuntu-latest, reproducible: nope,   want: success }
+          - { runner: macos-latest,  reproducible: assert, want: success }
+          - { runner: macos-latest,  reproducible: report, want: success }
+          - { runner: macos-latest,  reproducible: nope,   want: success }
+    steps:
+      - uses: actions/checkout@v3
+      - uses: ./test
+        with:
+          reproducible: ${{ matrix.reproducible }}
+          assert: ${{ matrix.want }}
+          when: "the binary files are identical and so are two other files downloaded into the zip"
+          instructions: |
+            cd testdata/example-app
+            go build -trimpath -o "$BIN_PATH" .
+            curl -o "$TARGET_DIR/EULA.txt" https://eula.hashicorp.com/EULA.txt
+            curl -o "$TARGET_DIR/TermsOfEvaluation.txt" https://eula.hashicorp.com/TermsOfEvaluation.txt
+
   # Test cases where the binary reproduces but the zip file does not.
   test-err-zip-mismatch:
-    needs: [ lint ]
     runs-on: ${{ matrix.runner }}
     strategy:
       matrix:
@@ -109,7 +137,6 @@ jobs:
 
   # Test cases where the binary and zip file both do not reproduce.
   test-err-bin-mismatch:
-    needs: [ lint ]
     runs-on: ${{ matrix.runner }}
     strategy:
       matrix:
@@ -134,7 +161,6 @@ jobs:
 
   # Test cases where the binary file is not written to the correct path.
   test-err-bin-missing:
-    needs: [ lint ]
     runs-on: ${{ matrix.runner }}
     strategy:
       matrix:
