@@ -33,7 +33,7 @@ jobs:
       - uses: actions/checkout@v2
       - run: make example
 
-  test-single-file-ok:
+  test-ok-single-file:
     needs: [ lint ]
     runs-on: ${{ matrix.runner }}
     strategy:
@@ -56,7 +56,7 @@ jobs:
             cd testdata/example-app
             go build -trimpath -o "$BIN_PATH"
 
-  test-multi-file-ok:
+  test-ok-multi-file:
     needs: [ lint ]
     runs-on: ${{ matrix.runner }}
     strategy:
@@ -82,7 +82,7 @@ jobs:
             echo "A fake license." > "$TARGET_DIR/LICENSE"
 
   # Test cases where the binary reproduces but the zip file does not.
-  test-zip-mismatch:
+  test-err-zip-mismatch:
     needs: [ lint ]
     runs-on: ${{ matrix.runner }}
     strategy:
@@ -108,7 +108,7 @@ jobs:
             head -c100 < /dev/urandom > "$TARGET_DIR/random.bytes"
 
   # Test cases where the binary and zip file both do not reproduce.
-  test-bin-mismatch:
+  test-err-bin-mismatch:
     needs: [ lint ]
     runs-on: ${{ matrix.runner }}
     strategy:
@@ -133,7 +133,7 @@ jobs:
             go build -o "$BIN_PATH"
 
   # Test cases where the binary file is not written to the correct path.
-  test-bin-missing:
+  test-err-bin-missing:
     needs: [ lint ]
     runs-on: ${{ matrix.runner }}
     strategy:
