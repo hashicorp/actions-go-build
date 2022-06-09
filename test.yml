@@ -1,0 +1,61 @@
+name: Go Build Action Tests
+author: Release Engineering <team-rel-eng@hashicorp.com>
+description: Action for testing hashicorp/actions-go-build.
+
+inputs:
+  when:
+    description: A sentence fragment describing the scenario. E.g. 'the worzels are singing'.
+    required: true
+  assert:
+    description: Either 'success' or 'failure' to indicate if we expect the action to succeed or fail.
+    required: true
+  instructions:
+    description: Build instructions to use.
+    type: string
+    required: true
+
+  reproducible:
+    default: assert
+    required: false
+  product_name:
+    default: example-app
+    required: false
+  product_version:
+    default: 1.0.0
+    required: false
+  go_version:
+    default: 1.17
+    required: false
+  os:
+    default: linux
+    required: false
+  arch:
+    default: amd64
+    required: false
+
+runs:
+  using: composite
+    env:
+      WHEN: ${{ inputs.when }}
+    steps:
+      - if: inputs.assert != 'success' && inputs.assert != 'failure'
+        run: |
+          echo "assert must be one of: 'success' or 'failure'"
+          exit 1
+      - uses: actions/checkout@v3
+      - name: Invoke actions-go-build when ${{ env.WHEN }}
+        id: build
+        uses: ./ # This is the action defined in this repo.
+        with:
+          product_name: ${{ inputs.product_name }}
+          product_version: ${{ inputs.product_version }}
+          go_version: ${{ inputs.go_version }}
+          os: ${{ inputs.os }}
+          arch: ${{ inputs.arch }}
+          reproducible: ${{ inputs.reproducible }}
+          instructions: ${{ inputs.instructions }}
+        continue-on-error: true
+      - if: inputs.assert == 'success'
+        run: ./scripts/gha_assert_success "${{ steps.build.outcome }}"
+      - if: inputs.assert == 'failure'
+        run: ./scripts/gha_assert_failure "${{ steps.build.outcome }}"

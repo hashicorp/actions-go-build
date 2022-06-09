@@ -2,6 +2,9 @@ name: Tests
 
 on: [push]
 
+defaults:
+  runs-on: ubuntu-latest
+
 jobs:
 
   script-tests:
@@ -29,12 +32,12 @@ jobs:
       - run: make example
 
   test-reproduced-ok:
-    uses: ./.github/workflows/action-test.yml
     strategy:
       matrix:
         assert: [ success ]
         reproducible: [ assert, report, nope ]
         runner: [ ubuntu-latest, macos-latest ]
+    uses: ./test.yml
     with:
       runs-on: ${{ matrix.runner }}
       reproducible: ${{ matrix.reproducible }}
