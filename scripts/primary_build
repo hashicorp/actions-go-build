@@ -7,8 +7,6 @@ source "${BASH_SOURCE%/*}/standard_header.bash"
 source "${BASH_SOURCE%/*}/build.bash"
 
 
-log
-log "Beginning primary build."
-log
+log_bold "Beginning primary build."
 
 build

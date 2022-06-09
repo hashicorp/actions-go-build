@@ -25,6 +25,7 @@ example-app:
 
 GO_BUILD := go build -trimpath -buildvcs=false -ldflags "$(LDFLAGS)" -o "$$BIN_PATH"
 
+example: export REPRODUCIBLE             := assert
 example: export INSTRUCTIONS             := cd testdata/example-app && $(GO_BUILD)
 example: export OS                       := $(shell go env GOOS)
 example: export ARCH                     := $(shell go env GOARCH)

@@ -1,7 +1,21 @@
 set -Eeuo pipefail
+
+trap 'exit 1' ERR
+
 log() { echo "==> $*" 1>&2; }
-err() { log "ERROR: $*"; return 1; }
-die() { log "FATAL: $*"; exit 1; }
+err() { log "$(bold_red "ERROR:") $(bold "$*")"; return 1; }
+die() { log "$(bold_red "FATAL:") $(bold "$*")"; exit 1; }
+
+# shellcheck disable=SC2086 # need to word-split ATTR.
+attr_text() { ATTR="$1"; shift; echo -n "$(tput $ATTR)$*$(tput sgr0)"; }
+
+bold() { attr_text "bold" "$*"; }
+red() { attr_text "setaf 1" "$*"; }
+bold_blue() { tput -S < <(printf "%s\n%s %s" "bold" "setaf" "4"); echo -n "$*"; tput sgr0; }
+bold_red() { tput -S < <(printf "%s\n%s %s" "bold" "setaf" "1"); echo -n "$*"; tput sgr0; }
+
+log_bold() { log "$(bold_blue "$*")"; }
+
 
 # We rely on the GNU date program as it can convert the format of arbitrary dates.
 # Replace 'date' with a function that routes to GNU date if needed.

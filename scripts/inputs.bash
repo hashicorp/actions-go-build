@@ -71,10 +71,9 @@ commit_time_utc() {
 	date --utc --iso-8601=seconds -d "$T"
 }
 
-
 export_to_github_job() { local NAME="$1"
 	if [ -z "${!NAME+x}" ]; then
-		echo "ERROR: $NAME is not set."
+		err "$NAME is not set."
 		return 1
 	fi
 	{
@@ -120,14 +119,14 @@ export_env_or_default() {
 	# Default value provided? Export it with that value.
 	test -n "$DEFAULT" && {
 		export "$NAME"="$DEFAULT"
-		return
+		return 0
 	}
-	err "Attempting to export an empty or unset env var '$NAME' with no default value."
+	die "Attempting to export an empty or unset env var '$NAME' with no default value."
 }
 
 export_env() {
 	local NAME="$1"
-	try_export_nonempty "$NAME" || err "Attempting to export an empty or unset env var '$NAME'"
+	try_export_nonempty "$NAME" || die "Attempting to export an empty or unset env var '$NAME'"
 }
 
 try_export_nonempty() {
