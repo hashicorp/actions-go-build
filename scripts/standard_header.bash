@@ -3,8 +3,8 @@ set -Eeuo pipefail
 trap 'exit 1' ERR
 
 log() { echo "==> $*" 1>&2; }
-err() { log "$(bold_red "ERROR:") $(bold "$*")"; return 1; }
-die() { log "$(bold_red "FATAL:") $(bold "$*")"; exit 1; }
+err() { log "$(bold_red "ERROR: ") $(bold "$*")"; return 1; }
+die() { log "$(bold_red "FATAL: ") $(bold "$*")"; exit 1; }
 
 styled_text() { ATTR="$1"; shift; echo -en '\033['"${ATTR}m$*"'\033[0m'; }
 
