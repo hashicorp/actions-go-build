@@ -111,7 +111,7 @@ jobs:
           when: "the binary files are identical and so are two other files downloaded into the zip"
           instructions: |
             cd testdata/example-app
-            go build -o "$BIN_PATH" -trimpath -flags=netcgo
+            go build -o "$BIN_PATH" -trimpath -tags=netcgo
 
   # Test cases where the binary reproduces but the zip file does not.
   test-err-zip-mismatch:
