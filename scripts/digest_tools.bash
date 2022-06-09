@@ -20,11 +20,11 @@ read_digest() {
 	DIGEST_PATH="$(digest_path_abs "$SOURCE_NAME" "$DIGEST_NAME")"
 	local DIGEST
 	DIGEST="$(cat "$DIGEST_PATH")" || {
-		log "ERROR: Failed to read digest from '$DIGEST_PATH'"
+		err "Failed to read digest from '$DIGEST_PATH'"
 		return 1
 	}
 	[ -n "$DIGEST" ] || {
-		log "ERROR: Empty digest read from '$DIGEST_PATH'"
+		err "Empty digest read from '$DIGEST_PATH'"
 		return 1
 	}
 	log "Read $SOURCE_NAME $DIGEST_NAME digest: $DIGEST"
@@ -71,11 +71,13 @@ compare_digest() {
 	VERIFICATION_DIGEST="$(read_digest verification "$DIGEST_NAME")" || return 1
 
 	if [ "$PRIMARY_DIGEST" != "$VERIFICATION_DIGEST" ]; then
-		log "FAIL: Digests not equal for $DIGEST_NAME; Primary: $PRIMARY_DIGEST; Verification: $VERIFICATION_DIGEST"
+		err "Digests not equal for $DIGEST_NAME:"
+		log "    Primary:       $PRIMARY_DIGEST"
+		log "    Verification:  $VERIFICATION_DIGEST"
 		echo "$PRIMARY_DIGEST"
 		echo "$VERIFICATION_DIGEST"
 		return 1
 	fi
-	log "OK: Digests for $DIGEST_NAME are equal: $PRIMARY_DIGEST"
+	log_bold "OK: Digests for $DIGEST_NAME are equal: $PRIMARY_DIGEST"
 	echo "$PRIMARY_DIGEST"
 }
