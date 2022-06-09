@@ -4,6 +4,13 @@ Instead, edit the files in release/changes, then run 'make docs' to update this 
 -->
 # Changelog - Go Build Action
 
+## [v0.0.3](https://github.com/hashicorp/actions-go-build/releases/tag/v0.0.3) - June 08, 2022
+
+- More graceful handling of installing coreutils on macOS. 
+  Doesn't attempt to install again if GNU date already present.
+## [v0.0.2](https://github.com/hashicorp/actions-go-build/releases/tag/v0.0.2) - June 08, 2022
+
+- Better error message when env vars missing.
 ## [v0.0.1](https://github.com/hashicorp/actions-go-build/releases/tag/v0.0.1) - June 08, 2022
 
 Initial version.

@@ -13,7 +13,9 @@ _This is intended for internal HashiCorp use only; Internal folks please refer t
 * [Table of Contents](#table-of-contents)
 * [Features](#features)
 * [Usage](#usage)
-  * [Example Workflow](#example-workflow)
+  * [Example Workflows](#example-workflows)
+    * [Minimal(ish) Example](#minimalish-example)
+    * [More Realistic Example](#more-realistic-example)
   * [Inputs](#inputs)
   * [Build Environment](#build-environment)
     * [Environment Variables](#environment-variables)
@@ -46,11 +48,15 @@ _This is intended for internal HashiCorp use only; Internal folks please refer t
 
 This Action can run on both Ubuntu and macOS runners.
 
-### Example Workflow
+### Example Workflows
 
-Example usage ([see this workflow running here](https://github.com/hashicorp/actions-reproducible-build/actions/workflows/example.yml)).
+#### Minimal(ish) Example
 
-<!-- insert:scripts/codegen/print_example_workflow -->
+This example shows building a single `linux/amd64` binary.
+
+[See this simple example workflow running here](https://github.com/hashicorp/actions-reproducible-build/actions/workflows/example.yml).
+
+<!-- insert:scripts/codegen/print_example_workflow example.yml -->
 ```yaml
 name: Minimal(ish) Example
 on: [push]
@@ -69,9 +75,48 @@ jobs:
           arch: amd64
           instructions: |-
             cd ./testdata/example-app
+            go build -o "$BIN_PATH" -trimpath -buildvcs=false
+```
+<!-- end:insert:scripts/codegen/print_example_workflow example.yml -->
+
+#### More Realistic Example
+
+This example shows usage of the action inside a matrix configured to produce
+binaries for different platforms.
+
+[See this matrix example workflow running here](https://github.com/hashicorp/actions-reproducible-build/actions/workflows/example-matrix.yml).
+
+<!-- insert:scripts/codegen/print_example_workflow example-matrix.yml -->
+```yaml
+name: Matrix Example
+on: [push]
+jobs:
+  example:
+    runs-on: ${{ matrix.runner }}
+    strategy:
+      matrix:
+        include:
+          - { runner: macos-latest,  os: darwin,  arch: amd64, tags: netcgo}
+          - { runner: macos-latest,  os: darwin,  arch: arm64, tags: netcgo}
+          - { runner: ubuntu-latest, os: linux,   arch: amd64 }
+          - { runner: ubuntu-latest, os: linux,   arch: amd64 }
+          - { runner: ubuntu-latest, os: windows, arch: amd64 }
+    steps:
+      - uses: actions/checkout@v3
+      - name: Build
+        uses: hashicorp/actions-reproducible-build@main
+        with:
+          product_name: example-app
+          product_version: 1.2.3
+          go_version: 1.18
+          os: ${{ matrix.os }}
+          arch: ${{ matrix.arch }}
+          instructions: |-
+            cd ./testdata/example-app
             go build \
               -trimpath \
               -buildvcs=false \
+              -tags="${{ matrix.tags }}"
               -o "$BIN_PATH" \
               -ldflags "
                 -X 'main.Version=$PRODUCT_VERSION'
@@ -79,7 +124,7 @@ jobs:
                 -X 'main.RevisionTime=$PRODUCT_REVISION_TIME'
               "
 ```
-<!-- end:insert:scripts/codegen/print_example_workflow -->
+<!-- end:insert:scripts/codegen/print_example_workflow example-matrix.yml -->
 
 ### Inputs
 

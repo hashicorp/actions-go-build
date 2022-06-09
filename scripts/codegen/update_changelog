@@ -17,13 +17,9 @@ write "# Changelog - Go Build Action"
 write
 
 find release/changes -type f -name '*.md' | sort | tac | while read -r FILE; do
-	echo "$FILE"
 	FILENAME="$(basename "$FILE")"
-	echo "$FILENAME"
 	VERSION="${FILENAME%.md}"
-	echo "$VERSION"
 	DATE="$(git show -s --date="format:%B %d, %Y" --format=%cd "$VERSION")"
-	echo "$DATE"
 	write "## [$VERSION]($REPO_URL/releases/tag/$VERSION) - $DATE"
 	write
 	TAG="$VERSION"
@@ -31,9 +27,3 @@ find release/changes -type f -name '*.md' | sort | tac | while read -r FILE; do
 	write "$(envsubst < "$FILE")"
 
 done
-
-echo
-echo "Changelog written:"
-echo
-
-cat "$CL"

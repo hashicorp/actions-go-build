@@ -56,7 +56,9 @@ insert_block() {
 	START="$(start_comment "$SCRIPT")"
 	END="$(end_comment "$SCRIPT")"
 	END_PATTERN="^${END_LEADER}(.*)${TRAILER}\$"
-	INSERT="$("./$SCRIPT")"
+	log "Running './$SCRIPT'"
+	# shellcheck disable=SC2086 # we want to word-split SCRIPT
+	INSERT="$(./$SCRIPT)"
 	INSERT_ESCAPED="${INSERT//$'\n'/\\n}"
 	if grep -qE "$END_PATTERN" <<< "$TEXT"; then
 		replace_block "$TEXT" "$START" "$INSERT_ESCAPED" "$END"
