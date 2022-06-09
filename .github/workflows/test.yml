@@ -36,7 +36,7 @@ jobs:
         reproducible: [ assert, report, nope ]
         runner: [ ubuntu-latest, macos-latest ]
     steps:
-      - uses: ./test.yml
+      - uses: ./test
         with:
           runs-on: ${{ matrix.runner }}
           reproducible: ${{ matrix.reproducible }}
