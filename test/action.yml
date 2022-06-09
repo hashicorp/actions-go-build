@@ -59,11 +59,13 @@ runs:
         instructions: ${{ inputs.instructions }}
       continue-on-error: true
     - if: inputs.assert == 'success'
+      name: Assert The Action Succeeded
       shell: bash
       env:
         WHEN: ${{ inputs.when }}
       run: ./scripts/gha_assert_success "${{ steps.build.outcome }}"
     - if: inputs.assert == 'failure'
+      name: Assert The Action Failed Correctly
       shell: bash
       env:
         WHEN: ${{ inputs.when }}
