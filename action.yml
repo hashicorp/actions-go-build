@@ -94,6 +94,8 @@ runs:
       with:
         go-version: ${{ inputs.go_version }}
 
+    - run: ${{ github.action_path}}/scripts/build_env_info
+
     # Primary Build
     - name: Run Primary Build
       shell: bash

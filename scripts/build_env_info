@@ -1,0 +1,26 @@
+#!/usr/bin/env bash
+
+set -Eeuo pipefail
+
+# shellcheck source=scripts/standard_header.bash
+source "${BASH_SOURCE%/*}/standard_header.bash"
+
+printvar() {
+	log "$1='${!1:-}'"
+}
+
+run() {
+	echo "" >&2
+	log_bold "$*"
+	"$@" 1>&2 || err "Command failed: '$*'" || true
+}
+
+printvar BASH_VERSION
+
+run bash --version
+run zip --version
+run date --version
+run touch --version
+
+run go version
+run go env
