@@ -33,6 +33,7 @@ jobs:
     runs-on: ${{ matrix.runner }}
     strategy:
       matrix:
+        # We expect only success in every case here.
         assert: [ success ]
         reproducible: [ assert, report, nope ]
         runner: [ ubuntu-latest, macos-latest ]
@@ -47,17 +48,34 @@ jobs:
             cd testdata/example-app
             go build -trimpath -o "$TARGET_DIR/$BIN_NAME" .
 
-  test-zip-mismatch-assert:
-    uses: ./.github/workflows/action-test.yml
-    with:
-      reproducible: assert
-      assert: failure
-      when: the zip files are different
-      instructions: |
-        cd testdata/example-app
-        go build -trimpath -o "$TARGET_DIR/$BIN_NAME" .
-        # Insert something random into the zipped dir.
-        head -c100 < /dev/urandom > "$TARGET_DIR/random.bytes"
+  # Test cases where the binary reproduces but the zip file does not.
+  test-zip-mismatch:
+    runs-on: ${{ matrix.runner }}
+    strategy:
+      matrix:
+        # We want success when reproducible is not set to assert.
+        assert: [ success ]
+        reproducible: [ report, nope ]
+        runner: [ ubuntu-latest, macos-latest ]
+        include:
+          - { assert: failure, reproducible: assert, runner: ubuntu-latest }
+          - { assert: failure, reproducible: assert, runner: macos-latest }
+          - { assert: success, reproducible: report, runner: ubuntu-latest }
+          - { assert: success, reproducible: report, runner: macos-latest }
+          - { assert: success, reproducible: nope,   runner: ubuntu-latest }
+          - { assert: success, reproducible: nope,   runner: macos-latest }
+    steps:
+      - uses: actions/checkout@v3
+      - uses: ./test
+        with:
+          reproducible: ${{ matrix.reproducible }}
+          assert: ${{ matrix.assert }}
+          when: the binary files are identical and the zip files are identical
+          instructions: |
+            cd testdata/example-app
+            go build -trimpath -o "$TARGET_DIR/$BIN_NAME" .
+            # Insert something random into the zipped dir.
+            head -c100 < /dev/urandom > "$TARGET_DIR/random.bytes"
 
   test-bin-mismatch-assert:
     uses: ./.github/workflows/action-test.yml
@@ -80,18 +98,6 @@ jobs:
         cd testdata/example-app
         go build -o "$TARGET_DIR/$BIN_NAME.wrong" .
 
-  test-zip-mismatch-report:
-    uses: ./.github/workflows/action-test.yml
-    with:
-      reproducible: report
-      assert: success
-      when: the zip files are different
-      instructions: |
-        cd testdata/example-app
-        go build -trimpath -o "$TARGET_DIR/$BIN_NAME" .
-        # Insert something random into the zipped dir.
-        head -c100 < /dev/urandom > "$TARGET_DIR/random.bytes"
-
   test-bin-mismatch-report:
     uses: ./.github/workflows/action-test.yml
     with:
@@ -112,18 +118,6 @@ jobs:
       instructions: |
         cd testdata/example-app
         go build -o "$TARGET_DIR/$BIN_NAME.wrong" .
-
-  test-zip-mismatch-nope:
-    uses: ./.github/workflows/action-test.yml
-    with:
-      reproducible: nope
-      assert: success
-      when: the zip files are different
-      instructions: |
-        cd testdata/example-app
-        go build -trimpath -o "$TARGET_DIR/$BIN_NAME" .
-        # Insert something random into the zipped dir.
-        head -c100 < /dev/urandom > "$TARGET_DIR/random.bytes"
 
   test-bin-mismatch-nope:
     uses: ./.github/workflows/action-test.yml
