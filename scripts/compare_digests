@@ -56,3 +56,28 @@ write_summary "-----"
 
 print_results "Binary" $BIN_PASSED "${BIN_RESULTS[@]}"
 print_results "Zip"    $ZIP_PASSED "${ZIP_RESULTS[@]}"
+
+# A failed bin implies a failed zip, so just give up if that's the case.
+if ! "$BIN_PASSED"; then
+	exit
+fi
+
+# If the zip passed, we're all done.
+if "$ZIP_PASSED"; then
+	exit
+fi
+
+# The zip didn't reproduce but the bin did, so dump some info here to help with debugging.
+
+log_bold "SEE ZIP INFO BELOW TO AID WITH DEBUGGING THE ZIP REPRODUCIBILITY FAILURE"
+
+log "primary zip info; "
+zipinfo -v "$ZIP_PATH_PRIMARY" | tee primary.txt
+
+log "verification zip info:"
+zipinfo -v "$ZIP_PATH_VERIFICATION" | tee verification.txt
+
+log "diff between above two zipinfo outputs:"
+# The tail -n+2 bits here just knock off the first line of output,
+# which is always different as it's the zip's filename.
+diff -U 40 <(tail -n+2 primary.info) <(tail -n+2 verification.info)
