@@ -36,6 +36,7 @@ jobs:
         reproducible: [ assert, report, nope ]
         runner: [ ubuntu-latest, macos-latest ]
     steps:
+      - uses: actions/checkout@v3
       - uses: ./test
         with:
           runs-on: ${{ matrix.runner }}
