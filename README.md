@@ -82,7 +82,9 @@ jobs:
 #### More Realistic Example
 
 This example shows usage of the action inside a matrix configured to produce
-binaries for different platforms.
+binaries for different platforms. It also injects the version, revision, and
+revision time into the binary via `-ldflags`, uses the `netcgo` tag for darwin,
+and disables CGO for linux and windows builds.
 
 [See this matrix example workflow running here](https://github.com/hashicorp/actions-reproducible-build/actions/workflows/example-matrix.yml).
 
@@ -96,11 +98,11 @@ jobs:
     strategy:
       matrix:
         include:
-          - { runner: macos-latest,  os: darwin,  arch: amd64, tags: netcgo}
-          - { runner: macos-latest,  os: darwin,  arch: arm64, tags: netcgo}
-          - { runner: ubuntu-latest, os: linux,   arch: amd64 }
-          - { runner: ubuntu-latest, os: linux,   arch: amd64 }
-          - { runner: ubuntu-latest, os: windows, arch: amd64 }
+          - { runner: macos-latest,  os: darwin,  arch: amd64, tags: netcgo        }
+          - { runner: macos-latest,  os: darwin,  arch: arm64, tags: netcgo        }
+          - { runner: ubuntu-latest, os: linux,   arch: amd64, env:  CGO_ENABLED=0 }
+          - { runner: ubuntu-latest, os: linux,   arch: amd64, env:  CGO_ENABLED=0 }
+          - { runner: ubuntu-latest, os: windows, arch: amd64, env:  CGO_ENABLED=0 }
     steps:
       - uses: actions/checkout@v3
       - name: Build
@@ -113,16 +115,17 @@ jobs:
           arch: ${{ matrix.arch }}
           instructions: |-
             cd ./testdata/example-app
-            go build \
-              -trimpath \
-              -buildvcs=false \
-              -tags="${{ matrix.tags }}"
-              -o "$BIN_PATH" \
-              -ldflags "
-                -X 'main.Version=$PRODUCT_VERSION'
-                -X 'main.Revision=$PRODUCT_REVISION'
-                -X 'main.RevisionTime=$PRODUCT_REVISION_TIME'
-              "
+            ${{ matrix.env }} \
+              go build \
+                -trimpath \
+                -buildvcs=false \
+                -tags="${{ matrix.tags }}"
+                -o "$BIN_PATH" \
+                -ldflags "
+                  -X 'main.Version=$PRODUCT_VERSION'
+                  -X 'main.Revision=$PRODUCT_REVISION'
+                  -X 'main.RevisionTime=$PRODUCT_REVISION_TIME'
+                "
 ```
 <!-- end:insert:scripts/codegen/print_example_workflow example-matrix.yml -->
 
