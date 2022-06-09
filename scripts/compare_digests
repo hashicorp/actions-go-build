@@ -69,15 +69,22 @@ fi
 
 # The zip didn't reproduce but the bin did, so dump some info here to help with debugging.
 
+# dump_zipinfo dumps zip info to stderr and a file. It writes the name
+# of the file written to stdout.
+dump_zipinfo() {
+	local ZIP="$1"
+	local FILE="$ZIP.info"
+	log "$(bold "zip info for $ZIP")"
+	# The tail -n+2 bits here just knock off the first line of output,
+	# which is always different as it's the zip's filename.
+	zipinfo -v "$ZIP" | tail -n+2 | tee "$FILE" 1>&2
+	echo "$FILE"
+}
+
 log_bold "SEE ZIP INFO BELOW TO AID WITH DEBUGGING THE ZIP REPRODUCIBILITY FAILURE"
 
-log "primary zip info; "
-zipinfo -v "$ZIP_PATH_PRIMARY" | tee primary.txt
-
-log "verification zip info:"
-zipinfo -v "$ZIP_PATH_VERIFICATION" | tee verification.txt
+PRIMARY_INFO="$(dump_zipinfo "$ZIP_PATH_PRIMARY")"
+VERIFICATION_INFO="$(dump_zipinfo "$ZIP_PATH_VERIFICATION")"
 
 log "diff between above two zipinfo outputs:"
-# The tail -n+2 bits here just knock off the first line of output,
-# which is always different as it's the zip's filename.
-diff -U 40 <(tail -n+2 primary.txt) <(tail -n+2 verification.txt)
+diff -U 40 "$PRIMARY_INFO" "$VERIFICATION_INFO"
