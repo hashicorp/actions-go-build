@@ -9,6 +9,11 @@ die() { log "$(bold_red "FATAL:") $(bold "$*")"; exit 1; }
 # shellcheck disable=SC2086 # need to word-split ATTR.
 attr_text() { ATTR="$1"; shift; echo -n "$(tput $ATTR)$*$(tput sgr0)"; }
 
+# tput wrapper ensuring TERM is set to something.
+tput() {
+	"$(which tput)" -T "${TERM:-dumb}" "$@"
+}
+
 bold() { attr_text "bold" "$*"; }
 red() { attr_text "setaf 1" "$*"; }
 bold_blue() { tput -S < <(printf "%s\n%s %s" "bold" "setaf" "4"); echo -n "$*"; tput sgr0; }
