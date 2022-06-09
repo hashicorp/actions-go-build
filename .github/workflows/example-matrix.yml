@@ -22,13 +22,13 @@ jobs:
           os: ${{ matrix.os }}
           arch: ${{ matrix.arch }}
           instructions: |-
-            cd ./testdata/example-app
+            cd ./testdata/example-app && \
             ${{ matrix.env }} \
               go build \
+                -o "$BIN_PATH" \
                 -trimpath \
                 -buildvcs=false \
-                -tags="${{ matrix.tags }}"
-                -o "$BIN_PATH" \
+                -tags="${{ matrix.tags }}" \
                 -ldflags "
                   -X 'main.Version=$PRODUCT_VERSION'
                   -X 'main.Revision=$PRODUCT_REVISION'
