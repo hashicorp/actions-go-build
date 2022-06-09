@@ -86,5 +86,9 @@ log_bold "SEE ZIP INFO BELOW TO AID WITH DEBUGGING THE ZIP REPRODUCIBILITY FAILU
 PRIMARY_INFO="$(dump_zipinfo "$ZIP_PATH_PRIMARY")"
 VERIFICATION_INFO="$(dump_zipinfo "$ZIP_PATH_VERIFICATION")"
 
-log "diff between above two zipinfo outputs:"
+log "$(bold "Diff between above two zipinfo outputs:")"
 diff -U 40 "$PRIMARY_INFO" "$VERIFICATION_INFO"
+
+log "$(bold "Binary file details:")"
+stat "$BIN_PATH_PRIMARY"
+stat "$BIN_PATH_VERIFICATION"
