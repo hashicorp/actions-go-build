@@ -1,0 +1,75 @@
+name: Action Test
+on:
+  workflow_call:
+    inputs:
+
+      when:
+        description: A sentence fragment describing the scenario. E.g. 'the worzels are singing'.
+        type: string
+        required: true
+      assert:
+        description: Either 'success' or 'failure' depending if we want the action to succeed or fail.
+        type: string
+        required: true
+      instructions:
+        description: Build instructions to use.
+        type: string
+        required: true
+
+      runs-on:
+        description: Passed through to action.
+        type: string
+        default: ubuntu-latest
+      reproducible:
+        description: Passed through to action.
+        type: string
+        default: assert
+      product_name:
+        description: Passed through to action.
+        type: string
+        default: example-app
+      product_version:
+        description: Passed through to action.
+        type: string
+        default: 1.0.0
+      go_version:
+        description: Passed through to action.
+        type: string
+        default: 1.17
+      os:
+        description: Passed through to action.
+        type: string
+        default: linux
+      arch:
+        description: Passed through to action.
+        type: string
+        default: amd64
+
+jobs:
+  action-test:
+    name: want ${{ inputs.assert }}
+    runs-on: ${{ inputs.runs-on }}
+    env:
+      WHEN: ${{ inputs.when }}
+    steps:
+      - if: inputs.assert != 'success' && inputs.assert != 'failure'
+        run: |
+          echo "assert must be one of: 'success' or 'failure'"
+          exit 1
+      - uses: actions/checkout@v3
+      - name: Invoke actions-go-build when ${{ env.WHEN }}
+        id: build
+        uses: ./ # This is the action defined in this repo.
+        with:
+          product_name: ${{ inputs.product_name }}
+          product_version: ${{ inputs.product_version }}
+          go_version: ${{ inputs.go_version }}
+          os: ${{ inputs.os }}
+          arch: ${{ inputs.arch }}
+          reproducible: ${{ inputs.reproducible }}
+          instructions: ${{ inputs.instructions }}
+        continue-on-error: true
+      - if: inputs.assert == 'success'
+        run: ./scripts/gha_assert_success "${{ steps.build.outcome }}"
+      - if: inputs.assert == 'failure'
+        run: ./scripts/gha_assert_failure "${{ steps.build.outcome }}"
