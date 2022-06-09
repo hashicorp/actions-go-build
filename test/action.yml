@@ -34,28 +34,28 @@ inputs:
 
 runs:
   using: composite
-    steps:
-      - if: inputs.assert != 'success' && inputs.assert != 'failure'
-        run: |
-          echo "assert must be one of: 'success' or 'failure'"
-          exit 1
-      - name: Invoke actions-go-build when ${{ env.WHEN }}
-        id: build
-        uses: ./ # This is the action defined in this repo.
-        with:
-          product_name: ${{ inputs.product_name }}
-          product_version: ${{ inputs.product_version }}
-          go_version: ${{ inputs.go_version }}
-          os: ${{ inputs.os }}
-          arch: ${{ inputs.arch }}
-          reproducible: ${{ inputs.reproducible }}
-          instructions: ${{ inputs.instructions }}
-        continue-on-error: true
-      - if: inputs.assert == 'success'
-        env:
-          WHEN: ${{ inputs.when }}
-        run: ./scripts/gha_assert_success "${{ steps.build.outcome }}"
-      - if: inputs.assert == 'failure'
-        env:
-          WHEN: ${{ inputs.when }}
-        run: ./scripts/gha_assert_failure "${{ steps.build.outcome }}"
+  steps:
+    - if: inputs.assert != 'success' && inputs.assert != 'failure'
+      run: |
+        echo "assert must be one of: 'success' or 'failure'"
+        exit 1
+    - name: Invoke actions-go-build when ${{ env.WHEN }}
+      id: build
+      uses: ./ # This is the action defined in this repo.
+      with:
+        product_name: ${{ inputs.product_name }}
+        product_version: ${{ inputs.product_version }}
+        go_version: ${{ inputs.go_version }}
+        os: ${{ inputs.os }}
+        arch: ${{ inputs.arch }}
+        reproducible: ${{ inputs.reproducible }}
+        instructions: ${{ inputs.instructions }}
+      continue-on-error: true
+    - if: inputs.assert == 'success'
+      env:
+        WHEN: ${{ inputs.when }}
+      run: ./scripts/gha_assert_success "${{ steps.build.outcome }}"
+    - if: inputs.assert == 'failure'
+      env:
+        WHEN: ${{ inputs.when }}
+      run: ./scripts/gha_assert_failure "${{ steps.build.outcome }}"
