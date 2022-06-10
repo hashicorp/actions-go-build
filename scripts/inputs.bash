@@ -27,7 +27,7 @@ digest_inputs() {
 	# Pass through env vars from optional action inputs (or set to default value).
 
 	forward_env BIN_NAME "$(remove_enterprise_suffix "$PRODUCT_NAME")"
-	forward_env ZIP_NAME "${PRODUCT_NAME}_${PRODUCT_VERSION}_${OS}_${ARCH}.zip"
+	forward_env ZIP_NAME "${BIN_NAME}_${PRODUCT_VERSION}_${OS}_${ARCH}.zip"
 	
 	# Set relative paths used to store various build artifacts.
 	
