@@ -63,7 +63,7 @@ jobs:
   test-ok-darwin-netcgo:
     runs-on: ${{ inputs.runner }}
     # This test is macOS-specific.
-    if: ${{ runner.os == 'macOS' }}
+    if: runner.os == 'macOS'
     strategy:
       matrix:
         include:
