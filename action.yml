@@ -77,6 +77,7 @@ runs:
         brew update
         brew install coreutils
 
+    # Parse the inputs.
     - name: Calculate default values and paths; set env vars.
       shell: bash
       env:
@@ -90,17 +91,22 @@ runs:
         INSTRUCTIONS: ${{ inputs.instructions }}
       run: ${{ github.action_path }}/scripts/digest_inputs
 
+    # Setup Go
     - uses: actions/setup-go@v2
       with:
         go-version: ${{ inputs.go_version }}
 
-    - run: ${{ github.action_path}}/scripts/build_env_info
+    # Print
+    - name: "Print Build Environment Info"
+      shell: bash
+      run: ${{ github.action_path}}/scripts/build_env_info
 
     # Primary Build
     - name: Run Primary Build
       shell: bash
       run: ${{ github.action_path }}/scripts/primary_build
 
+    # Upload Primary Build
     - name: Upload primary build zip file.
       uses: actions/upload-artifact@v3
       with:
@@ -114,6 +120,7 @@ runs:
       shell: bash
       run: ${{ github.action_path }}/scripts/local_verification_build
 
+    # Upload Local Verification Build
     - name: Upload local verification build zip file.
       if: inputs.reproducible == 'assert' || inputs.reproducible == 'report'
       uses: actions/upload-artifact@v3
@@ -122,13 +129,13 @@ runs:
         path: ${{ env.ZIP_PATH_VERIFICATION }}
         if-no-files-found: error
 
-    # Verification (assert)
+    # Assert Reproducibility
     - name: Assert Build Outputs Identical
       if: inputs.reproducible == 'assert'
       shell: bash
       run: ${{ github.action_path }}/scripts/compare_digests
 
-    # Verification (report)
+    # Report Reproducibility
     - name: Report Reproducibility Results
       if: inputs.reproducible == 'report'
       shell: bash
