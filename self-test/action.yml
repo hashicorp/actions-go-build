@@ -10,10 +10,6 @@ inputs:
   assert:
     description: Either 'success' or 'failure' to indicate if we expect the action to succeed or fail.
     required: true
-  target_action:
-    description: The action to test. Defaults to the local one (override to test different versions).
-    default: ./
-    required: false
 
   # Action under test configuration.
   instructions:
@@ -54,7 +50,7 @@ runs:
         exit 1
     - name: Invoke actions-go-build when ${{ env.WHEN }}
       id: build
-      uses: ${{ inputs.target_action }}
+      uses: ./ # The action at the root of this repo.
       with:
         product_name: ${{ inputs.product_name }}
         product_version: ${{ inputs.product_version }}
