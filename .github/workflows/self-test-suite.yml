@@ -13,7 +13,7 @@ jobs:
   # Begin action tests.
   #
   # These tests use a matrix to define a set of inputs and wanted results.
-  # They use the ./test action in this repo to exercise the action itself
+  # They use the ./self-test action in this repo to exercise the action itself
   # with different sets of inputs, and assert that the action succeeds or
   # fails correctly.
 
@@ -28,7 +28,7 @@ jobs:
           - { reproducible: nope,   want: success }
     steps:
       - uses: actions/checkout@v3
-      - uses: ./test
+      - uses: ./self-test
         with:
           reproducible: ${{ matrix.reproducible }}
           assert: ${{ matrix.want }}
@@ -48,7 +48,7 @@ jobs:
           - { reproducible: nope,   want: success }
     steps:
       - uses: actions/checkout@v3
-      - uses: ./test
+      - uses: ./self-test
         with:
           reproducible: ${{ matrix.reproducible }}
           assert: ${{ matrix.want }}
@@ -78,7 +78,7 @@ jobs:
     steps:
       - uses: actions/checkout@v3
         if: runner.os == 'macOS'
-      - uses: ./test
+      - uses: ./self-test
         if: runner.os == 'macOS'
         with:
           os: ${{ matrix.os }}
@@ -101,7 +101,7 @@ jobs:
           - { reproducible: nope,   want: success }
     steps:
       - uses: actions/checkout@v3
-      - uses: ./test
+      - uses: ./self-test
         with:
           reproducible: ${{ matrix.reproducible }}
           assert: ${{ matrix.want }}
@@ -123,7 +123,7 @@ jobs:
           - { reproducible: nope,   want: success }
     steps:
       - uses: actions/checkout@v3
-      - uses: ./test
+      - uses: ./self-test
         with:
           reproducible: ${{ matrix.reproducible }}
           assert: ${{ matrix.want }}
@@ -144,7 +144,7 @@ jobs:
           - { reproducible: nope,   want: failure }
     steps:
       - uses: actions/checkout@v3
-      - uses: ./test
+      - uses: ./self-test
         with:
           reproducible: ${{ matrix.reproducible }}
           assert: ${{ matrix.want }}
