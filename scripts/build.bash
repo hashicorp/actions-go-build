@@ -54,7 +54,7 @@ build() {(
 	done
 
 	log "Zipping contents of '$TARGET_DIR' into '$ZIP_PATH'"
-	zip --no-extra --recurse-paths --junk-paths "$ZIP_PATH" "$TARGET_DIR"
+	zip -Xrj "$ZIP_PATH" "$TARGET_DIR"
 
 	write_digest zip "$ZIP_PATH"
 )}
