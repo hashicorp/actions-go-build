@@ -34,11 +34,11 @@ jobs:
       - run: make example
 
   self-tests-macos:
-    uses: ./.github/workflows/self-test-suite
+    uses: ./.github/workflows/self-test-suite.yml
     with:
       runner: macos-latest
 
   self-tests-linux:
-    uses: ./.github/workflows/self-test-suite
+    uses: ./.github/workflows/self-test-suite.yml
     with:
       runner: ubuntu-latest
