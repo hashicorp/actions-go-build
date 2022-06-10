@@ -18,7 +18,7 @@ jobs:
   # fails correctly.
 
   # A single reproducible go binary.
-  test-ok-single-file:
+  ok-single-file:
     runs-on: ${{ inputs.runner }}
     strategy:
       matrix:
@@ -38,7 +38,7 @@ jobs:
             go build -o "$BIN_PATH" -trimpath
 
   # A single reproducible go binary along with other reproducible files.
-  test-ok-multi-file:
+  ok-multi-file:
     runs-on: ${{ inputs.runner }}
     strategy:
       matrix:
@@ -63,7 +63,7 @@ jobs:
   # This test is macOS-specific, so each step has to have
   #   if: runner.os == 'macOS'
   # (You can't check the runner type at whole job level.)
-  test-ok-darwin-netcgo:
+  ok-darwin-netcgo:
     runs-on: ${{ inputs.runner }}
     strategy:
       matrix:
@@ -91,7 +91,7 @@ jobs:
             go build -o "$BIN_PATH" -trimpath -tags=netcgo
 
   # Test cases where the binary reproduces but the zip file does not.
-  test-err-zip-mismatch:
+  err-zip-mismatch:
     runs-on: ${{ inputs.runner }}
     strategy:
       matrix:
@@ -113,7 +113,7 @@ jobs:
             head -c100 < /dev/urandom > "$TARGET_DIR/random.bytes"
 
   # Test cases where the binary and zip file both do not reproduce.
-  test-err-bin-mismatch:
+  err-bin-mismatch:
     runs-on: ${{ inputs.runner }}
     strategy:
       matrix:
@@ -134,7 +134,7 @@ jobs:
             go build -o "$BIN_PATH"
 
   # Test cases where the binary file is not written to the correct path.
-  test-err-bin-missing:
+  err-bin-missing:
     runs-on: ${{ inputs.runner }}
     strategy:
       matrix:
