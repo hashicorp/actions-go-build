@@ -60,10 +60,11 @@ jobs:
             echo "A fake license." > "$TARGET_DIR/LICENSE"
 
   # A single reproducible go binary using netcgo on darwin.
+  # This test is macOS-specific, so each step has to have
+  #   if: runner.os == 'macOS'
+  # (You can't check the runner type at whole job level.)
   test-ok-darwin-netcgo:
     runs-on: ${{ inputs.runner }}
-    # This test is macOS-specific.
-    if: runner.os == 'macOS'
     strategy:
       matrix:
         include:
@@ -76,7 +77,9 @@ jobs:
           - { reproducible: nope,   os: darwin, arch: arm64, want: success }
     steps:
       - uses: actions/checkout@v3
+        if: runner.os == 'macOS'
       - uses: ./test
+        if: runner.os == 'macOS'
         with:
           os: ${{ matrix.os }}
           arch: ${{ matrix.arch }}
