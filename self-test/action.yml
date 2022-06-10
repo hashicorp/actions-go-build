@@ -1,18 +1,24 @@
-name: Go Build Action Tests
+name: Go Build Action Self-Tests
 author: Release Engineering <team-rel-eng@hashicorp.com>
 description: Action for testing hashicorp/actions-go-build.
 
 inputs:
+  # Test parameters.
   when:
     description: A sentence fragment describing the scenario. E.g. 'the worzels are singing'.
     required: true
   assert:
     description: Either 'success' or 'failure' to indicate if we expect the action to succeed or fail.
     required: true
+  target_action:
+    description: The action to test. Defaults to the local one (override to test different versions).
+    default: ./
+    required: false
+
+  # Action under test configuration.
   instructions:
     description: Build instructions to use.
     required: true
-
   reproducible:
     description: Passed through to action.
     default: assert
@@ -48,7 +54,7 @@ runs:
         exit 1
     - name: Invoke actions-go-build when ${{ env.WHEN }}
       id: build
-      uses: ./ # This is the action defined in this repo.
+      uses: ${{ inputs.target_action }}
       with:
         product_name: ${{ inputs.product_name }}
         product_version: ${{ inputs.product_version }}

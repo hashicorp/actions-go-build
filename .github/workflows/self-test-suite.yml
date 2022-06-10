@@ -1,0 +1,151 @@
+name: Test
+
+on:
+  workflow_call:
+    inputs:
+      runner:
+        description: The name of the runner to use.
+        type: string
+        required: true
+
+jobs:
+
+  # Begin action tests.
+  #
+  # These tests use a matrix to define a set of inputs and wanted results.
+  # They use the ./test action in this repo to exercise the action itself
+  # with different sets of inputs, and assert that the action succeeds or
+  # fails correctly.
+
+  # A single reproducible go binary.
+  test-ok-single-file:
+    runs-on: ${{ inputs.runner }}
+    strategy:
+      matrix:
+        include:
+          - { reproducible: assert, want: success }
+          - { reproducible: report, want: success }
+          - { reproducible: nope,   want: success }
+    steps:
+      - uses: actions/checkout@v3
+      - uses: ./test
+        with:
+          reproducible: ${{ matrix.reproducible }}
+          assert: ${{ matrix.want }}
+          when: "the binary files are identical and there are no other files in the zip"
+          instructions: |
+            cd testdata/example-app
+            go build -o "$BIN_PATH" -trimpath
+
+  # A single reproducible go binary along with other reproducible files.
+  test-ok-multi-file:
+    runs-on: ${{ inputs.runner }}
+    strategy:
+      matrix:
+        include:
+          - { reproducible: assert, want: success }
+          - { reproducible: report, want: success }
+          - { reproducible: nope,   want: success }
+    steps:
+      - uses: actions/checkout@v3
+      - uses: ./test
+        with:
+          reproducible: ${{ matrix.reproducible }}
+          assert: ${{ matrix.want }}
+          when: "the binary files are identical and so are two other files in the zip"
+          instructions: |
+            cd testdata/example-app
+            go build -o "$BIN_PATH" -trimpath
+            echo "Hello world." > "$TARGET_DIR/another-file.txt"
+            echo "A fake license." > "$TARGET_DIR/LICENSE"
+
+  # A single reproducible go binary using netcgo on darwin.
+  test-ok-darwin-netcgo:
+    runs-on: ${{ inputs.runner }}
+    # This test is macOS-specific.
+    if: ${{ runner.os == 'macOS' }}
+    strategy:
+      matrix:
+        include:
+          # We want to explicitly test both amd64 and arm64 here.
+          - { reproducible: assert, os: darwin, arch: amd64, want: success }
+          - { reproducible: report, os: darwin, arch: amd64, want: success }
+          - { reproducible: nope,   os: darwin, arch: amd64, want: success }
+          - { reproducible: assert, os: darwin, arch: arm64, want: success }
+          - { reproducible: report, os: darwin, arch: arm64, want: success }
+          - { reproducible: nope,   os: darwin, arch: arm64, want: success }
+    steps:
+      - uses: actions/checkout@v3
+      - uses: ./test
+        with:
+          os: ${{ matrix.os }}
+          arch: ${{ matrix.arch }}
+          reproducible: ${{ matrix.reproducible }}
+          assert: ${{ matrix.want }}
+          when: "the binary files are identical and so are two other files downloaded into the zip"
+          instructions: |
+            cd testdata/example-app
+            go build -o "$BIN_PATH" -trimpath -tags=netcgo
+
+  # Test cases where the binary reproduces but the zip file does not.
+  test-err-zip-mismatch:
+    runs-on: ${{ inputs.runner }}
+    strategy:
+      matrix:
+        include:
+          - { reproducible: assert, want: failure }
+          - { reproducible: report, want: success }
+          - { reproducible: nope,   want: success }
+    steps:
+      - uses: actions/checkout@v3
+      - uses: ./test
+        with:
+          reproducible: ${{ matrix.reproducible }}
+          assert: ${{ matrix.want }}
+          when: "the binary files reproduce but the zip files do not"
+          instructions: |
+            cd testdata/example-app
+            go build -o "$BIN_PATH" -trimpath
+            # Insert something random into the zipped dir.
+            head -c100 < /dev/urandom > "$TARGET_DIR/random.bytes"
+
+  # Test cases where the binary and zip file both do not reproduce.
+  test-err-bin-mismatch:
+    runs-on: ${{ inputs.runner }}
+    strategy:
+      matrix:
+        include:
+          - { reproducible: assert, want: failure }
+          - { reproducible: report, want: success }
+          - { reproducible: nope,   want: success }
+    steps:
+      - uses: actions/checkout@v3
+      - uses: ./test
+        with:
+          reproducible: ${{ matrix.reproducible }}
+          assert: ${{ matrix.want }}
+          when: "neither the binary file not the zip file reproduce"
+          instructions: |
+            cd testdata/example-app
+            # Don't use -trimpath so we get different binaries.
+            go build -o "$BIN_PATH"
+
+  # Test cases where the binary file is not written to the correct path.
+  test-err-bin-missing:
+    runs-on: ${{ inputs.runner }}
+    strategy:
+      matrix:
+        include:
+          - { reproducible: assert, want: failure }
+          - { reproducible: report, want: failure }
+          - { reproducible: nope,   want: failure }
+    steps:
+      - uses: actions/checkout@v3
+      - uses: ./test
+        with:
+          reproducible: ${{ matrix.reproducible }}
+          assert: ${{ matrix.want }}
+          when: "the binary file is not written to the correct path"
+          instructions: |
+            cd testdata/example-app
+            go build -o "$BIN_PATH.wrong" -trimpath
