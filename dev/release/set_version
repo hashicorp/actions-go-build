@@ -1,0 +1,25 @@
+#!/usr/bin/env bash
+
+set -Eeuo pipefail
+
+log() { echo >&2 "==> $*"; }
+die() { log "FATAL: $*"; }
+
+VERSION="$1"
+VERSION_FILE="dev/VERSION"
+CL_FILE="dev/changes/v$VERSION.md"
+
+PATTERN='^\d+\.\d+\.\d+(\-[^+]+)?'
+
+grep -qE "$PATTERN" <<< "$VERSION" || {
+	die "Not a valid version '$VERSION'; must match '$PATTERN'"
+}
+
+[[ -f "$CL_FILE" ]] && {
+	die "Changelog file '$CL_FILE' already exists."
+}
+
+echo "$VERSION" > "$VERSION_FILE"
+touch "$CL_FILE"
+
+log "Version set to '$VERSION'; please commit '$VERSION_FILE' and '$CL_FILE'"

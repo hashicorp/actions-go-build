@@ -18,11 +18,18 @@ write "-->"
 write "# Changelog - Go Build Action"
 write
 
-find "$CHANGES_DIR" -type f -name '*.md' | sort | tac | while read -r FILE; do
+LATEST=true
+
+find "$CHANGES_DIR" -type f -name '*.md' | sort -V | tac | while read -r FILE; do
 	FILENAME="$(basename "$FILE")"
 	VERSION="${FILENAME%.md}"
-	DATE="$(git show -s --date="format:%B %d, %Y" --format=%cd "$VERSION")"
-	write "## [$VERSION]($REPO_URL/releases/tag/$VERSION) - $DATE"
+	if "$LATEST"; then
+		write "## Unreleased Changes (targeting $VERSION)"
+		LATEST=false
+	else
+		DATE="$(git show -s --date="format:%B %d, %Y" --format=%cd "$VERSION")"
+		write "## [$VERSION]($REPO_URL/releases/tag/$VERSION) - $DATE"
+	fi
 	write
 	TAG="$VERSION"
 	export REPO_URL TAG DATE
