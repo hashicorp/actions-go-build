@@ -4,7 +4,11 @@ Instead, edit the files in dev/changes/, then run 'make docs' to update this fil
 -->
 # Changelog - Go Build Action
 
-## Unreleased Changes (targeting v0.1.2)
+## Unreleased Changes (targeting v0.1.3)
+
+
+
+## [v0.1.2](https://github.com/hashicorp/actions-go-build/releases/tag/v0.1.2) - June 13, 2022
 
 - Default `product_name` to `repo_name`
 - Automatically append `+ent` suffix for `-enteprise` products unless there's already
