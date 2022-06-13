@@ -5,7 +5,7 @@ set -Eeuo pipefail
 log() { echo "==> $*" 1>&2; }
 die() { log "FATAL: $*"; return 1; }
 
-VERSION="$(cat release/VERSION)"
+VERSION="$(cat dev/VERSION)"
 
 # Set TAGS to vX.Y.Z, vX.Y, and vX
 TAGS=("v$VERSION" "v${VERSION%\.*}" "v${VERSION%%\.*}")
@@ -30,7 +30,7 @@ log "Getting release notes..."
 export TAG="$FULL_TAG"
 export VERSION="$FULL_TAG"
 export REPO_URL="https://github.com/hashicorp/actions-go-build"
-NOTES="$(envsubst < "release/changes/$FULL_TAG.md")"
+NOTES="$(envsubst < "dev/changes/$FULL_TAG.md")"
 
 log "Creating GitHub release..."
 gh release create "$FULL_TAG" --notes "$NOTES"

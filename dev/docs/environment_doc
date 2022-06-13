@@ -2,7 +2,7 @@
 
 set -Eeuo pipefail
 
-source dev/scripts/docs/markdown_table.bash
+source dev/docs/markdown_table.bash
 source scripts/build_env.bash
 
 

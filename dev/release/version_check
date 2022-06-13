@@ -1,0 +1,23 @@
+#!/usr/bin/env bash
+
+set -Eeuo pipefail
+
+log() { echo >&2 "==> $*"; }
+die() { log "FATAL: $*"; }
+
+VERSION_FILE=dev/VERSION
+
+VERSION="$(cat "$VERSION_FILE")"
+
+tag_exists() {
+	git tag --list | grep -qF "$1"
+}
+
+# If we've already released this version it should have been incremented.
+tag_exists "$VERSION" && {
+	die "Please run dev/release/set_version to update '$VERSION_FILE'; you've already tagged v$VERSION"
+}
+
+CL_FILE="dev/changes/v$VERSION.md"
+# Check we have a changelog file.
+[[ -f "$CL_FILE" ]] || die "No changelog file found at '$CL_FILE'"

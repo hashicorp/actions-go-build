@@ -12,8 +12,8 @@ test/bats:
 
 .PHONY: docs
 docs:
-	@./dev/scripts/docs/readme_update
-	@./dev/scripts/docs/changelog_update
+	@./dev/docs/readme_update
+	@./dev/docs/changelog_update
 
 .PHONY: debug/docs
 debug/docs: export DEBUG := 1
@@ -67,4 +67,4 @@ tools/mac/brew:
 
 .PHONY: release
 release:
-	./dev/scripts/release/create
+	./dev/release/create
