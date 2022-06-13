@@ -5,7 +5,7 @@
 
 set -Eeuo pipefail
 
-# shellcheck source=scripts/codegen/markdown_table.bash
+# shellcheck source=dev/scripts/docs/markdown_table.bash
 source "${BASH_SOURCE%/*}/markdown_table.bash"
 
 list_input_names() {

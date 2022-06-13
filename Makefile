@@ -12,8 +12,8 @@ test/bats:
 
 .PHONY: docs
 docs:
-	@./scripts/codegen/update_docs
-	@./scripts/codegen/update_changelog
+	@./dev/scripts/docs/update_docs
+	@./dev/scripts/docs/update_changelog
 
 LDFLAGS += -X 'main.Version=1.2.3'
 LDFLAGS += -X 'main.Revision=cabba9e'
@@ -63,4 +63,4 @@ tools/mac/brew:
 
 .PHONY: release
 release:
-	./devscripts/release
+	./dev/scripts/release

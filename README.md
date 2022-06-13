@@ -8,7 +8,7 @@ _**Build and package a (reproducible) Go binary.**_
 
 _This is intended for internal HashiCorp use only; Internal folks please refer to RFC **ENGSRV-084** for more details._
 
-<!-- insert:scripts/codegen/table_of_contents -->
+<!-- insert:dev/scripts/docs/table_of_contents -->
 ## Table of Contents
 * [Table of Contents](#table-of-contents)
 * [Features](#features)
@@ -34,7 +34,7 @@ _This is intended for internal HashiCorp use only; Internal folks please refer t
   * [Bash, dreaded bash.](#bash-dreaded-bash)
   * [Future Implementation Options](#future-implementation-options)
   * [TODO](#todo)
-<!-- end:insert:scripts/codegen/table_of_contents -->
+<!-- end:insert:dev/scripts/docs/table_of_contents -->
 
 ## Features
 
@@ -56,7 +56,7 @@ This example shows building a single `linux/amd64` binary.
 
 [See this simple example workflow running here](https://github.com/hashicorp/actions-reproducible-build/actions/workflows/example.yml).
 
-<!-- insert:scripts/codegen/print_example_workflow example.yml -->
+<!-- insert:dev/scripts/docs/print_example_workflow example.yml -->
 ```yaml
 name: Minimal(ish) Example
 on: [push]
@@ -77,7 +77,7 @@ jobs:
             cd ./testdata/example-app
             go build -o "$BIN_PATH" -trimpath -buildvcs=false
 ```
-<!-- end:insert:scripts/codegen/print_example_workflow example.yml -->
+<!-- end:insert:dev/scripts/docs/print_example_workflow example.yml -->
 
 #### More Realistic Example
 
@@ -88,7 +88,7 @@ and disables CGO for linux and windows builds.
 
 [See this matrix example workflow running here](https://github.com/hashicorp/actions-reproducible-build/actions/workflows/example-matrix.yml).
 
-<!-- insert:scripts/codegen/print_example_workflow example-matrix.yml -->
+<!-- insert:dev/scripts/docs/print_example_workflow example-matrix.yml -->
 ```yaml
 name: Matrix Example
 on: [push]
@@ -127,11 +127,11 @@ jobs:
                   -X 'main.RevisionTime=$PRODUCT_REVISION_TIME'
                 "
 ```
-<!-- end:insert:scripts/codegen/print_example_workflow example-matrix.yml -->
+<!-- end:insert:dev/scripts/docs/print_example_workflow example-matrix.yml -->
 
 ### Inputs
 
-<!-- insert:scripts/codegen/inputs_doc -->
+<!-- insert:dev/scripts/docs/inputs_doc -->
 |  Name                                     |  Description                                                                                              |
 |  -----                                    |  -----                                                                                                    |
 |  **`product_name`**&nbsp;_(required)_     |  Name of the product to build. Used to calculate default `bin_name` and `zip_name`.                       |
@@ -143,7 +143,7 @@ jobs:
 |  `bin_name`&nbsp;_(optional)_             |  Name of the product binary generated. Defaults to `product_name` minus any `-enterprise` suffix.         |
 |  `zip_name`&nbsp;_(optional)_             |  Name of the product zip file. Defaults to `<product_name>_<product_version>_<os>_<arch>.zip`.            |
 |  **`instructions`**&nbsp;_(required)_     |  Build instructions to generate the binary. See [Build Instructions](#build-instructions) for more info.  |
-<!-- end:insert:scripts/codegen/inputs_doc -->
+<!-- end:insert:dev/scripts/docs/inputs_doc -->
 
 ### Build Environment
 
@@ -153,7 +153,7 @@ already exported that you can make use of
 
 #### Environment Variables
 
-<!-- insert:scripts/codegen/environment_doc -->
+<!-- insert:dev/scripts/docs/environment_doc -->
 |  Name                     |  Description                                                         |
 |  -----                    |  -----                                                               |
 |  `TARGET_DIR`             |  Absolute path to the zip contents directory.                        |
@@ -167,7 +167,7 @@ already exported that you can make use of
 |  `ARCH`                   |  Same as the `arch` input.                                           |
 |  `GOOS`                   |  Same as `OS`                                                        |
 |  `GOARCH`                 |  Same as `ARCH`.                                                     |
-<!-- end:insert:scripts/codegen/environment_doc -->
+<!-- end:insert:dev/scripts/docs/environment_doc -->
 
 ### Reproducibility Assertions
 

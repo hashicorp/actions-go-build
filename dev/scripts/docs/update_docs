@@ -2,5 +2,5 @@
 
 set -Eeuo pipefail
 
-NEW_README="$(./scripts/codegen/insert README.md)" || exit 1
+NEW_README="$(./dev/scripts/docs/insert README.md)" || exit 1
 echo "$NEW_README" > README.md

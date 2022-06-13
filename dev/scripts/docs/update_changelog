@@ -25,5 +25,5 @@ find release/changes -type f -name '*.md' | sort | tac | while read -r FILE; do
 	TAG="$VERSION"
 	export REPO_URL TAG DATE
 	write "$(envsubst < "$FILE")"
-
+	write
 done
