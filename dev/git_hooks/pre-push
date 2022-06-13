@@ -23,22 +23,33 @@ test_in_isolation() {
 	shift
 	rm -rf "$DIR"
 	mkdir -p "$DIR"
-	git clone . "$DIR"
+	git clone -q . "$DIR"
 	(
 		cd "$DIR"
-		git diff --exit-code || die "Unable to check $1 - unclean clone."
-		git checkout "$REF"
-		git diff --exit-code || die "Unable to check $1 - unclean checkout."
-		"$@" || exit 1
+		git diff --exit-code > /dev/null 2>&1 || die "Unable to check $REF - unclean clone."
+		git reset -q --hard "$REF"
+		"$@" > /dev/null 2>&1 || exit 1
 	) || return 1
 }
 
 assert_no_diff_caused_by() {
-	test_in_isolation "$@"
+	local REF="$1"
+	local NAME="$2"
+	shift 2
+	test_in_isolation "$REF" "$@"
 	(
 		cd "$DIR"
-		git diff --exit-code || exit 1
-	) || return 1
+		git diff --exit-code > /dev/null 2>&1 || exit 1
+	) || die "$NAME is out of date, please run '$*' and commit the changes."
+	log "✓ $NAME is up-to-date."
+}
+
+assert_success() {
+	local REF="$1"
+	local NAME="$2"
+	shift 2
+	test_in_isolation "$REF" "$@" || die "$NAME failed; please ensure that '$*' succeess before pushing."
+	log "✓ $NAME passed."
 }
 
 # shellcheck disable=SC2021 # We want to replace square brackets.
@@ -61,8 +72,7 @@ do
 		fi
 
 		# Check for version consistency.
-		make version/check || die "Version check 'make check/version' failed."
-		log "✓ Version check passed."
+		assert_success "$local_oid" "Version check" make version/check
 
 		CL_FILE="dev/changes/v$(cat dev/VERSION).md"
 		# Check for changelog update.
@@ -72,12 +82,11 @@ do
 		log "✓ Changes logged in $CL_FILE"
 
 		# Check docs are up-to-date.
-		assert_no_diff_caused_by make docs || die "Docs are stale; please run 'make docs' and commit the changes."
-		log "✓ Docs are up-to-date."
- 
+		assert_no_diff_caused_by "$local_oid" "CHANGELOG.md" make changelog
+		assert_no_diff_caused_by "$local_oid" "README.md"    make readme
+
 		# Check tests pass with commited changes.
-		test_in_isolation  make test || die "Please ensure tests pass on this branch before pushingPlease."
-		log "✓ Tests passed."
+		assert_success "$local_oid" "Tests" make test
 
 	fi
 done
