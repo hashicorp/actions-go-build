@@ -88,6 +88,9 @@ do
 		# Check tests pass with commited changes.
 		assert_success "$local_oid" "Tests" make test
 
+		# Check example target still works.
+		assert_success "$local_oid" "Example target" make example
+
 	fi
 done
 
