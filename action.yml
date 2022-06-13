@@ -3,10 +3,12 @@ author: Release Engineering <team-rel-eng@hashicorp.com>
 description: Define a reproducible build. Currently only supports Go builds.
 
 inputs:
+
   product_name:
     description: >
-      Name of the product to build. Used to calculate default `bin_name` and `zip_name`.
-    required: true
+      Used to calculate default `bin_name` and `zip_name`.
+      Defaults to repository name.
+    required: false
 
   product_version:
     description: >
@@ -77,10 +79,11 @@ runs:
         brew update
         brew install coreutils
 
-    # Parse the inputs.
+    # Digest inputs and context.
     - name: Calculate default values and paths; set env vars.
       shell: bash
       env:
+        PRODUCT_REPOSITORY: ${{ github.event.repository.name }}
         PRODUCT_NAME: ${{ inputs.product_name }}
         PRODUCT_VERSION: ${{ inputs.product_version }}
         OS: ${{ inputs.os }}

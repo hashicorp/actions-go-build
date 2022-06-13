@@ -6,6 +6,10 @@ Instead, edit the files in dev/changes/, then run 'make docs' to update this fil
 
 ## Unreleased Changes (targeting v0.1.2)
 
+- Default `product_name` to `repo_name`
+- Automatically append `+ent` suffix for `-enteprise` products unless there's already
+  any version metadata present.
+
 ### Development
 
 - Added convenience script to set the current development version: `./dev/release/set_version`

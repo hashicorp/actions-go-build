@@ -13,6 +13,7 @@ setup() {
 }
 
 set_required_env_vars() {
+	export PRODUCT_REPOSITORY="blargle"
 	export PRODUCT_NAME="blargle"
 	export OS="darwin"
 	export ARCH="amd64"
@@ -89,6 +90,7 @@ set_required_env_vars() {
 @test "default vars calculated correctly - enterprise" {
 	# Setup.
 	set_required_env_vars
+	export PRODUCT_REPOSITORY="blargle-enterprise"
 	export PRODUCT_NAME="blargle-enterprise"
 
 	# Run the script under test.
@@ -103,10 +105,10 @@ set_required_env_vars() {
 	assert_exported_in_github_env PRIMARY_BUILD_ROOT      "$(pwd)"
 	assert_exported_in_github_env VERIFICATION_BUILD_ROOT "$(dirname "$PWD")/verification"
 	assert_exported_in_github_env BIN_NAME                "blargle"
-	assert_exported_in_github_env ZIP_NAME                "blargle-enterprise_1.2.3_darwin_amd64.zip"
+	assert_exported_in_github_env ZIP_NAME                "blargle_1.2.3+ent_darwin_amd64.zip"
 	assert_exported_in_github_env PRODUCT_REVISION        "$(git rev-parse HEAD)"
 	assert_exported_in_github_env BIN_PATH                "dist/blargle"
-	assert_exported_in_github_env ZIP_PATH                "out/blargle-enterprise_1.2.3_darwin_amd64.zip"
+	assert_exported_in_github_env ZIP_PATH                "out/blargle_1.2.3+ent_darwin_amd64.zip"
 
 	assert_nonempty_in_github_env PRODUCT_REVISION_TIME
 }

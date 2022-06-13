@@ -15,10 +15,15 @@ source "${BASH_SOURCE%/*}/standard_header.bash"
 #
 digest_inputs() {
 
+
 	# Pass through env vars from required action inputs.
 
-	forward_env PRODUCT_NAME
+	forward_env PRODUCT_NAME     "$PRODUCT_REPOSITORY"
+
+	# Add the +ent suffix if it's missing, needed, and there's no other version meta.
+	PRODUCT_VERSION="$(apply_ent_version_meta "$PRODUCT_NAME" "$PRODUCT_VERSION")"
 	forward_env PRODUCT_VERSION
+
 	forward_env OS
 	forward_env ARCH
 	forward_env REPRODUCIBLE
@@ -62,6 +67,20 @@ adjacent_path() { echo "$(dirname "$1")/$2"; }
 
 remove_enterprise_suffix() {
 	echo "${1%-enterprise}"
+}
+
+apply_ent_version_meta() {
+	local REPO="$1"
+	local VERSION="$2"
+	log "REPO: $REPO; VERSION: $VERSION"
+	trap 'echo "$VERSION"; log "GOT VERSION: $VERSION"' RETURN
+	# If this isn't an enterprise repo, don't make any changes.
+	[[ "$REPO" == "$(remove_enterprise_suffix "$REPO")" ]] && return
+	# If there's already version metadata, don't make any changes.
+	[[ "$VERSION" =~ .*\+.* ]] && return
+	# Add the +ent suffix.
+	VERSION="$VERSION+ent"
+	return
 }
 
 commit_time_utc() {

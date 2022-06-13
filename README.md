@@ -134,7 +134,7 @@ jobs:
 <!-- insert:dev/docs/inputs_doc -->
 |  Name                                     |  Description                                                                                              |
 |  -----                                    |  -----                                                                                                    |
-|  **`product_name`**&nbsp;_(required)_     |  Name of the product to build. Used to calculate default `bin_name` and `zip_name`.                       |
+|  `product_name`&nbsp;_(optional)_         |  Used to calculate default `bin_name` and `zip_name`. Defaults to repository name.                        |
 |  **`product_version`**&nbsp;_(required)_  |  Version of the product being built.                                                                      |
 |  **`go_version`**&nbsp;_(required)_       |  Version of Go to use for this build.                                                                     |
 |  **`os`**&nbsp;_(required)_               |  Target product operating system.                                                                         |
