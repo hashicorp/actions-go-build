@@ -12,8 +12,8 @@ test/bats:
 
 .PHONY: docs
 docs:
-	@./dev/scripts/docs/update_docs
-	@./dev/scripts/docs/update_changelog
+	@./dev/scripts/docs/readme_update
+	@./dev/scripts/docs/changelog_update
 
 .PHONY: debug/docs
 debug/docs: export DEBUG := 1
@@ -41,9 +41,9 @@ example: export GITHUB_STEP_SUMMARY      := $(EXAMPLE_TMP)/github_step_summary
 example: export PRIMARY_BUILD_ROOT       := $(EXAMPLE_TMP)/primary
 example: export VERIFICATION_BUILD_ROOT  := $(EXAMPLE_TMP)/verification
 example:
-	rm -rf "$(EXAMPLE_TMP)" && mkdir -p "$(EXAMPLE_TMP)"
-	cp -rf . "$(PRIMARY_BUILD_ROOT)"
-	cd $(PRIMARY_BUILD_ROOT) && \
+	@rm -rf "$(EXAMPLE_TMP)" && mkdir -p "$(EXAMPLE_TMP)"
+	@cp -rf . "$(PRIMARY_BUILD_ROOT)"
+	@cd $(PRIMARY_BUILD_ROOT) && \
 		source scripts/inputs.bash && \
 		digest_inputs && \
 		./scripts/primary_build && \
