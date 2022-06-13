@@ -2,7 +2,7 @@
 
 set -Eeuo pipefail
 
-log() { echo >&2 "==> $*"; }
+log() { echo >&2 "$*"; }
 die() { log "FATAL: $*"; }
 
 VERSION_FILE=dev/VERSION
@@ -21,3 +21,5 @@ tag_exists "$VERSION" && {
 CL_FILE="dev/changes/v$VERSION.md"
 # Check we have a changelog file.
 [[ -f "$CL_FILE" ]] || die "No changelog file found at '$CL_FILE'"
+
+log "OK: Version file and chagelog files consistent; current development version is v$VERSION"
