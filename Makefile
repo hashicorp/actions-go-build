@@ -15,6 +15,10 @@ docs:
 	@./dev/scripts/docs/update_docs
 	@./dev/scripts/docs/update_changelog
 
+.PHONY: debug/docs
+debug/docs: export DEBUG := 1
+debug/docs: docs
+
 LDFLAGS += -X 'main.Version=1.2.3'
 LDFLAGS += -X 'main.Revision=cabba9e'
 LDFLAGS += -X 'main.RevisionTime=2022-05-30T14:45:00+00:00'

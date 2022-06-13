@@ -2,8 +2,13 @@
 
 set -Eeuo pipefail
 
-log() { echo "$*" 1>&2; } 
-die() { log "$*"; exit 1; } 
+dump() { echo "$*" 1>&2; }
+log()  { { bold "==> $*"; echo; } 1>&2; } 
+die()  { log "FATAL: $*"; exit 1; } 
+bold() { _styled "1" "$*"; }
+debugging() { [[ "${DEBUG:-}" =~ (1|YES|true) ]]; }
+
+_styled() { local ATTR="$1"; shift; echo -en '\033['"${ATTR}m$*"'\033[0m'; }
 
 FILE="$1"
 
@@ -61,9 +66,13 @@ insert_block() {
 	INSERT="$(./$SCRIPT)"
 	INSERT_ESCAPED="${INSERT//$'\n'/\\n}"
 	if grep -qE "$END_PATTERN" <<< "$TEXT"; then
+		debugging && {
+			log "Inserting:"
+			dump "$INSERT"
+		}
 		replace_block "$TEXT" "$START" "$INSERT_ESCAPED" "$END"
 	else
-		die "ERROR: Closing comment not found; expected '$END'"
+		die "Closing comment not found; expected '$END'"
 	fi
 }
 
