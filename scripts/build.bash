@@ -66,6 +66,6 @@ make_and_enter_isolated_build_env() {
 		return 1
 	fi
 	mkdir -p "$DIR"
-	cp -r . "$DIR"
+	cp -R . "$DIR"
 	cd "$DIR"
 }
