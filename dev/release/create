@@ -23,7 +23,9 @@ fi
 for TAG in "${TAGS[@]}"; do
 	log "Tagging and pushing as $TAG"
 	git tag -f "$TAG"
-	git push -f origin "$TAG"
+	# We don't want to run pre-push hooks for tags
+	# beause we only tag known-good versions.
+	git push --no-verify -f origin "$TAG"
 done
 
 log "Getting release notes..."
