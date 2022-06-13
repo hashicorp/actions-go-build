@@ -15,7 +15,6 @@ source "${BASH_SOURCE%/*}/standard_header.bash"
 #
 digest_inputs() {
 
-
 	# Pass through env vars from required action inputs.
 
 	forward_env PRODUCT_NAME     "$PRODUCT_REPOSITORY"
