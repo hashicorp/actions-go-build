@@ -2,6 +2,9 @@ SHELL := /usr/bin/env bash -euo pipefail -c
 
 default: test
 
+# Always just install the git hooks.
+_ := $(shell ln -s dev/git_hooks/* .git/hooks/)
+
 BATS := bats -j 10 -T
 
 test: test/bats
@@ -11,8 +14,12 @@ test/bats:
 	@$(BATS) scripts/
 
 .PHONY: docs
-docs:
+docs: readme changelog
+
+readme:
 	@./dev/docs/readme_update
+
+changelog:
 	@./dev/docs/changelog_update
 
 .PHONY: debug/docs
@@ -68,3 +75,6 @@ tools/mac/brew:
 .PHONY: release
 release:
 	./dev/release/create
+
+version/check:
+	./dev/release/version_check
