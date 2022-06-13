@@ -67,4 +67,4 @@ tools/mac/brew:
 
 .PHONY: release
 release:
-	./dev/scripts/release
+	./dev/scripts/release/create
