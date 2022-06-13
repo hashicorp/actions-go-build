@@ -6,7 +6,10 @@ Instead, edit the files in dev/changes/, then run 'make docs' to update this fil
 
 ## Unreleased Changes (targeting v0.1.2)
 
+### Development
 
+- Added convenience script to set the current development version: `./dev/release/set_version`
+- Added git pre-push hook to check version and run the BATS tests.
 
 ## [v0.1.1](https://github.com/hashicorp/actions-go-build/releases/tag/v0.1.1) - June 10, 2022
 
