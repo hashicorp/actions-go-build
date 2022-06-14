@@ -70,6 +70,9 @@ set_required_env_vars() {
 	assert_exported_in_github_env BIN_PATH "dist/somethingelse"
 }
 
+# Assert on the whole environment.
+# Set 'WANT_<NAME>' before calling this to override the expected value
+# for a given variable.
 assert_exported_vars() {
 	assert_exported_in_github_env PRODUCT_NAME            "${WANT_PRODUCT_NAME:-blargle}"
 	assert_exported_in_github_env PRODUCT_VERSION         "${WANT_PRODUCT_VERSION:-1.2.3}"
@@ -90,6 +93,16 @@ assert_exported_vars() {
 	assert_exported_in_github_env VERIFICATION_BUILD_ROOT "$(dirname "$PWD")/verification"
 	assert_exported_in_github_env PRODUCT_REVISION        "$(git rev-parse HEAD)"
 	assert_nonempty_in_github_env PRODUCT_REVISION_TIME
+}
+
+# Assert on the whole environment using default "want" values for enterprise.
+assert_exported_vars_ent() {
+	WANT_ZIP_NAME="${WANT_ZIP_NAME:-blargle_1.2.3+ent_darwin_amd64.zip}"
+	WANT_ZIP_PATH="${WANT_ZIP_PATH:-out/blargle_1.2.3+ent_darwin_amd64.zip}"
+	WANT_PRODUCT_NAME="${WANT_PRODUCT_NAME:-blargle-enterprise}"
+	WANT_PRODUCT_VERSION="${WANT_PRODUCT_VERSION:-1.2.3+ent}"
+
+	assert_exported_vars
 }
 
 @test "default vars calculated correctly - non-enterprise" {
@@ -126,16 +139,6 @@ assert_exported_vars() {
 
 	# Run the script under test.
 	./scripts/digest_inputs
-
-	assert_exported_vars
-}
-
-assert_exported_vars_ent() {
-
-	WANT_ZIP_NAME="${WANT_ZIP_NAME:-blargle_1.2.3+ent_darwin_amd64.zip}"
-	WANT_ZIP_PATH="${WANT_ZIP_PATH:-out/blargle_1.2.3+ent_darwin_amd64.zip}"
-	WANT_PRODUCT_NAME="${WANT_PRODUCT_NAME:-blargle-enterprise}"
-	WANT_PRODUCT_VERSION="${WANT_PRODUCT_VERSION:-1.2.3+ent}"
 
 	assert_exported_vars
 }
@@ -183,7 +186,6 @@ assert_exported_vars_ent() {
 	# Run the script under test.
 	./scripts/digest_inputs
 
-
 	WANT_OS="windows"
 	WANT_GOOS="windows"
 	WANT_BIN_NAME="blargle.exe"
@@ -204,8 +206,14 @@ assert_exported_vars_ent() {
 	# Run the script under test.
 	./scripts/digest_inputs
 
-	assert_exported_in_github_env BIN_NAME "bugler.exe"
-	assert_exported_in_github_env ZIP_NAME "blargle_1.2.3+ent_windows_amd64.zip"
+	WANT_OS="windows"
+	WANT_GOOS="windows"
+	WANT_BIN_NAME="bugler.exe"
+	WANT_BIN_PATH="dist/bugler.exe"
+	WANT_ZIP_NAME="blargle_1.2.3+ent_windows_amd64.zip"
+	WANT_ZIP_PATH="out/blargle_1.2.3+ent_windows_amd64.zip"
+
+	assert_exported_vars_ent
 }
 
 @test "default vars calculated correctly - enterprise - windows - with .exe already" {
@@ -218,6 +226,12 @@ assert_exported_vars_ent() {
 	# Run the script under test.
 	./scripts/digest_inputs
 
-	assert_exported_in_github_env BIN_NAME "bugler.exe"
-	assert_exported_in_github_env ZIP_NAME "blargle_1.2.3+ent_windows_amd64.zip"
+	WANT_OS="windows"
+	WANT_GOOS="windows"
+	WANT_BIN_NAME="bugler.exe"
+	WANT_BIN_PATH="dist/bugler.exe"
+	WANT_ZIP_NAME="blargle_1.2.3+ent_windows_amd64.zip"
+	WANT_ZIP_PATH="out/blargle_1.2.3+ent_windows_amd64.zip"
+
+	assert_exported_vars_ent
 }
