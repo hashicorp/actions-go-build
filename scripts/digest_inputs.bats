@@ -1,5 +1,7 @@
 #!/usr/bin/env bats
 
+# shellcheck disable=SC2030,SC2031 # We want the isolation these are warning about.
+
 set -Eeuo pipefail
 
 load assertions.bash
@@ -68,21 +70,25 @@ set_required_env_vars() {
 	assert_exported_in_github_env BIN_PATH "dist/somethingelse"
 }
 
-non_ent_exported_assertions() {
-	# Assert default vars generated correctly.
-	assert_exported_in_github_env GOOS                    "darwin"
-	assert_exported_in_github_env GOARCH                  "amd64"
-	assert_exported_in_github_env TARGET_DIR              "dist"
-	assert_exported_in_github_env ZIP_DIR                 "out"
-	assert_exported_in_github_env META_DIR                ".meta"
+assert_exported_vars() {
+	assert_exported_in_github_env PRODUCT_NAME            "${WANT_PRODUCT_NAME:-blargle}"
+	assert_exported_in_github_env PRODUCT_VERSION         "${WANT_PRODUCT_VERSION:-1.2.3}"
+	assert_exported_in_github_env REPRODUCIBLE            "${WANT_REPRODUCIBLE:-assert}"
+	assert_exported_in_github_env OS                      "${WANT_OS:-darwin}"
+	assert_exported_in_github_env ARCH                    "${WANT_ARCH:-amd64}"
+	assert_exported_in_github_env GOOS                    "${WANT_GOOS:-darwin}"
+	assert_exported_in_github_env GOARCH                  "${WANT_GOARCH:-amd64}"
+	assert_exported_in_github_env TARGET_DIR              "${WANT_TARGET_DIR:-dist}"
+	assert_exported_in_github_env ZIP_DIR                 "${WANT_ZIP_DIR:-out}"
+	assert_exported_in_github_env META_DIR                "${WANT_META_DIR:-.meta}"
+	assert_exported_in_github_env BIN_NAME                "${WANT_BIN_NAME:-blargle}"
+	assert_exported_in_github_env ZIP_NAME                "${WANT_ZIP_NAME:-blargle_1.2.3_darwin_amd64.zip}"
+	assert_exported_in_github_env BIN_PATH                "${WANT_BIN_PATH:-dist/blargle}"
+	assert_exported_in_github_env ZIP_PATH                "${WANT_ZIP_PATH:-out/blargle_1.2.3_darwin_amd64.zip}"
+
 	assert_exported_in_github_env PRIMARY_BUILD_ROOT      "$(pwd)"
 	assert_exported_in_github_env VERIFICATION_BUILD_ROOT "$(dirname "$PWD")/verification"
-	assert_exported_in_github_env BIN_NAME                "blargle"
-	assert_exported_in_github_env ZIP_NAME                "blargle_1.2.3_darwin_amd64.zip"
 	assert_exported_in_github_env PRODUCT_REVISION        "$(git rev-parse HEAD)"
-	assert_exported_in_github_env BIN_PATH                "dist/blargle"
-	assert_exported_in_github_env ZIP_PATH                "out/blargle_1.2.3_darwin_amd64.zip"
-
 	assert_nonempty_in_github_env PRODUCT_REVISION_TIME
 }
 
@@ -93,7 +99,7 @@ non_ent_exported_assertions() {
 	# Run the script under test.
 	./scripts/digest_inputs
 
-	non_ent_exported_assertions
+	assert_exported_vars
 }
 
 @test "default vars calculated correctly - non-enterprise - windows" {
@@ -104,7 +110,14 @@ non_ent_exported_assertions() {
 	# Run the script under test.
 	./scripts/digest_inputs
 
-	assert_exported_in_github_env BIN_NAME "blargle.exe"
+	WANT_OS="windows"
+	WANT_GOOS="windows"
+	WANT_BIN_NAME="blargle.exe"
+	WANT_BIN_PATH="dist/blargle.exe"
+	WANT_ZIP_NAME="blargle_1.2.3_windows_amd64.zip"
+	WANT_ZIP_PATH="out/blargle_1.2.3_windows_amd64.zip"
+
+	assert_exported_vars
 }
 
 @test "default vars calculated correctly - non-enterprise - no product name" {
@@ -114,24 +127,17 @@ non_ent_exported_assertions() {
 	# Run the script under test.
 	./scripts/digest_inputs
 
-	non_ent_exported_assertions
+	assert_exported_vars
 }
 
-ent_exported_assertions() {
-	# Assert default vars generated correctly.
-	assert_exported_in_github_env GOOS                    "darwin"
-	assert_exported_in_github_env GOARCH                  "amd64"
-	assert_exported_in_github_env TARGET_DIR              "dist"
-	assert_exported_in_github_env ZIP_DIR                 "out"
-	assert_exported_in_github_env META_DIR                ".meta"
-	assert_exported_in_github_env PRIMARY_BUILD_ROOT      "$(pwd)"
-	assert_exported_in_github_env VERIFICATION_BUILD_ROOT "$(dirname "$PWD")/verification"
-	assert_exported_in_github_env BIN_NAME                "blargle"
-	assert_exported_in_github_env ZIP_NAME                "blargle_1.2.3+ent_darwin_amd64.zip"
-	assert_exported_in_github_env PRODUCT_REVISION        "$(git rev-parse HEAD)"
-	assert_exported_in_github_env BIN_PATH                "dist/blargle"
-	assert_exported_in_github_env ZIP_PATH                "out/blargle_1.2.3+ent_darwin_amd64.zip"
-	assert_nonempty_in_github_env PRODUCT_REVISION_TIME
+assert_exported_vars_ent() {
+
+	WANT_ZIP_NAME="${WANT_ZIP_NAME:-blargle_1.2.3+ent_darwin_amd64.zip}"
+	WANT_ZIP_PATH="${WANT_ZIP_PATH:-out/blargle_1.2.3+ent_darwin_amd64.zip}"
+	WANT_PRODUCT_NAME="${WANT_PRODUCT_NAME:-blargle-enterprise}"
+	WANT_PRODUCT_VERSION="${WANT_PRODUCT_VERSION:-1.2.3+ent}"
+
+	assert_exported_vars
 }
 
 @test "default vars calculated correctly - enterprise - with product name" {
@@ -143,7 +149,7 @@ ent_exported_assertions() {
 	# Run the script under test.
 	./scripts/digest_inputs
 
-	ent_exported_assertions
+	assert_exported_vars_ent
 }
 
 @test "default vars calculated correctly - enterprise - no product name" {
@@ -154,7 +160,7 @@ ent_exported_assertions() {
 	# Run the script under test.
 	./scripts/digest_inputs
 
-	ent_exported_assertions
+	assert_exported_vars_ent
 }
 
 @test "default vars calculated correctly - enterprise - no product name - repo no org" {
@@ -165,7 +171,7 @@ ent_exported_assertions() {
 	# Run the script under test.
 	./scripts/digest_inputs
 
-	ent_exported_assertions
+	assert_exported_vars_ent
 }
 
 @test "default vars calculated correctly - enterprise - windows - default bin name" {
@@ -177,8 +183,15 @@ ent_exported_assertions() {
 	# Run the script under test.
 	./scripts/digest_inputs
 
-	assert_exported_in_github_env BIN_NAME "blargle.exe"
-	assert_exported_in_github_env ZIP_NAME "blargle_1.2.3+ent_windows_amd64.zip"
+
+	WANT_OS="windows"
+	WANT_GOOS="windows"
+	WANT_BIN_NAME="blargle.exe"
+	WANT_BIN_PATH="dist/blargle.exe"
+	WANT_ZIP_NAME="blargle_1.2.3+ent_windows_amd64.zip"
+	WANT_ZIP_PATH="out/blargle_1.2.3+ent_windows_amd64.zip"
+
+	assert_exported_vars_ent
 }
 
 @test "default vars calculated correctly - enterprise - windows - overridden bin name" {
