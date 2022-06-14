@@ -13,8 +13,7 @@ setup() {
 }
 
 set_required_env_vars() {
-	export PRODUCT_REPOSITORY="blargle"
-	export PRODUCT_NAME="blargle"
+	export PRODUCT_REPOSITORY="dadgarcorp/blargle"
 	export OS="darwin"
 	export ARCH="amd64"
 	export PRODUCT_VERSION="1.2.3"
@@ -24,6 +23,12 @@ set_required_env_vars() {
 		multi-line
 		build instructions
 	"
+
+	# Export non-required env vars empty. This means
+	# we can set them in tests without having to
+	# remember to export them (causing shellcheck
+	# to complain.
+	export PRODUCT_NAME BIN_NAME ZIP_NAME
 }
 
 @test "required vars passed through unchanged" {
@@ -63,13 +68,7 @@ set_required_env_vars() {
 	assert_exported_in_github_env BIN_PATH "dist/somethingelse"
 }
 
-@test "default vars calculated correctly - non-enterprise" {
-	# Setup.
-	set_required_env_vars
-
-	# Run the script under test.
-	./scripts/digest_inputs
-
+non_ent_exported_assertions() {
 	# Assert default vars generated correctly.
 	assert_exported_in_github_env GOOS                    "darwin"
 	assert_exported_in_github_env GOARCH                  "amd64"
@@ -87,15 +86,38 @@ set_required_env_vars() {
 	assert_nonempty_in_github_env PRODUCT_REVISION_TIME
 }
 
-@test "default vars calculated correctly - enterprise" {
+@test "default vars calculated correctly - non-enterprise" {
 	# Setup.
 	set_required_env_vars
-	export PRODUCT_REPOSITORY="blargle-enterprise"
-	export PRODUCT_NAME="blargle-enterprise"
 
 	# Run the script under test.
 	./scripts/digest_inputs
 
+	non_ent_exported_assertions
+}
+
+@test "default vars calculated correctly - non-enterprise - windows" {
+	# Setup.
+	set_required_env_vars
+	OS=windows
+
+	# Run the script under test.
+	./scripts/digest_inputs
+
+	assert_exported_in_github_env BIN_NAME "blargle.exe"
+}
+
+@test "default vars calculated correctly - non-enterprise - no product name" {
+	# Setup.
+	set_required_env_vars
+
+	# Run the script under test.
+	./scripts/digest_inputs
+
+	non_ent_exported_assertions
+}
+
+ent_exported_assertions() {
 	# Assert default vars generated correctly.
 	assert_exported_in_github_env GOOS                    "darwin"
 	assert_exported_in_github_env GOARCH                  "amd64"
@@ -109,6 +131,77 @@ set_required_env_vars() {
 	assert_exported_in_github_env PRODUCT_REVISION        "$(git rev-parse HEAD)"
 	assert_exported_in_github_env BIN_PATH                "dist/blargle"
 	assert_exported_in_github_env ZIP_PATH                "out/blargle_1.2.3+ent_darwin_amd64.zip"
-
 	assert_nonempty_in_github_env PRODUCT_REVISION_TIME
+}
+
+@test "default vars calculated correctly - enterprise - with product name" {
+	# Setup.
+	set_required_env_vars
+	PRODUCT_REPOSITORY="blargle-enterprise"
+	PRODUCT_NAME="blargle-enterprise"
+
+	# Run the script under test.
+	./scripts/digest_inputs
+
+	ent_exported_assertions
+}
+
+@test "default vars calculated correctly - enterprise - no product name" {
+	# Setup.
+	set_required_env_vars
+	PRODUCT_REPOSITORY="someorg/blargle-enterprise"
+
+	# Run the script under test.
+	./scripts/digest_inputs
+
+	ent_exported_assertions
+}
+
+@test "default vars calculated correctly - enterprise - no product name - repo no org" {
+	# Setup.
+	set_required_env_vars
+	PRODUCT_REPOSITORY="blargle-enterprise"
+
+	# Run the script under test.
+	./scripts/digest_inputs
+
+	ent_exported_assertions
+}
+
+@test "default vars calculated correctly - enterprise - windows - default bin name" {
+	# Setup.
+	set_required_env_vars
+	PRODUCT_REPOSITORY="blargle-enterprise"
+	OS=windows
+
+	# Run the script under test.
+	./scripts/digest_inputs
+
+	assert_exported_in_github_env BIN_NAME "blargle.exe"
+}
+
+@test "default vars calculated correctly - enterprise - windows - overridden bin name" {
+	# Setup.
+	set_required_env_vars
+	PRODUCT_REPOSITORY="blargle-enterprise"
+	OS=windows
+	BIN_NAME=bugler
+
+	# Run the script under test.
+	./scripts/digest_inputs
+
+	assert_exported_in_github_env BIN_NAME "bugler.exe"
+}
+
+@test "default vars calculated correctly - enterprise - windows - with .exe already" {
+	# Setup.
+	set_required_env_vars
+	PRODUCT_REPOSITORY="blargle-enterprise"
+	OS=windows
+	BIN_NAME=bugler.exe
+
+	# Run the script under test.
+	./scripts/digest_inputs
+
+	assert_exported_in_github_env BIN_NAME "bugler.exe"
 }

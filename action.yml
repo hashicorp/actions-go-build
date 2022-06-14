@@ -83,7 +83,7 @@ runs:
     - name: Calculate default values and paths; set env vars.
       shell: bash
       env:
-        PRODUCT_REPOSITORY: ${{ github.event.repository.name }}
+        PRODUCT_REPOSITORY: ${{ github.repository }}
         PRODUCT_NAME: ${{ inputs.product_name }}
         PRODUCT_VERSION: ${{ inputs.product_version }}
         OS: ${{ inputs.os }}

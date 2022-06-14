@@ -15,23 +15,25 @@ source "${BASH_SOURCE%/*}/standard_header.bash"
 #
 digest_inputs() {
 
-	# Pass through env vars from required action inputs.
+	# Pass through env vars from action inputs.
 
-	forward_env PRODUCT_NAME     "$PRODUCT_REPOSITORY"
+	forward_env PRODUCT_NAME    "$(product_name_from_repo_name "$PRODUCT_REPOSITORY")"
 
-	# Add the +ent suffix if it's missing, needed, and there's no other version meta.
-	PRODUCT_VERSION="$(apply_ent_version_meta "$PRODUCT_NAME" "$PRODUCT_VERSION")"
-	forward_env PRODUCT_VERSION
+	# We use set_env for PRODUCT_VERSION because even when it's set we want to
+	# alter it to add the '+ent; suffix if required.
+	set_env     PRODUCT_VERSION "$(apply_ent_version_meta "$PRODUCT_NAME" "$PRODUCT_VERSION")"
 
 	forward_env OS
 	forward_env ARCH
 	forward_env REPRODUCIBLE
 	forward_env INSTRUCTIONS
 
-	# Pass through env vars from optional action inputs (or set to default value).
+	# For BIN_NAME we first just forward whatever the user has set (or set it to a default).
+	# Then, we set it again, this time ensuring that it has the correct name for the platform.
+	forward_env BIN_NAME        "$(remove_enterprise_suffix "$PRODUCT_NAME")"
+	set_env     BIN_NAME        "$(ensure_correct_bin_name_for_platform "$BIN_NAME")"
 
-	forward_env BIN_NAME "$(remove_enterprise_suffix "$PRODUCT_NAME")"
-	forward_env ZIP_NAME "${BIN_NAME}_${PRODUCT_VERSION}_${OS}_${ARCH}.zip"
+	forward_env ZIP_NAME        "${BIN_NAME}_${PRODUCT_VERSION}_${OS}_${ARCH}.zip"
 	
 	# Set relative paths used to store various build artifacts.
 	
@@ -68,18 +70,29 @@ remove_enterprise_suffix() {
 	echo "${1%-enterprise}"
 }
 
+ensure_correct_bin_name_for_platform() {
+	[[ "$OS" != "windows" ]]    && { echo "$1"; return 0; }
+	[[ "$BIN_NAME" = *".exe" ]] && { echo "$1"; return 0; }
+	echo "$1.exe"
+}
+
 apply_ent_version_meta() {
 	local REPO="$1"
 	local VERSION="$2"
-	log "REPO: $REPO; VERSION: $VERSION"
-	trap 'echo "$VERSION"; log "GOT VERSION: $VERSION"' RETURN
+	trap 'echo "$VERSION"' RETURN
 	# If this isn't an enterprise repo, don't make any changes.
 	[[ "$REPO" == "$(remove_enterprise_suffix "$REPO")" ]] && return
 	# If there's already version metadata, don't make any changes.
 	[[ "$VERSION" =~ .*\+.* ]] && return
-	# Add the +ent suffix.
+	# Add the +ent suffix and warn.
+	warn "Adding '+ent' to the version because the product_name ends with -enterprise." \
+	     "You can remove this warning by adding '+ent' to the version supplied to this action," \
+		 "or by changing the product_name to drop the '-enterprise' suffix."
 	VERSION="$VERSION+ent"
-	return
+}
+
+product_name_from_repo_name() {
+	basename "$1"
 }
 
 commit_time_utc() {
@@ -136,6 +149,7 @@ export_env_or_default() {
 	try_export_nonempty "$NAME" && return
 	# Default value provided? Export it with that value.
 	test -n "$DEFAULT" && {
+		info "Using default value for $NAME: '$DEFAULT'"
 		export "$NAME"="$DEFAULT"
 		return 0
 	}
