@@ -5,6 +5,9 @@ default: test
 # Always just install the git hooks.
 _ := $(shell cd .git/hooks && ln -fs ../../dev/git_hooks/* .)
 
+VERSION := $(shell cat dev/VERSION)
+VERSION_CL := dev/changes/v$(VERSION).md
+
 BATS := bats -j 10 -T
 
 test: test/bats
@@ -21,6 +24,17 @@ readme:
 
 changelog:
 	@./dev/docs/changelog_update
+
+changelog/view:
+	@echo "Current development version: $(VERSION)"
+	@echo
+	@[[ -s "$(VERSION_CL)" ]] && cat "$(VERSION_CL)" || echo '    - changelog empty -'
+	@echo
+	@echo "Use 'make changelog/add' to edit this version's changelog."
+
+changelog/add:
+	@$(EDITOR) "$(VERSION_CL)"
+	@$(MAKE) changelog
 
 .PHONY: debug/docs
 debug/docs: export DEBUG := 1
@@ -76,6 +90,9 @@ tools/mac/brew:
 .PHONY: release
 release:
 	@./dev/release/create
+
+version:
+	@echo "$(VERSION)"
 
 version/check:
 	@./dev/release/version_check
