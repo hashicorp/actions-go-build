@@ -8,6 +8,9 @@ Instead, edit the files in dev/changes/, then run 'make docs' to update this fil
 
 - Adds .exe extension for windows binaries.
 - Clearer logging when calculated default values are used.
+- Internal:
+  - Better handling of inputs with default values that also
+    need to be manipulated or validated.
 
 ## [v0.1.2](https://github.com/hashicorp/actions-go-build/releases/tag/v0.1.2) - June 13, 2022
 
