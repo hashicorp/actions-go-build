@@ -6,7 +6,8 @@ Instead, edit the files in dev/changes/, then run 'make docs' to update this fil
 
 ## Unreleased Changes (targeting v0.1.3)
 
-
+- Adds .exe extension for windows binaries.
+- Clearer logging when calculated default values are used.
 
 ## [v0.1.2](https://github.com/hashicorp/actions-go-build/releases/tag/v0.1.2) - June 13, 2022
 
