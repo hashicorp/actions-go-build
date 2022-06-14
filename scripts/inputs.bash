@@ -17,23 +17,15 @@ digest_inputs() {
 
 	# Pass through env vars from action inputs.
 
-	forward_env PRODUCT_NAME    "$(product_name_from_repo_name "$PRODUCT_REPOSITORY")"
-
-	# We use set_env for PRODUCT_VERSION because even when it's set we want to
-	# alter it to add the '+ent; suffix if required.
-	set_env     PRODUCT_VERSION "$(apply_ent_version_meta "$PRODUCT_NAME" "$PRODUCT_VERSION")"
-
+	forward_env PRODUCT_NAME       "$(product_name_from_repo_name "$PRODUCT_REPOSITORY")"
+	forward_env PRODUCT_VERSION    "" apply_ent_version_meta "$PRODUCT_NAME"
 	forward_env OS
 	forward_env ARCH
 	forward_env REPRODUCIBLE
 	forward_env INSTRUCTIONS
-
-	# For BIN_NAME we first just forward whatever the user has set (or set it to a default).
-	# Then, we set it again, this time ensuring that it has the correct name for the platform.
-	forward_env BIN_NAME        "$(remove_enterprise_suffix "$PRODUCT_NAME")"
-	set_env     BIN_NAME        "$(ensure_correct_bin_name_for_platform "$BIN_NAME")"
-
-	forward_env ZIP_NAME        "${BIN_NAME}_${PRODUCT_VERSION}_${OS}_${ARCH}.zip"
+	set_env     PRODUCT_CORE_NAME  "$(remove_enterprise_suffix "$PRODUCT_NAME")"
+	forward_env BIN_NAME           "${PRODUCT_CORE_NAME}" ensure_correct_bin_name_for_os "$OS"
+	forward_env ZIP_NAME           "${PRODUCT_CORE_NAME}_${PRODUCT_VERSION}_${OS}_${ARCH}.zip"
 	
 	# Set relative paths used to store various build artifacts.
 	
@@ -70,10 +62,12 @@ remove_enterprise_suffix() {
 	echo "${1%-enterprise}"
 }
 
-ensure_correct_bin_name_for_platform() {
-	[[ "$OS" != "windows" ]]    && { echo "$1"; return 0; }
-	[[ "$BIN_NAME" = *".exe" ]] && { echo "$1"; return 0; }
-	echo "$1.exe"
+ensure_correct_bin_name_for_os() {
+	local OS="$1"
+	local NAME="$2"
+	[[ "$OS" != "windows" ]]    && { echo "$NAME"; return 0; }
+	[[ "$NAME" = *".exe" ]] && { echo "$NAME"; return 0; }
+	echo "$NAME.exe"
 }
 
 apply_ent_version_meta() {
@@ -122,10 +116,21 @@ export_to_github_job() { local NAME="$1"
 # forward_env passes the current value of the named env var
 # through to GitHub, or uses the default value if that variable
 # is currently empty. If both are empty, it's an error.
+# Further args are treated as a command to manipulate the
+# value further. The value will be passed as a final argument
+# to the command, and the command should write the transformed
+# value to stdout.
 forward_env() {
 	local NAME="$1"
 	local DEFAULT="${2:-}"
 	export_env_or_default "$NAME" "$DEFAULT"
+	# More than two args? The rest are a command to manipulate the value.
+	if [[ "${#@}" -gt 2 ]]; then
+		shift 2
+		local VALUE
+		VALUE="$("$@" "${!NAME}")" || die "Value manipulation command failed: $* '${!NAME}'"
+		set_env "$NAME" "$VALUE"
+	fi
 	export_to_github_job "$NAME"
 }
 

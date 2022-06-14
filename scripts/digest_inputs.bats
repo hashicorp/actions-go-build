@@ -178,6 +178,7 @@ ent_exported_assertions() {
 	./scripts/digest_inputs
 
 	assert_exported_in_github_env BIN_NAME "blargle.exe"
+	assert_exported_in_github_env ZIP_NAME "blargle_1.2.3+ent_windows_amd64.zip"
 }
 
 @test "default vars calculated correctly - enterprise - windows - overridden bin name" {
@@ -191,6 +192,7 @@ ent_exported_assertions() {
 	./scripts/digest_inputs
 
 	assert_exported_in_github_env BIN_NAME "bugler.exe"
+	assert_exported_in_github_env ZIP_NAME "blargle_1.2.3+ent_windows_amd64.zip"
 }
 
 @test "default vars calculated correctly - enterprise - windows - with .exe already" {
@@ -204,4 +206,5 @@ ent_exported_assertions() {
 	./scripts/digest_inputs
 
 	assert_exported_in_github_env BIN_NAME "bugler.exe"
+	assert_exported_in_github_env ZIP_NAME "blargle_1.2.3+ent_windows_amd64.zip"
 }
