@@ -14,6 +14,7 @@ Instead, edit the files in dev/changes/, then run 'make docs' to update this fil
   - Better test coverage for input handling.
   - 'make changelog/add' reminds about recent commits to help
     remember what's been done recently.
+  - Release workflow to release via GitHub Actions
 
 ## [v0.1.2](https://github.com/hashicorp/actions-go-build/releases/tag/v0.1.2) - June 13, 2022
 
