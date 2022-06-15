@@ -16,7 +16,7 @@ grep -qE "$PATTERN" <<< "$VERSION" || {
 }
 
 [[ -f "$CL_FILE" ]] && {
-	die "Changelog file '$CL_FILE' already exists."
+	log "Changelog file '$CL_FILE' already exists."
 }
 
 echo "$VERSION" > "$VERSION_FILE"

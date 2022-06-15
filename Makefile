@@ -5,8 +5,8 @@ default: test
 # Always just install the git hooks.
 _ := $(shell cd .git/hooks && ln -fs ../../dev/git_hooks/* .)
 
-VERSION := $(shell cat dev/VERSION)
-VERSION_CL := dev/changes/v$(VERSION).md
+CURR_VERSION := $(shell cat dev/VERSION)
+CURR_VERSION_CL := dev/changes/v$(CURR_VERSION).md
 
 BATS := bats -j 10 -T
 
@@ -26,9 +26,9 @@ changelog:
 	@./dev/docs/changelog_update
 
 changelog/view:
-	@echo "Current development version: $(VERSION)"
+	@echo "Current development version: $(CURR_VERSION)"
 	@echo
-	@[[ -s "$(VERSION_CL)" ]] && cat "$(VERSION_CL)" || echo '    - changelog empty -'
+	@[[ -s "$(CURR_VERSION_CL)" ]] && cat "$(CURR_VERSION_CL)" || echo '    - changelog empty -'
 	@echo
 	@echo "Use 'make changelog/add' to edit this version's changelog."
 
@@ -37,12 +37,12 @@ CL_REMINDERS_COMMENT := RECENT COMMITS TO JOG YOUR MEMORY (DELETE THIS SECTION W
 # changelog/add appends recent commit logs (since the file was last updated)
 # to the changelog, and opens it in the editor.
 changelog/add:
-	@echo "<!-- $(CL_REMINDERS_COMMENT)" >> "$(VERSION_CL)"
-	@git log $$(git rev-list -1 HEAD "$(VERSION_CL)")..HEAD >> "$(VERSION_CL)"
-	@echo " END $(CL_REMINDERS_COMMENT) -->" >> "$(VERSION_CL)"
-	@$(EDITOR) "$(VERSION_CL)"
+	@echo "<!-- $(CL_REMINDERS_COMMENT)" >> "$(CURR_VERSION_CL)"
+	@git log $$(git rev-list -1 HEAD "$(CURR_VERSION_CL)")..HEAD >> "$(CURR_VERSION_CL)"
+	@echo " END $(CL_REMINDERS_COMMENT) -->" >> "$(CURR_VERSION_CL)"
+	@$(EDITOR) "$(CURR_VERSION_CL)"
 	@$(MAKE) changelog
-	@git add CHANGELOG.md "$(VERSION_CL)" && git commit -m "update changelog for v$(VERSION)" && \
+	@git add CHANGELOG.md "$(CURR_VERSION_CL)" && git commit -m "update changelog for v$(CURR_VERSION)" && \
 		echo "==> Changelog updated and committed, thanks for keeping it up-to-date!"
 
 .PHONY: debug/docs
@@ -101,7 +101,19 @@ release:
 	@./dev/release/create
 
 version:
-	@echo "$(VERSION)"
+	@echo "$(CURR_VERSION)"
 
 version/check:
 	@./dev/release/version_check
+
+version/set:
+	@[[ -z "$(VERSION)" ]] && { \
+		echo "Usage:" && \
+		echo "    make VERSION=<version> version/set" && \
+		echo "Current Version:" && \
+		echo "    $(CURR_VERSION)" && \
+		exit 1; \
+	}; \
+	./dev/release/set_version "$(VERSION)" && \
+	git add dev/VERSION dev/changes/v$(VERSION).md && \
+	git commit -m "set development version to v$(VERSION)"
