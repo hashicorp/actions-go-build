@@ -42,6 +42,8 @@ changelog/add:
 	@echo " END $(CL_REMINDERS_COMMENT) -->" >> "$(VERSION_CL)"
 	@$(EDITOR) "$(VERSION_CL)"
 	@$(MAKE) changelog
+	@git add CHANGELOG.md "$(VERSION_CL)" && git commit -m "update changelog for v$(VERSION)" && \
+		echo "==> Changelog updated and committed, thanks for keeping it up-to-date!"
 
 .PHONY: debug/docs
 debug/docs: export DEBUG := 1
