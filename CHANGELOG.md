@@ -17,6 +17,20 @@ Internal Changes
   - Add `make version/set VERSION=<X.Y.Z>` to set the development version.
   - Changelog generation more robust.
   - When pre-push hook fails you now see the output so it's easier to debug.
+  - Readme tidied up.
+<!-- RECENT COMMITS TO JOG YOUR MEMORY (DELETE THIS SECTION WHEN DONE)...
+commit 092b9c528efd05c81adca790f6a11f4dc3a80efe
+Author: Sam Salisbury <samsalisbury@gmail.com>
+Date:   Wed Jun 15 16:36:18 2022 +0100
+
+    rearrange readme
+
+commit ce070af1ae028f8b9bc49604ebb380bae91e87c7
+Author: Sam Salisbury <samsalisbury@gmail.com>
+Date:   Wed Jun 15 16:36:03 2022 +0100
+
+    remove table of contents header
+ END RECENT COMMITS TO JOG YOUR MEMORY (DELETE THIS SECTION WHEN DONE)... -->
 
 ## [v0.1.3](https://github.com/hashicorp/actions-go-build/releases/tag/v0.1.3) - June 15, 2022
 
