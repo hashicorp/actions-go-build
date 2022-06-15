@@ -9,23 +9,17 @@ _**Build and package a (reproducible) Go binary.**_
 _This is intended for internal HashiCorp use only; Internal folks please refer to RFC **ENGSRV-084** for more details._
 
 <!-- insert:dev/docs/table_of_contents -->
-## Table of Contents
-* [Table of Contents](#table-of-contents)
 * [Features](#features)
 * [Usage](#usage)
-  * [Example Workflows](#example-workflows)
+  * [Examples](#examples)
   * [Inputs](#inputs)
-  * [Build Environment](#build-environment)
-  * [Reproducibility Assertions](#reproducibility-assertions)
   * [Build Instructions](#build-instructions)
   * [Ensuring Reproducibility](#ensuring-reproducibility)
 * [Development](#development)
   * [Tests](#tests)
   * [Documentation](#documentation)
   * [Releasing](#releasing)
-  * [Bash, dreaded bash.](#bash-dreaded-bash)
-  * [Future Implementation Options](#future-implementation-options)
-  * [TODO](#todo)
+  * [Implementation](#implementation)
 <!-- end:insert:dev/docs/table_of_contents -->
 
 ## Features
@@ -40,7 +34,7 @@ _This is intended for internal HashiCorp use only; Internal folks please refer t
 
 This Action can run on both Ubuntu and macOS runners.
 
-### Example Workflows
+### Examples
 
 #### Minimal(ish) Example
 
@@ -137,7 +131,22 @@ jobs:
 |  **`instructions`**&nbsp;_(required)_     |  Build instructions to generate the binary. See [Build Instructions](#build-instructions) for more info.  |
 <!-- end:insert:dev/docs/inputs_doc -->
 
-### Build Environment
+### Build Instructions
+
+The `instructions` input is a bash script that builds the product binary.
+It should be kept as simple as possible.
+Typically this will be a simple `go build` invocation,
+but it could hit a make target, or call another script.
+See [Example Build Instructions](#example-build-instructions)
+below for examples of valid instructions.
+
+The instructions _must_ use the environment variable `$BIN_PATH`
+because the minimal thing they can do is to write the compiled binary to `$BIN_PATH`.
+
+In order to add other files like licenses etc to the zip file, you need to
+write them into `$TARGET_DIR` in your build instructions.
+
+#### Build Environment
 
 When the `instructions` are executed, there are a set of environment variables
 already exported that you can make use of
@@ -161,7 +170,7 @@ already exported that you can make use of
 |  `GOARCH`                 |  Same as `ARCH`.                                                     |
 <!-- end:insert:dev/docs/environment_doc -->
 
-### Reproducibility Assertions
+#### Reproducibility Assertions
 
 The `reproducible` input has three options:
 
@@ -170,21 +179,6 @@ The `reproducible` input has three options:
 - `nope`   means do not perform a verification build at all.
 
 See [Ensuring Reproducibility](#ensuring-reproducibility), below for tips on making your build reproducible.
-
-### Build Instructions
-
-The `instructions` input is a bash script that builds the product binary.
-It should be kept as simple as possible.
-Typically this will be a simple `go build` invocation,
-but it could hit a make target, or call another script.
-See [Example Build Instructions](#example-build-instructions)
-below for examples of valid instructions.
-
-The instructions _must_ use the environment variable `$BIN_PATH`
-because the minimal thing they can do is to write the compiled binary to `$BIN_PATH`.
-
-In order to add other files like licenses etc to the zip file, you need to
-write them into `$TARGET_DIR` in your build instructions.
 
 #### Example Build Instructions
 
@@ -238,6 +232,7 @@ build:
 
 See also the [example workflow](#example-workflow) above,
 which injects info into the binary using `-ldflags`.
+
 
 ### Ensuring Reproducibility
 
@@ -308,7 +303,9 @@ This uses the version string from `dev/VERSION` to add tags,
 get the corresponding changelog entries, and create a new GitHub
 release.
 
-### Bash, dreaded bash.
+### Implementation
+
+#### Bash, dreaded bash.
 
 This Action is currently written in Bash.
 
@@ -323,7 +320,7 @@ and ease of deployment. It is present on all runners and doesn't require a compi
 and deployment step (or alternatively installing the toolchain to perform that
 compilation).
 
-### Future Implementation Options
+#### Future Implementation Options
 
 Once we're happy with the basic shape of this Action, there will be options to implement
 it in other ways. For example as a composite action calling Go programs to do all the work,
@@ -331,7 +328,7 @@ or calling Go programs to do the coordination of calling external programs,
 or as a precompiled Docker image Action
 (though that would present problems for Darwin builds which rely on macOS and CGO).
 
-### TODO
+#### TODO
 
 - Add a reusable workflow for better optimisation (i.e. running in parallel jobs)
 - Store build metadata for external systems to use to reproduce the build.
