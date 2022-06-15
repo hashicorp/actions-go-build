@@ -32,7 +32,14 @@ changelog/view:
 	@echo
 	@echo "Use 'make changelog/add' to edit this version's changelog."
 
+CL_REMINDERS_COMMENT := RECENT COMMITS TO JOG YOUR MEMORY (DELETE THIS SECTION WHEN DONE)...
+
+# changelog/add appends recent commit logs (since the file was last updated)
+# to the changelog, and opens it in the editor.
 changelog/add:
+	@echo "<!-- $(CL_REMINDERS_COMMENT)" >> "$(VERSION_CL)"
+	@git log $$(git rev-list -1 HEAD "$(VERSION_CL)")..HEAD >> "$(VERSION_CL)"
+	@echo " END $(CL_REMINDERS_COMMENT) -->" >> "$(VERSION_CL)"
 	@$(EDITOR) "$(VERSION_CL)"
 	@$(MAKE) changelog
 
