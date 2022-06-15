@@ -11,4 +11,4 @@ remove_escaped_dots() {
 
 echo "## Table of Contents"
 
-gh-md-toc --start-depth 1 --hide-footer --hide-header README.md | remove_escaped_dots
+gh-md-toc --start-depth 1 --depth 3 --hide-footer --hide-header README.md | remove_escaped_dots
