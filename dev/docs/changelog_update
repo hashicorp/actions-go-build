@@ -20,6 +20,9 @@ write
 
 LATEST=true
 
+# First make sure we have our local tags matching those on the remote.
+git fetch --force --tags
+
 find "$CHANGES_DIR" -type f -name '*.md' | sort -V | tac | while read -r FILE; do
 	FILENAME="$(basename "$FILE")"
 	VERSION="${FILENAME%.md}"
@@ -27,7 +30,7 @@ find "$CHANGES_DIR" -type f -name '*.md' | sort -V | tac | while read -r FILE; d
 		write "## Unreleased Changes (targeting $VERSION)"
 		LATEST=false
 	else
-		DATE="$(git show -s --date="format:%B %d, %Y" --format=%cd "$VERSION")"
+		DATE="$(git show -s --date="format:%B %d, %Y" --format=%cd "refs/tags/$VERSION")"
 		write "## [$VERSION]($REPO_URL/releases/tag/$VERSION) - $DATE"
 	fi
 	write
