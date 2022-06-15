@@ -14,6 +14,20 @@ Instead, edit the files in dev/changes/, then run 'make docs' to update this fil
   - 'make changelog/add' reminds about recent commits to help remember what's been done recently, regenerates the main CHANGELOG.md, and commits the result.
   - Release workflow to release via GitHub Actions.
 
+<!-- RECENT COMMITS TO JOG YOUR MEMORY (DELETE THIS SECTION WHEN DONE)...
+commit 9c0a5b05cbecd74955d53976e04683f30138c48d
+Author: Sam Salisbury <samsalisbury@gmail.com>
+Date:   Wed Jun 15 15:31:49 2022 +0100
+
+    shorter table of contents
+
+commit 3dbf4626390617b6aec79635da66e7c57cb0428c
+Author: Sam Salisbury <samsalisbury@gmail.com>
+Date:   Wed Jun 15 15:00:43 2022 +0100
+
+    make 'changelog/add' tells user it committed
+ END RECENT COMMITS TO JOG YOUR MEMORY (DELETE THIS SECTION WHEN DONE)... -->
+
 ## [v0.1.2](https://github.com/hashicorp/actions-go-build/releases/tag/v0.1.2) - June 13, 2022
 
 - Default `product_name` to `repo_name`
