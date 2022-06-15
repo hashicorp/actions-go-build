@@ -15,6 +15,8 @@ Instead, edit the files in dev/changes/, then run 'make docs' to update this fil
 ---
 Internal Changes
   - Add `make version/set VERSION=<X.Y.Z>` to set the development version.
+  - Changelog generation more robust.
+  - When pre-push hook fails you now see the output so it's easier to debug.
 
 ## [v0.1.3](https://github.com/hashicorp/actions-go-build/releases/tag/v0.1.3) - June 15, 2022
 
