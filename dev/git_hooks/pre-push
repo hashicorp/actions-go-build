@@ -77,7 +77,7 @@ do
 		CL_FILE="dev/changes/v$(cat dev/VERSION).md"
 		# Check for changelog update.
 		git diff --name-only "$range" | grep -qE "^$CL_FILE\$" || {
-			die "No update to changelog file '$CL_FILE'"
+			die "No update to changelog file '$CL_FILE'; run 'make changelog/add' to update it."
 		}
 		log "✓ Changes logged in $CL_FILE"
 
