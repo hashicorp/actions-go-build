@@ -4,6 +4,7 @@ set -Eeuo pipefail
 
 log() { echo >&2 "$*"; }
 die() { log "$(bold_red "FATAL: ") $(bold "$*")"; exit 1; }
+err() { log "$(bold_red "ERROR: ") $*"; return 1; }
 
 ok() { log "$(bold_green "OK: $*")"; }
 
@@ -28,7 +29,11 @@ test_in_isolation() {
 		cd "$DIR"
 		git diff --exit-code > /dev/null 2>&1 || die "Unable to check $REF - unclean clone."
 		git reset -q --hard "$REF"
-		"$@" > /dev/null 2>&1 || exit 1
+		RESULT="$("$@" 2>&1)" ||  {
+			err "Command failed ($*):"
+			echo "$RESULT" 1>&2
+			exit 1
+		}
 	) || return 1
 }
 
@@ -48,7 +53,7 @@ assert_success() {
 	local REF="$1"
 	local NAME="$2"
 	shift 2
-	test_in_isolation "$REF" "$@" || die "$NAME failed; please ensure that '$*' succeess before pushing."
+	test_in_isolation "$REF" "$@" || die "$NAME failed; please ensure that '$*' succeeds before pushing."
 	log "✓ $NAME passed."
 }
 
