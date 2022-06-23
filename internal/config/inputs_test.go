@@ -83,7 +83,6 @@ func TestInputs_Config_ok(t *testing.T) {
 				c.VerificationBuild.ZipPath = "/other/dir/verification/out/lockbox_1.2.3_linux_amd64.zip"
 			}),
 		},
-		// TODO: Test for overridden zip name, bin name, primary and verification build roots.
 	}
 
 	for _, c := range cases {
