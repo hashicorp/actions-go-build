@@ -10,11 +10,34 @@ CURR_VERSION_CL := dev/changes/v$(CURR_VERSION).md
 
 BATS := bats -j 10 -T
 
-test: test/bats
+TESTCOMPILE := bkkkj
+
+test: test/bats test/go
+
+CLI := bin/action
+
+cli:
+	go build -trimpath -o "$(CLI)"
+
+cli/%: export PRODUCT_REPOSITORY := hashicorp/actions-go-build
+cli/%: export PRODUCT_VERSION    := 1.2.3
+cli/%: export OS                 := $(shell go env GOOS)
+cli/%: export ARCH               := $(shell go env GOARCH)
+cli/%: export REPRODUCIBLE       := assert
+cli/%: export INSTRUCTIONS       := go build -o "$$BIN_PATH"
+
+cli/inputs: cli
+	./$(CLI) inputs
+
+cli/inputs/digest: cli
+	./$(CLI) inputs digest
 
 test/bats:
 	# Running bats tests in scripts/
 	@$(BATS) scripts/
+
+test/go:
+	go test ./...
 
 .PHONY: docs
 docs: readme changelog
