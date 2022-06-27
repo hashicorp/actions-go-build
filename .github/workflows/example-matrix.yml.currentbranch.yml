@@ -1,4 +1,5 @@
-name: Matrix Example (main)
+# GENERATED FILE, DO NOT MODIFY; INSTEAD EDIT .github/workflows/example-matrix.yml AND RUN 'make examples'
+name: Matrix Example (current branch)
 on: [push]
 jobs:
   example:
@@ -14,7 +15,7 @@ jobs:
     steps:
       - uses: actions/checkout@v3
       - name: Build
-        uses: hashicorp/actions-go-build@main
+        uses: ./
         with:
           product_name: example-app
           product_version: 1.2.3

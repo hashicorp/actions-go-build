@@ -121,3 +121,21 @@ version/set:
 	./dev/release/set_version "$(VERSION)" && \
 	git add dev/VERSION dev/changes/v$(VERSION).md && \
 	git commit -m "set development version to v$(VERSION)"
+
+EXAMPLE1         := .github/workflows/example.yml
+EXAMPLE1_CURRENT := .github/workflows/example_currentbranch.yml
+EXAMPLE2         := .github/workflows/example-matrix.yml
+EXAMPLE2_CURRENT := .github/workflows/example-matrix_currentbranch.yml
+
+REPLACEMENTS := -e 's|hashicorp/actions-go-build@main|./|g'
+REPLACEMENTS += -e 's|(main)|(current branch)|g'
+
+define UPDATE_CURRENT_BRANCH_EXAMPLE
+TARGET="$(1).currentbranch.yml" && \
+echo "# GENERATED FILE, DO NOT MODIFY; INSTEAD EDIT $(1) AND RUN 'make examples'" > "$$TARGET" && \
+sed $(REPLACEMENTS)  "$(1)" >> "$$TARGET"
+endef
+
+examples:
+	$(call UPDATE_CURRENT_BRANCH_EXAMPLE,$(EXAMPLE1))
+	$(call UPDATE_CURRENT_BRANCH_EXAMPLE,$(EXAMPLE2))
