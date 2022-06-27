@@ -101,7 +101,6 @@ runs:
         BIN_NAME: ${{ inputs.bin_name }}
         ZIP_NAME: ${{ inputs.zip_name }}
         INSTRUCTIONS: ${{ inputs.instructions }}
-      #run: ${{ github.action_path }}/scripts/digest_inputs
       run: ${{ github.action_path }}/bin/action inputs digest
 
     # Setup Go
