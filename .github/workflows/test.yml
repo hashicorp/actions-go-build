@@ -22,7 +22,15 @@ jobs:
           echo "$BATS_PATH/bin" >> "$GITHUB_PATH"
       - uses: actions/checkout@v2
       - name: Run BATS tests
-        run: make test
+        run: make test/bats
+
+  go-tests:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/setup-go@v2
+        with:
+          go-version: 1.18
+      - run: make test/go
 
   example-target:
     runs-on: ubuntu-latest
