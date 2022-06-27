@@ -33,15 +33,6 @@ jobs:
       - uses: actions/checkout@v3
       - run: make test/go
 
-  example-target:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/setup-go@v2
-        with:
-          go-version: 1.18
-      - uses: actions/checkout@v2
-      - run: make example
-
   macos:
     uses: ./.github/workflows/self-test-suite.yml
     with:
