@@ -120,6 +120,9 @@ do
 		assert_no_diff_caused_by "$local_oid" "CHANGELOG.md" make changelog
 		assert_no_diff_caused_by "$local_oid" "README.md"    make readme
 
+		# Check example workflows are up-to-date.
+		assert_no_diff_caused_by "$local_oid" ".github/workflows/*.currentbranch.yml" make examples
+
 		# Check tests pass with commited changes.
 		if ( go_tests_changed || go_implementation_changed; ); then
 			assert_success "$local_oid" "Tests" make test
