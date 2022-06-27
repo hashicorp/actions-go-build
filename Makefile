@@ -14,6 +14,8 @@ TESTCOMPILE := bkkkj
 
 test: test/bats test/go
 
+test/update: test/go/update
+
 CLI := bin/action
 
 cli:
@@ -35,6 +37,9 @@ cli/inputs/digest: cli
 test/bats:
 	# Running bats tests in scripts/
 	@$(BATS) scripts/
+
+test/go/update:
+	go test ./... -update
 
 test/go:
 	go test ./...
@@ -65,7 +70,7 @@ changelog/add:
 	@echo " END $(CL_REMINDERS_COMMENT) -->" >> "$(CURR_VERSION_CL)"
 	@$(EDITOR) "$(CURR_VERSION_CL)"
 	@$(MAKE) changelog
-	@git add CHANGELOG.md "$(CURR_VERSION_CL)" && git commit -m "update changelog for v$(CURR_VERSION)" && \
+	@git add CHANGELOG.md "$(CURR_VERSION_CL)" && git commit -em "update changelog for v$(CURR_VERSION)" && \
 		echo "==> Changelog updated and committed, thanks for keeping it up-to-date!"
 
 .PHONY: debug/docs

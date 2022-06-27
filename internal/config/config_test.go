@@ -1,14 +1,20 @@
 package config
 
 import (
+	"flag"
+	"io/fs"
 	"io/ioutil"
 	"os"
+	"path/filepath"
 	"testing"
 
 	"github.com/google/go-cmp/cmp"
 )
 
+var update = flag.Bool("update", false, "update golden files")
+
 func TestConfig_ExportToGitHubEnv_ok(t *testing.T) {
+	flag.Parse()
 
 	c := standardConfig()
 
@@ -21,85 +27,49 @@ func TestConfig_ExportToGitHubEnv_ok(t *testing.T) {
 	t.Logf("GITHUB_ENV=%q", f.Name())
 
 	os.Setenv("GITHUB_ENV", f.Name())
+
 	c.ExportToGitHubEnv()
 
-	b, err := ioutil.ReadFile(f.Name())
-	if err != nil {
-		t.Fatal(err)
+	got := readFileToString(t, f.Name())
+
+	if *update {
+		writeGoldenFile(t, got)
 	}
 
-	if diff := cmp.Diff(string(b), wantGHEnv); diff != "" {
+	want := readGoldenFile(t)
+
+	if diff := cmp.Diff(got, want); diff != "" {
 		t.Errorf("ExportToGitHubEnv() mismatch (-want +got):\n%s", diff)
 	}
 }
 
-const wantGHEnv = `PRODUCT_NAME<<_GitHubActionsFileCommandDelimeter_
-lockbox
-_GitHubActionsFileCommandDelimeter_
-PRODUCT_VERSION<<_GitHubActionsFileCommandDelimeter_
-1.2.3
-_GitHubActionsFileCommandDelimeter_
-PRODUCT_REVISION<<_GitHubActionsFileCommandDelimeter_
-cabba9e
-_GitHubActionsFileCommandDelimeter_
-PRODUCT_REVISION_TIME<<_GitHubActionsFileCommandDelimeter_
-2001-12-01T00:00:00Z
-_GitHubActionsFileCommandDelimeter_
-GO_VERSION<<_GitHubActionsFileCommandDelimeter_
-1.18
-_GitHubActionsFileCommandDelimeter_
-OS<<_GitHubActionsFileCommandDelimeter_
-linux
-_GitHubActionsFileCommandDelimeter_
-ARCH<<_GitHubActionsFileCommandDelimeter_
-amd64
-_GitHubActionsFileCommandDelimeter_
-REPRODUCIBLE<<_GitHubActionsFileCommandDelimeter_
-assert
-_GitHubActionsFileCommandDelimeter_
-INSTRUCTIONS<<_GitHubActionsFileCommandDelimeter_
-go build -o $BIN_PATH
-_GitHubActionsFileCommandDelimeter_
-BIN_NAME<<_GitHubActionsFileCommandDelimeter_
-lockbox
-_GitHubActionsFileCommandDelimeter_
-BIN_PATH<<_GitHubActionsFileCommandDelimeter_
-dist/lockbox
-_GitHubActionsFileCommandDelimeter_
-ZIP_NAME<<_GitHubActionsFileCommandDelimeter_
-lockbox_1.2.3_linux_amd64.zip
-_GitHubActionsFileCommandDelimeter_
-PRIMARY_BUILD_ROOT<<_GitHubActionsFileCommandDelimeter_
-/some/dir/work
-_GitHubActionsFileCommandDelimeter_
-VERIFICATION_BUILD_ROOT<<_GitHubActionsFileCommandDelimeter_
-/some/dir/verification
-_GitHubActionsFileCommandDelimeter_
-PRIMARY_BIN_PATH<<_GitHubActionsFileCommandDelimeter_
-/some/dir/work/dist/lockbox
-_GitHubActionsFileCommandDelimeter_
-PRIMARY_ZIP_PATH<<_GitHubActionsFileCommandDelimeter_
-/some/dir/work/out/lockbox_1.2.3_linux_amd64.zip
-_GitHubActionsFileCommandDelimeter_
-VERIFICATION_BIN_PATH<<_GitHubActionsFileCommandDelimeter_
-/some/dir/verification/dist/lockbox
-_GitHubActionsFileCommandDelimeter_
-VERIFICATION_ZIP_PATH<<_GitHubActionsFileCommandDelimeter_
-/some/dir/verification/out/lockbox_1.2.3_linux_amd64.zip
-_GitHubActionsFileCommandDelimeter_
-TARGET_DIR<<_GitHubActionsFileCommandDelimeter_
-dist
-_GitHubActionsFileCommandDelimeter_
-ZIP_DIR<<_GitHubActionsFileCommandDelimeter_
-out
-_GitHubActionsFileCommandDelimeter_
-META_DIR<<_GitHubActionsFileCommandDelimeter_
-meta
-_GitHubActionsFileCommandDelimeter_
-GOOS<<_GitHubActionsFileCommandDelimeter_
-linux
-_GitHubActionsFileCommandDelimeter_
-GOARCH<<_GitHubActionsFileCommandDelimeter_
-amd64
-_GitHubActionsFileCommandDelimeter_
-`
+func readFileToString(t *testing.T, file string) string {
+	t.Helper()
+	readBytes, err := ioutil.ReadFile(file)
+	if err != nil {
+		t.Fatal(err)
+	}
+	return string(readBytes)
+}
+
+func goldenFileName(t *testing.T) string {
+	t.Helper()
+	return filepath.Join("testdata", t.Name())
+}
+
+func readGoldenFile(t *testing.T) string {
+	t.Helper()
+	return readFileToString(t, goldenFileName(t))
+}
+
+func writeGoldenFile(t *testing.T, contents string) {
+	t.Helper()
+	file := goldenFileName(t)
+	dir := filepath.Dir(file)
+	if err := os.MkdirAll(dir, fs.ModePerm); err != nil {
+		t.Fatal(err)
+	}
+	if err := ioutil.WriteFile(file, []byte(contents), fs.ModePerm); err != nil {
+		t.Fatal(err)
+	}
+}
