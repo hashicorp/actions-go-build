@@ -3,12 +3,10 @@ package config
 import (
 	"context"
 	"fmt"
-	"os"
 	"path/filepath"
 	"strings"
 	"time"
 
-	"github.com/go-git/go-git/v5"
 	"github.com/sethvargo/go-envconfig"
 )
 
@@ -34,37 +32,6 @@ type Inputs struct {
 	// Inputs only used in testing.
 	PrimaryBuildRoot      string `env:"PRIMARY_BUILD_ROOT"`
 	VerificationBuildRoot string `env:"VERIFICATION_BUILD_ROOT"`
-}
-
-type RepoContext struct {
-	WorkDir    string
-	CommitSHA  string
-	CommitTime time.Time
-}
-
-func readRepoContext() (RepoContext, error) {
-	wd, err := os.Getwd()
-	if err != nil {
-		return RepoContext{}, err
-	}
-	repo, err := git.PlainOpen(wd)
-	if err != nil {
-		return RepoContext{}, err
-	}
-	logIter, err := repo.Log(nil)
-	defer logIter.Close()
-	commit, err := logIter.Next()
-	if err != nil {
-		return RepoContext{}, err
-	}
-	sha := commit.ID().String()
-	ts := commit.Author.When
-
-	return RepoContext{
-		WorkDir:    wd,
-		CommitSHA:  sha,
-		CommitTime: ts,
-	}, nil
 }
 
 type dirNames struct {
@@ -160,6 +127,9 @@ func errRequiredInputEmpty(name string) error {
 }
 
 func (i Inputs) validate() error {
+	if i.ProductVersion == "" {
+		return errRequiredInputEmpty("product_version")
+	}
 	if i.OS == "" {
 		return errRequiredInputEmpty("os")
 	}

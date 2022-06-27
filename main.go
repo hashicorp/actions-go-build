@@ -6,27 +6,29 @@ import (
 	"log"
 	"os"
 
-	"github.com/hashicorp/actions-go-build/internal/build"
 	"github.com/hashicorp/actions-go-build/internal/commands"
 )
 
 func main() {
-	getCommand(os.Args)
-	b := build.New()
-	if err := b.Run(); err != nil {
+	c, err := getCommand(os.Args)
+	if err != nil {
+		log.Fatal(err)
+	}
+	if err := c(); err != nil {
 		log.Fatal(err)
 	}
 }
 
 var errUsage = fmt.Errorf("usage: %s <command>", os.Args[0])
 
-type command func() error
+type command func(args []string) error
+type bakedCommand func() error
 
-func getCommand(osArgs []string) (command, error) {
+func getCommand(osArgs []string) (bakedCommand, error) {
 	flags := makeFlags()
 	flags.Parse(osArgs[1:])
 	args := flags.Args()
-	if len(args) != 1 {
+	if len(args) == 0 {
 		return nil, errUsage
 	}
 	name := args[0]
@@ -34,11 +36,14 @@ func getCommand(osArgs []string) (command, error) {
 	if !ok {
 		return nil, fmt.Errorf("no command named %q", name)
 	}
-	return c, nil
+	commandWithArgs := func() error {
+		return c(args)
+	}
+	return commandWithArgs, nil
 }
 
 var cmds = map[string]command{
-	"digest_inputs": commands.DigestInputs,
+	"inputs": commands.Inputs,
 }
 
 func makeFlags() *flag.FlagSet {
