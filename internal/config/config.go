@@ -55,6 +55,7 @@ func (c Config) ExportToGitHubEnv() {
 	es.setEnv("INSTRUCTIONS", c.Instructions)
 	es.setEnv("BIN_NAME", c.BinName)
 	es.setEnv("BIN_PATH", filepath.Join(c.TargetDir, c.BinName))
+	es.setEnv("ZIP_PATH", filepath.Join(c.ZipDir, c.ZipName))
 	es.setEnv("ZIP_NAME", c.ZipName)
 	es.setEnv("PRIMARY_BUILD_ROOT", c.PrimaryBuildRoot)
 	es.setEnv("VERIFICATION_BUILD_ROOT", c.VerificationBuildRoot)

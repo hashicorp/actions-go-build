@@ -31,6 +31,9 @@ _GitHubActionsFileCommandDelimeter_
 BIN_PATH<<_GitHubActionsFileCommandDelimeter_
 dist/lockbox
 _GitHubActionsFileCommandDelimeter_
+ZIP_PATH<<_GitHubActionsFileCommandDelimeter_
+out/lockbox_1.2.3_linux_amd64.zip
+_GitHubActionsFileCommandDelimeter_
 ZIP_NAME<<_GitHubActionsFileCommandDelimeter_
 lockbox_1.2.3_linux_amd64.zip
 _GitHubActionsFileCommandDelimeter_
