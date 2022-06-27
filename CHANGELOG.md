@@ -18,7 +18,7 @@ Internal Changes
   - Changelog generation more robust.
   - When pre-push hook fails you now see the output so it's easier to debug.
   - Readme tidied up.
-  - Converted digetst inputs to Go.
+  - Converted digest inputs to Go.
 
 ## [v0.1.3](https://github.com/hashicorp/actions-go-build/releases/tag/v0.1.3) - June 15, 2022
 
