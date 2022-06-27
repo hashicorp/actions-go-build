@@ -96,4 +96,10 @@ _GitHubActionsFileCommandDelimeter_
 META_DIR<<_GitHubActionsFileCommandDelimeter_
 meta
 _GitHubActionsFileCommandDelimeter_
+GOOS<<_GitHubActionsFileCommandDelimeter_
+linux
+_GitHubActionsFileCommandDelimeter_
+GOARCH<<_GitHubActionsFileCommandDelimeter_
+amd64
+_GitHubActionsFileCommandDelimeter_
 `
