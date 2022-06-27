@@ -57,6 +57,31 @@ assert_success() {
 	log "✓ $NAME passed."
 }
 
+changed_files() {
+	git diff --name-only "$range"
+}
+
+changed_files_include() {
+	local PATTERN="$1"
+	changed_files | grep -Eq "^$PATTERN\$"
+}
+
+changed_go_files() {
+	changed_files | grep -E '.*\.go'
+}
+
+go_implementation_changed() {
+	changed_go_files | grep -Evq '_test\.go'
+}
+
+go_tests_changed() {
+	changed_files | grep -Eq '_test\.go'
+}
+
+should_have_changelog_update() {
+	go_tests_changed && go_implementation_changed
+}
+
 # shellcheck disable=SC2021 # We want to replace square brackets.
 zero="$(git hash-object --stdin </dev/null | tr '[0-9a-f]' '0')"
 
@@ -79,23 +104,28 @@ do
 		# Check for version consistency.
 		assert_success "$local_oid" "Version check" make version/check
 
-		CL_FILE="dev/changes/v$(cat dev/VERSION).md"
-		# Check for changelog update.
-		git diff --name-only "$range" | grep -qE "^$CL_FILE\$" || {
-			die "No update to changelog file '$CL_FILE'; run 'make changelog/add' to update it."
-		}
-		log "✓ Changes logged in $CL_FILE"
+		# Check for changelog update, only if the push includes both a
+		# test change and a non-test change to the Go code.
+		if should_have_changelog_update; then 
+			CL_FILE="dev/changes/v$(cat dev/VERSION).md"
+			git diff --name-only "$range" | grep -qE "^$CL_FILE\$" || {
+				die "No update to changelog file '$CL_FILE'; run 'make changelog/add' to update it."
+			}
+			log "✓ Changes logged in $CL_FILE"
+		else
+			log "- Skipping changelog update check."
+		fi
 
 		# Check docs are up-to-date.
 		assert_no_diff_caused_by "$local_oid" "CHANGELOG.md" make changelog
 		assert_no_diff_caused_by "$local_oid" "README.md"    make readme
 
 		# Check tests pass with commited changes.
-		assert_success "$local_oid" "Tests" make test
-
-		# Check example target still works.
-		assert_success "$local_oid" "Example target" make example
-
+		if ( go_tests_changed || go_implementation_changed; ); then
+			assert_success "$local_oid" "Tests" make test
+		else
+			log "- Skipping test run."
+		fi
 	fi
 done
 
