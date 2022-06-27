@@ -29,6 +29,7 @@ build_env() {
 
 make_paths_absolute() {
 	for P in "$@"; do
+		[[ -n "${!P:-}" ]] || die "$P is empty"
 		export "$P"="$PWD/${!P}"
 	done
 }
