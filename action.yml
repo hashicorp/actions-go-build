@@ -85,6 +85,7 @@ runs:
         go-version: 1.18
 
     - name: Compile the CLI
+      shell: bash
       run: make cli
 
     # Digest inputs and context.
