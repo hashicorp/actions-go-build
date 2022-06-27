@@ -234,19 +234,18 @@ func standardConfig() Config {
 			PrimaryBuildRoot:      "/some/dir/work",
 			VerificationBuildRoot: "/some/dir/verification",
 		},
+		ProductRevision:     "cabba9e",
+		ProductRevisionTime: "2001-12-01T00:00:00Z",
 		PrimaryBuild: BuildConfig{
-			TargetDir: "dist",
-			ZipDir:    "out",
-			MetaDir:   "meta",
-			BinPath:   "/some/dir/work/dist/lockbox",
-			ZipPath:   "/some/dir/work/out/lockbox_1.2.3_linux_amd64.zip",
+			BinPath: "/some/dir/work/dist/lockbox",
+			ZipPath: "/some/dir/work/out/lockbox_1.2.3_linux_amd64.zip",
 		},
 		VerificationBuild: BuildConfig{
-			TargetDir: "dist",
-			ZipDir:    "out",
-			MetaDir:   "meta",
-			BinPath:   "/some/dir/verification/dist/lockbox",
-			ZipPath:   "/some/dir/verification/out/lockbox_1.2.3_linux_amd64.zip",
+			BinPath: "/some/dir/verification/dist/lockbox",
+			ZipPath: "/some/dir/verification/out/lockbox_1.2.3_linux_amd64.zip",
 		},
+		TargetDir: "dist",
+		ZipDir:    "out",
+		MetaDir:   "meta",
 	}
 }

@@ -3,10 +3,12 @@ package config
 import (
 	"context"
 	"fmt"
+	"os"
 	"path/filepath"
 	"strings"
 	"time"
 
+	"github.com/go-git/go-git/v5"
 	"github.com/sethvargo/go-envconfig"
 )
 
@@ -40,22 +42,63 @@ type RepoContext struct {
 	CommitTime time.Time
 }
 
+func readRepoContext() (RepoContext, error) {
+	wd, err := os.Getwd()
+	if err != nil {
+		return RepoContext{}, err
+	}
+	repo, err := git.PlainOpen(wd)
+	if err != nil {
+		return RepoContext{}, err
+	}
+	logIter, err := repo.Log(nil)
+	defer logIter.Close()
+	commit, err := logIter.Next()
+	if err != nil {
+		return RepoContext{}, err
+	}
+	sha := commit.ID().String()
+	ts := commit.Author.When
+
+	return RepoContext{
+		WorkDir:    wd,
+		CommitSHA:  sha,
+		CommitTime: ts,
+	}, nil
+}
+
+type dirNames struct {
+	target, zip, meta string
+}
+
+var dirs = dirNames{"dist", "out", "meta"}
+
 func (i Inputs) Config(rc RepoContext) (Config, error) {
 	i = i.trimSpace().setDefaults(rc)
 	if err := i.validate(); err != nil {
 		return Config{}, err
 	}
 	return Config{
-		Inputs:            i,
-		PrimaryBuild:      newBuildConfig(i.PrimaryBuildRoot, i.BinName, i.ZipName),
-		VerificationBuild: newBuildConfig(i.VerificationBuildRoot, i.BinName, i.ZipName),
+		Inputs:              i,
+		ProductRevision:     rc.CommitSHA,
+		ProductRevisionTime: rc.CommitTime.UTC().Format(time.RFC3339),
+		PrimaryBuild:        newBuildConfig(dirs, i.PrimaryBuildRoot, i.BinName, i.ZipName),
+		VerificationBuild:   newBuildConfig(dirs, i.VerificationBuildRoot, i.BinName, i.ZipName),
+		TargetDir:           dirs.target,
+		ZipDir:              dirs.zip,
+		MetaDir:             dirs.meta,
 	}, nil
 }
 
 // FromEnvironment creates a new Config from environment variables.
 // See Inputs for a list of the environment variables read by Digest.
-func FromEnvironment(rc RepoContext) (Config, error) {
+func FromEnvironment() (Config, error) {
 	ctx := context.Background()
+
+	rc, err := readRepoContext()
+	if err != nil {
+		return Config{}, err
+	}
 
 	var inputs Inputs
 	if err := envconfig.Process(ctx, &inputs); err != nil {
@@ -101,32 +144,14 @@ func (i Inputs) setDefaults(rc RepoContext) Inputs {
 	return i
 }
 
-type BuildConfig struct {
-	TargetDir string
-	ZipDir    string
-	MetaDir   string
-	BinPath   string
-	ZipPath   string
-}
-
-type Config struct {
-	Inputs
-	PrimaryBuild      BuildConfig
-	VerificationBuild BuildConfig
-	ProductCoreName   string
-}
-
 func adjacentPath(to, name string) string {
 	return filepath.Join(filepath.Dir(to), name)
 }
 
-func newBuildConfig(basePath, binName, zipName string) BuildConfig {
+func newBuildConfig(dirs dirNames, basePath, binName, zipName string) BuildConfig {
 	return BuildConfig{
-		TargetDir: "dist",
-		ZipDir:    "out",
-		MetaDir:   "meta",
-		BinPath:   filepath.Join(basePath, "dist", binName),
-		ZipPath:   filepath.Join(basePath, "out", zipName),
+		BinPath: filepath.Join(basePath, dirs.target, binName),
+		ZipPath: filepath.Join(basePath, dirs.zip, zipName),
 	}
 }
 
