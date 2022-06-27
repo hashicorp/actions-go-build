@@ -3,6 +3,7 @@ package config
 import (
 	"log"
 	"os"
+	"path/filepath"
 
 	"github.com/sethvargo/go-githubactions"
 )
@@ -53,6 +54,7 @@ func (c Config) ExportToGitHubEnv() {
 	es.setEnv("REPRODUCIBLE", c.Reproducible)
 	es.setEnv("INSTRUCTIONS", c.Instructions)
 	es.setEnv("BIN_NAME", c.BinName)
+	es.setEnv("BIN_PATH", filepath.Join(c.TargetDir, c.BinName))
 	es.setEnv("ZIP_NAME", c.ZipName)
 	es.setEnv("PRIMARY_BUILD_ROOT", c.PrimaryBuildRoot)
 	es.setEnv("VERIFICATION_BUILD_ROOT", c.VerificationBuildRoot)

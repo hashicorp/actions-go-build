@@ -18,6 +18,8 @@ func TestConfig_ExportToGitHubEnv_ok(t *testing.T) {
 	}
 	defer f.Close()
 
+	t.Logf("GITHUB_ENV=%q", f.Name())
+
 	os.Setenv("GITHUB_ENV", f.Name())
 	c.ExportToGitHubEnv()
 
@@ -60,6 +62,9 @@ go build -o $BIN_PATH
 _GitHubActionsFileCommandDelimeter_
 BIN_NAME<<_GitHubActionsFileCommandDelimeter_
 lockbox
+_GitHubActionsFileCommandDelimeter_
+BIN_PATH<<_GitHubActionsFileCommandDelimeter_
+dist/lockbox
 _GitHubActionsFileCommandDelimeter_
 ZIP_NAME<<_GitHubActionsFileCommandDelimeter_
 lockbox_1.2.3_linux_amd64.zip
