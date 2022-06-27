@@ -65,6 +65,10 @@ func (c Config) ExportToGitHubEnv() {
 	es.setEnv("TARGET_DIR", c.TargetDir)
 	es.setEnv("ZIP_DIR", c.ZipDir)
 	es.setEnv("META_DIR", c.MetaDir)
+
+	// Extra vars set for the build environment.
+	es.setEnv("GOOS", c.OS)
+	es.setEnv("GOARCH", c.Arch)
 }
 
 func (es envSetter) setEnv(name, value string) {
