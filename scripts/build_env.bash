@@ -29,13 +29,17 @@ build_env() {
 
 make_paths_absolute() {
 	for P in "$@"; do
-		[[ -n "${!P:-}" ]] || die "$P is empty"
+		assert_var_nonempty "$P"
 		export "$P"="$PWD/${!P}"
 	done
 }
 
 print_build_env() {
 	PRINT_ENV=true build_env | column -t -s$'\t'
+}
+
+assert_var_nonempty() {
+	[[ -n "${!1:-}" ]] || die "$1 is empty"
 }
 
 # define_var either exports the named var, or if $PRINT_ENV=true it 
@@ -47,12 +51,13 @@ define_var() {
 	local NAME="$1"
 	local DESC="$2"
 
-	if [ "${PRINT_ENV:-}" = "true" ]; then
+	if [[ "${PRINT_ENV:-}" = "true" ]]; then
 		printf "%s\t%s\n" "$NAME" "$DESC"
 		return
-	else
-		log "Setting build env: $NAME='${!NAME}'"
 	fi
 
+	assert_var_nonempty "$NAME"
+
+	log "Setting build env: $NAME='${!NAME}'"
 	export "${NAME?}"
 }
