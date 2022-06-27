@@ -44,7 +44,7 @@ This example shows building a single `linux/amd64` binary.
 
 <!-- insert:dev/docs/print_example_workflow example.yml -->
 ```yaml
-name: Minimal(ish) Example
+name: Minimal Example (main)
 on: [push]
 jobs:
   example:
@@ -76,7 +76,7 @@ and disables CGO for linux and windows builds.
 
 <!-- insert:dev/docs/print_example_workflow example-matrix.yml -->
 ```yaml
-name: Matrix Example
+name: Matrix Example (main)
 on: [push]
 jobs:
   example:
