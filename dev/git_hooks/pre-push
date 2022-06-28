@@ -57,29 +57,52 @@ assert_success() {
 	log "✓ $NAME passed."
 }
 
+if [[ "${DEBUG:-}" == "1" ]]; then
+	run_log() {
+		local ARGS=("$@")
+		local WHAT="${ARGS[*]@Q}"
+		log "==> Running $WHAT"
+		local OUT
+		if OUT="$("$@")"; then log "OK: $WHAT"; X=0; else log "FAILED: $WHAT"; X=1; fi
+		log "$OUT"
+		echo "$OUT"
+		return $X
+	}
+	grep() {
+		$(which grep) -E "$@"
+	}
+else
+	run_log() {
+		"$@"
+	}
+	grep() {
+		$(which grep) -Eq "$@"
+	}
+fi
+
 changed_files() {
 	git diff --name-only "$range"
 }
 
 changed_files_include() {
 	local PATTERN="$1"
-	changed_files | grep -Eq "^$PATTERN\$"
+	run_log changed_files | "$GREP" "^$PATTERN\$"
 }
 
 changed_go_files() {
-	changed_files | grep -E '.*\.go'
+	run_log changed_files | grep '.*\.go$'
 }
 
 go_implementation_changed() {
-	changed_go_files | grep -Evq '_test\.go'
+	run_log changed_go_files | grep -v '_test\.go$'
 }
 
 go_tests_changed() {
-	changed_files | grep -Eq '_test\.go'
+	run_log changed_files | grep '_test\.go$'
 }
 
 should_have_changelog_update() {
-	go_tests_changed && go_implementation_changed
+	run_log go_tests_changed && run_log go_implementation_changed
 }
 
 # shellcheck disable=SC2021 # We want to replace square brackets.
@@ -106,7 +129,7 @@ do
 
 		# Check for changelog update, only if the push includes both a
 		# test change and a non-test change to the Go code.
-		if should_have_changelog_update; then 
+		if run_log should_have_changelog_update; then 
 			CL_FILE="dev/changes/v$(cat dev/VERSION).md"
 			git diff --name-only "$range" | grep -qE "^$CL_FILE\$" || {
 				die "No update to changelog file '$CL_FILE'; run 'make changelog/add' to update it."
