@@ -10,8 +10,6 @@ CURR_VERSION_CL := dev/changes/v$(CURR_VERSION).md
 
 BATS := bats -j 10 -T
 
-TESTCOMPILE := bkkkj
-
 test: test/bats test/go
 
 test/update: test/go/update
