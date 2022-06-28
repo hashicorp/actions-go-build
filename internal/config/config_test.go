@@ -54,7 +54,7 @@ func readFileToString(t *testing.T, file string) string {
 
 func goldenFileName(t *testing.T) string {
 	t.Helper()
-	return filepath.Join("testdata", t.Name())
+	return filepath.Join("testdata", t.Name()+".golden")
 }
 
 func readGoldenFile(t *testing.T) string {

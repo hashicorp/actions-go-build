@@ -1,1 +1,2 @@
 /.github/workflows/*.currentbranch.yml linguist-generated
+/**/*.golden                           linguist-generated
