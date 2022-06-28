@@ -19,17 +19,20 @@ CLI := bin/action
 cli:
 	go build -trimpath -o "$(CLI)"
 
-cli/%: export PRODUCT_REPOSITORY := hashicorp/actions-go-build
-cli/%: export PRODUCT_VERSION    := 1.2.3
-cli/%: export OS                 := $(shell go env GOOS)
-cli/%: export ARCH               := $(shell go env GOARCH)
-cli/%: export REPRODUCIBLE       := assert
-cli/%: export INSTRUCTIONS       := go build -o "$$BIN_PATH"
+# The run/cli/... targets build and then run the CLI itself
+# which is usful for quickly seeing its output whilst developing.
 
-cli/inputs: cli
+run/cli/%: export PRODUCT_REPOSITORY := hashicorp/actions-go-build
+run/cli/%: export PRODUCT_VERSION    := 1.2.3
+run/cli/%: export OS                 := $(shell go env GOOS)
+run/cli/%: export ARCH               := $(shell go env GOARCH)
+run/cli/%: export REPRODUCIBLE       := assert
+run/cli/%: export INSTRUCTIONS       := go build -o "$$BIN_PATH"
+
+run/cli/inputs: cli
 	./$(CLI) inputs
 
-cli/inputs/digest: cli
+run/cli/inputs/digest: cli
 	./$(CLI) inputs digest
 
 test/bats:
