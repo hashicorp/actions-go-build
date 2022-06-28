@@ -1,3 +1,17 @@
+// Package goldenfile allows you to assert that a function that generates
+// a file generates the exact file you expect.
+//
+// Golden files are stored in testdata/<test-name>.golden they are written
+// when the `-update` flag is used with `go test`.
+//
+// Without the `-update` flag, files are witten to a temp directory and
+// compared with the golden files themselves.
+//
+// This is based on the talk Advanced Go Testing by @mitchellh, and is different
+// from other golden file libraries because it allows access to the underlying
+// file, not just the ability to write a set of bytes to a file. This allows
+// writing tests that include code you do not control that requires direct access
+// to a file (e.g. github.com/sethvargo/go-githubactions.SetEnv).
 package goldenfile
 
 import (
