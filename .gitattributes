@@ -1,2 +1,5 @@
 /.github/workflows/*.currentbranch.yml linguist-generated
 /**/*.golden                           linguist-generated
+go.mod                                 linguist-generated
+go.sum                                 linguist-generated
+CHANGELOG.md                           linguist-generated
