@@ -49,8 +49,6 @@ func (i Inputs) Config(rc RepoContext) (Config, error) {
 		Inputs:              i,
 		ProductRevision:     rc.CommitSHA,
 		ProductRevisionTime: rc.CommitTime.UTC().Format(time.RFC3339),
-		PrimaryBuild:        newBuildConfig(dirs, i.PrimaryBuildRoot, i.BinName, i.ZipName),
-		VerificationBuild:   newBuildConfig(dirs, i.VerificationBuildRoot, i.BinName, i.ZipName),
 		TargetDir:           dirs.target,
 		ZipDir:              dirs.zip,
 		MetaDir:             dirs.meta,

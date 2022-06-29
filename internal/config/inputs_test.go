@@ -29,8 +29,6 @@ func TestInputs_Config_ok(t *testing.T) {
 			testConfig(func(c *Config) {
 				c.ProductVersion = "1.2.3+ent"
 				c.ZipName = "lockbox_1.2.3+ent_linux_amd64.zip"
-				c.PrimaryBuild.ZipPath = "/some/dir/work/out/lockbox_1.2.3+ent_linux_amd64.zip"
-				c.VerificationBuild.ZipPath = "/some/dir/verification/out/lockbox_1.2.3+ent_linux_amd64.zip"
 			}),
 		},
 		{
@@ -40,8 +38,6 @@ func TestInputs_Config_ok(t *testing.T) {
 			testConfig(func(c *Config) {
 				c.ProductVersion = "1.2.3+ent.hsm"
 				c.ZipName = "lockbox_1.2.3+ent.hsm_linux_amd64.zip"
-				c.PrimaryBuild.ZipPath = "/some/dir/work/out/lockbox_1.2.3+ent.hsm_linux_amd64.zip"
-				c.VerificationBuild.ZipPath = "/some/dir/verification/out/lockbox_1.2.3+ent.hsm_linux_amd64.zip"
 			}),
 		},
 		{
@@ -52,8 +48,6 @@ func TestInputs_Config_ok(t *testing.T) {
 			testRepoContext(),
 			testConfig(func(c *Config) {
 				c.ZipName = "blarglefish.zip"
-				c.PrimaryBuild.ZipPath = "/some/dir/work/out/blarglefish.zip"
-				c.VerificationBuild.ZipPath = "/some/dir/verification/out/blarglefish.zip"
 			}),
 		},
 		{
@@ -64,8 +58,6 @@ func TestInputs_Config_ok(t *testing.T) {
 			testRepoContext(),
 			testConfig(func(c *Config) {
 				c.BinName = "blarglefish"
-				c.PrimaryBuild.BinPath = "/some/dir/work/dist/blarglefish"
-				c.VerificationBuild.BinPath = "/some/dir/verification/dist/blarglefish"
 			}),
 		},
 		{
@@ -77,10 +69,6 @@ func TestInputs_Config_ok(t *testing.T) {
 			testConfig(func(c *Config) {
 				c.PrimaryBuildRoot = "/other/dir/work"
 				c.VerificationBuildRoot = "/other/dir/verification"
-				c.PrimaryBuild.BinPath = "/other/dir/work/dist/lockbox"
-				c.PrimaryBuild.ZipPath = "/other/dir/work/out/lockbox_1.2.3_linux_amd64.zip"
-				c.VerificationBuild.BinPath = "/other/dir/verification/dist/lockbox"
-				c.VerificationBuild.ZipPath = "/other/dir/verification/out/lockbox_1.2.3_linux_amd64.zip"
 			}),
 		},
 	}
@@ -236,16 +224,8 @@ func standardConfig() Config {
 		},
 		ProductRevision:     "cabba9e",
 		ProductRevisionTime: "2001-12-01T00:00:00Z",
-		PrimaryBuild: BuildConfig{
-			BinPath: "/some/dir/work/dist/lockbox",
-			ZipPath: "/some/dir/work/out/lockbox_1.2.3_linux_amd64.zip",
-		},
-		VerificationBuild: BuildConfig{
-			BinPath: "/some/dir/verification/dist/lockbox",
-			ZipPath: "/some/dir/verification/out/lockbox_1.2.3_linux_amd64.zip",
-		},
-		TargetDir: "dist",
-		ZipDir:    "out",
-		MetaDir:   "meta",
+		TargetDir:           "dist",
+		ZipDir:              "out",
+		MetaDir:             "meta",
 	}
 }

@@ -30,17 +30,9 @@ func standardConfig(t *testing.T) config.Config {
 		},
 		ProductRevision:     "",
 		ProductRevisionTime: "",
-		PrimaryBuild: config.BuildConfig{
-			BinPath: "",
-			ZipPath: "",
-		},
-		VerificationBuild: config.BuildConfig{
-			BinPath: "",
-			ZipPath: "",
-		},
-		ProductCoreName: "",
-		TargetDir:       "",
-		ZipDir:          "",
-		MetaDir:         "",
+		ProductCoreName:     "",
+		TargetDir:           "",
+		ZipDir:              "",
+		MetaDir:             "",
 	}
 }
