@@ -9,48 +9,40 @@ import (
 	"github.com/sethvargo/go-githubactions"
 )
 
-// BuildConfig contains the
-type BuildConfig struct {
-	// WorkDir is the absolute directory to run the build instructions in.
-	WorkDir string
-	// TargetDir is the absolute path to the dir where any other files
-	// needed to be included in the zip file should be placed.
-	TargetDir string
-	// BinPath is the path to the executable binary the instructions must create.
-	BinPath string
-	// ZipPath is the path to the zip file that will be created.
-	ZipPath string
-}
-
 // Config is a complete configuration for this action.
 type Config struct {
 	Inputs
-	ProductRevision     string
-	ProductRevisionTime string
-	ProductCoreName     string
-	TargetDir           string
-	ZipDir              string
-	MetaDir             string
+	TargetDir string
+	ZipDir    string
+	MetaDir   string
 }
 
-func (c Config) BuildConfig(root string) (BuildConfig, error) {
+// buildConfig returns a BuildConfig based on this Config, rooted at root.
+// The root must be the absolute path.
+func (c Config) buildConfig(root string) (BuildConfig, error) {
 	if !filepath.IsAbs(root) {
 		return BuildConfig{}, fmt.Errorf("root path %q is not absolute", root)
 	}
 	return BuildConfig{
-		WorkDir:   root,
-		TargetDir: filepath.Join(root, c.TargetDir),
-		BinPath:   filepath.Join(root, c.TargetDir, c.BinName),
-		ZipPath:   filepath.Join(root, c.ZipDir, c.ZipName),
+		WorkDir:      root,
+		TargetDir:    filepath.Join(root, c.TargetDir),
+		BinPath:      filepath.Join(root, c.TargetDir, c.BinName),
+		ZipPath:      filepath.Join(root, c.ZipDir, c.ZipName),
+		Instructions: c.Instructions,
+
+		ZipDir:  filepath.Join(root, c.ZipDir),
+		MetaDir: filepath.Join(root, c.MetaDir),
 	}, nil
 }
 
+// PrimaryBuildConfig returns the config for the primary build.
 func (c Config) PrimaryBuildConfig() (BuildConfig, error) {
-	return c.BuildConfig(c.PrimaryBuildRoot)
+	return c.buildConfig(c.PrimaryBuildRoot)
 }
 
+// VerificationBuildConfig returns the config for the verification build.
 func (c Config) VerificationBuildConfig() (BuildConfig, error) {
-	return c.BuildConfig(c.VerificationBuildRoot)
+	return c.buildConfig(c.VerificationBuildRoot)
 }
 
 type envSetter struct {
@@ -65,10 +57,18 @@ func newEnvSetter() envSetter {
 	return envSetter{nil}
 }
 
-// ExportToGitHubEnv writes GitHub Actions set env commands to the provided writer.
-// Use os.Stdout as the writer when you want GitHub to see the commands, use other
-// writers for testing.
+// ExportToGitHubEnv writes this config to GITHUB_ENV so it can be read by
+// future steps in this job. If GITHUB_ENV isn't set, it prints a warning
+// and just logs what would have been set.
 func (c Config) ExportToGitHubEnv() error {
+
+	// TODO don't serialise primary and verification build configs to env here.
+	// We can derive them from the rest of the config anyway so there's probably
+	// no point writing them to GITHUB_ENV.
+	//
+	// Keeping them here for now since the current bash implementation expects
+	// to see them.
+
 	primary, err := c.PrimaryBuildConfig()
 	if err != nil {
 		return err
@@ -79,10 +79,10 @@ func (c Config) ExportToGitHubEnv() error {
 	}
 
 	es := newEnvSetter()
-	es.setEnv("PRODUCT_NAME", c.ProductName)
-	es.setEnv("PRODUCT_VERSION", c.ProductVersion)
-	es.setEnv("PRODUCT_REVISION", c.ProductRevision)
-	es.setEnv("PRODUCT_REVISION_TIME", c.ProductRevisionTime)
+	es.setEnv("PRODUCT_NAME", c.Product.Name)
+	es.setEnv("PRODUCT_VERSION", c.Product.Version)
+	es.setEnv("PRODUCT_REVISION", c.Product.Revision)
+	es.setEnv("PRODUCT_REVISION_TIME", c.Product.RevisionTime)
 	es.setEnv("GO_VERSION", c.GoVersion)
 	es.setEnv("OS", c.OS)
 	es.setEnv("ARCH", c.Arch)

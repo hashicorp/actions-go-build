@@ -10,6 +10,10 @@ CURR_VERSION_CL := dev/changes/v$(CURR_VERSION).md
 
 BATS := bats -j 10 -T
 
+testcompile:
+	@go test -c -o /dev/null
+
+
 test: test/bats test/go
 
 test/update: test/go/update
@@ -39,10 +43,10 @@ test/bats:
 	# Running bats tests in scripts/
 	@$(BATS) scripts/
 
-test/go/update:
-	go test ./... -update
+test/go/update: export UPDATE_TESTDATA := true
+test/go/update: test/go
 
-test/go:
+test/go: testcompile
 	go test ./...
 
 .PHONY: docs

@@ -5,25 +5,20 @@ import (
 	"fmt"
 	"path/filepath"
 	"strings"
-	"time"
 
 	"github.com/sethvargo/go-envconfig"
 )
 
 // Inputs roughly maps to the set of action inputs.
 type Inputs struct {
-	// ProductRepository isn't really an input, but it's
-	// required for creating default values.
-	ProductRepository string `env:"PRODUCT_REPOSITORY"`
+	// Product contains the product details.
+	Product Product
 
-	// Required inputs.
-	ProductName    string `env:"PRODUCT_NAME"`
-	ProductVersion string `env:"PRODUCT_VERSION"`
-	GoVersion      string `env:"GO_VERSION"`
-	OS             string `env:"OS"`
-	Arch           string `env:"ARCH"`
-	Reproducible   string `env:"REPRODUCIBLE"`
-	Instructions   string `env:"INSTRUCTIONS"`
+	GoVersion    string `env:"GO_VERSION"`
+	OS           string `env:"OS"`
+	Arch         string `env:"ARCH"`
+	Reproducible string `env:"REPRODUCIBLE"`
+	Instructions string `env:"INSTRUCTIONS"`
 
 	// Optional inputs.
 	BinName string `env:"BIN_NAME"`
@@ -46,12 +41,10 @@ func (i Inputs) Config(rc RepoContext) (Config, error) {
 		return Config{}, err
 	}
 	return Config{
-		Inputs:              i,
-		ProductRevision:     rc.CommitSHA,
-		ProductRevisionTime: rc.CommitTime.UTC().Format(time.RFC3339),
-		TargetDir:           dirs.target,
-		ZipDir:              dirs.zip,
-		MetaDir:             dirs.meta,
+		Inputs:    i,
+		TargetDir: dirs.target,
+		ZipDir:    dirs.zip,
+		MetaDir:   dirs.meta,
 	}, nil
 }
 
@@ -75,9 +68,7 @@ func FromEnvironment() (Config, error) {
 
 // trimSpace trims leading and trailing whitespace from every input string.
 func (i Inputs) trimSpace() Inputs {
-	i.ProductRepository = strings.TrimSpace(i.ProductRepository)
-	i.ProductName = strings.TrimSpace(i.ProductName)
-	i.ProductVersion = strings.TrimSpace(i.ProductVersion)
+	i.Product = i.Product.trimSpace()
 	i.GoVersion = strings.TrimSpace(i.GoVersion)
 	i.OS = strings.TrimSpace(i.OS)
 	i.Arch = strings.TrimSpace(i.Arch)
@@ -91,14 +82,12 @@ func (i Inputs) trimSpace() Inputs {
 }
 
 func (i Inputs) setDefaults(rc RepoContext) Inputs {
-	if i.ProductName == "" {
-		i.ProductName = filepath.Base(i.ProductRepository)
-	}
+	i.Product = i.Product.setDefaults(rc)
 	if i.BinName == "" {
-		i.BinName = i.ProductName
+		i.BinName = i.Product.Name
 	}
 	if i.ZipName == "" {
-		i.ZipName = fmt.Sprintf("%s_%s_%s_%s.zip", i.ProductName, i.ProductVersion, i.OS, i.Arch)
+		i.ZipName = fmt.Sprintf("%s_%s_%s_%s.zip", i.Product.Name, i.Product.Version, i.OS, i.Arch)
 	}
 	if i.PrimaryBuildRoot == "" {
 		i.PrimaryBuildRoot = rc.WorkDir
@@ -124,8 +113,11 @@ func errRequiredInputEmpty(name string) error {
 	return fmt.Errorf("required input '%s' is empty", name)
 }
 
+// validate directly validates fields inside Product as well, because this validation
+// is about the set of inputs as given, with the expectation that missing fields will
+// be filled in automatically.
 func (i Inputs) validate() error {
-	if i.ProductVersion == "" {
+	if i.Product.Version == "" {
 		return errRequiredInputEmpty("product_version")
 	}
 	if i.OS == "" {

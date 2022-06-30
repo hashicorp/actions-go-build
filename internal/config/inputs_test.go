@@ -5,8 +5,6 @@ import (
 	"strings"
 	"testing"
 	"time"
-
-	"github.com/go-test/deep"
 )
 
 func TestInputs_Config_ok(t *testing.T) {
@@ -24,19 +22,19 @@ func TestInputs_Config_ok(t *testing.T) {
 		},
 		{
 			"version +ent",
-			testInputs(func(i *Inputs) { i.ProductVersion = "1.2.3+ent" }),
+			testInputs(func(i *Inputs) { i.Product.Version = "1.2.3+ent" }),
 			testRepoContext(),
 			testConfig(func(c *Config) {
-				c.ProductVersion = "1.2.3+ent"
+				c.Product.Version = "1.2.3+ent"
 				c.ZipName = "lockbox_1.2.3+ent_linux_amd64.zip"
 			}),
 		},
 		{
 			"version +ent.hsm",
-			testInputs(func(i *Inputs) { i.ProductVersion = "1.2.3+ent.hsm" }),
+			testInputs(func(i *Inputs) { i.Product.Version = "1.2.3+ent.hsm" }),
 			testRepoContext(),
 			testConfig(func(c *Config) {
-				c.ProductVersion = "1.2.3+ent.hsm"
+				c.Product.Version = "1.2.3+ent.hsm"
 				c.ZipName = "lockbox_1.2.3+ent.hsm_linux_amd64.zip"
 			}),
 		},
@@ -80,10 +78,7 @@ func TestInputs_Config_ok(t *testing.T) {
 			if err != nil {
 				t.Fatal(err)
 			}
-			diff := deep.Equal(got, want)
-			for _, d := range diff {
-				t.Error(d)
-			}
+			assertEqual(t, got, want)
 		})
 	}
 }
@@ -180,16 +175,24 @@ func applyModifiers[T any](to T, modifiers ...func(thing *T)) T {
 	return to
 }
 
+func standardProduct() Product {
+	return Product{
+		Repository:   "github.com/dadgarcorp/lockbox",
+		Name:         "lockbox",
+		Version:      "1.2.3",
+		Revision:     "cabba9e",
+		RevisionTime: "2022-06-30T10:31:06Z",
+	}
+}
+
 func standardInputs() Inputs {
 	return Inputs{
-		ProductRepository: "dadgarcorp/lockbox",
-		ProductName:       "lockbox",
-		ProductVersion:    "1.2.3",
-		GoVersion:         "1.18",
-		OS:                "linux",
-		Arch:              "amd64",
-		Reproducible:      "assert",
-		Instructions:      "go build -o $BIN_PATH",
+		Product:      standardProduct(),
+		GoVersion:    "1.18",
+		OS:           "linux",
+		Arch:         "amd64",
+		Reproducible: "assert",
+		Instructions: `go build -o "$BIN_PATH"`,
 		// These are intentionally left blank.
 		BinName:               "",
 		ZipName:               "",
@@ -202,30 +205,26 @@ func standardRepoContext() RepoContext {
 	return RepoContext{
 		WorkDir:    "/some/dir/work",
 		CommitSHA:  "cabba9e",
-		CommitTime: time.Date(2001, time.December, 1, 0, 0, 0, 0, time.Local),
+		CommitTime: time.Date(2022, time.June, 30, 10, 31, 6, 0, time.UTC),
 	}
 }
 
 func standardConfig() Config {
 	return Config{
 		Inputs: Inputs{
-			ProductRepository:     "dadgarcorp/lockbox",
-			ProductName:           "lockbox",
-			ProductVersion:        "1.2.3",
+			Product:               standardProduct(),
 			GoVersion:             "1.18",
 			OS:                    "linux",
 			Arch:                  "amd64",
 			Reproducible:          "assert",
-			Instructions:          "go build -o $BIN_PATH",
+			Instructions:          `go build -o "$BIN_PATH"`,
 			BinName:               "lockbox",
 			ZipName:               "lockbox_1.2.3_linux_amd64.zip",
 			PrimaryBuildRoot:      "/some/dir/work",
 			VerificationBuildRoot: "/some/dir/verification",
 		},
-		ProductRevision:     "cabba9e",
-		ProductRevisionTime: "2001-12-01T00:00:00Z",
-		TargetDir:           "dist",
-		ZipDir:              "out",
-		MetaDir:             "meta",
+		TargetDir: "dist",
+		ZipDir:    "out",
+		MetaDir:   "meta",
 	}
 }

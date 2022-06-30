@@ -2,7 +2,8 @@
 // a file generates the exact file you expect.
 //
 // Golden files are stored in testdata/<test-name>.golden they are written
-// when the `-update` flag is used with `go test`.
+// when the `-update` flag is used with `go test`, or when the test is run
+// with UPDATE_TESTDATE=true.
 //
 // Without the `-update` flag, files are witten to a temp directory and
 // compared with the golden files themselves.
@@ -46,6 +47,10 @@ type GF struct {
 
 // FileAction is a function that writes to the 'got' file.
 type FileAction func(got *os.File)
+
+func shouldUpdate() bool {
+	return *update || os.Getenv("UPDATE_TESTDATA") == "true"
+}
 
 // Do allows you to run a function to write to the actual file.
 // It asserts that the actual file written matches the golden file.

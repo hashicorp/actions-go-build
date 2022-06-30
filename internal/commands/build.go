@@ -9,7 +9,7 @@ import (
 func Build() action.Command {
 	return action.Command{
 		Run: func(args []string) error {
-			b, err := build.New(config.Config{})
+			b, err := build.New(config.BuildConfig{})
 			if err != nil {
 				return err
 			}

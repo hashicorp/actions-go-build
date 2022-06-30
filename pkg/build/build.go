@@ -56,7 +56,7 @@ func WithStdout(w io.Writer) Option        { return func(s *Settings) { s.stdout
 func WithStderr(w io.Writer) Option        { return func(s *Settings) { s.stderr = w } }
 func WithBash(path string) Option          { return func(s *Settings) { s.bash = path } }
 
-func New(cfg config.Config, options ...Option) (Build, error) {
+func New(cfg config.BuildConfig, options ...Option) (Build, error) {
 	s := &Settings{}
 	for _, option := range options {
 		option(s)
@@ -72,7 +72,7 @@ func New(cfg config.Config, options ...Option) (Build, error) {
 
 type build struct {
 	settings Settings
-	config   config.Config
+	config   config.BuildConfig
 }
 
 type dirs struct {

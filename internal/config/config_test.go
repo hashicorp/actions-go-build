@@ -16,6 +16,22 @@ func TestConfig_ExportToGitHubEnv_ok(t *testing.T) {
 	})
 }
 
+func standardBuildconfig() BuildConfig {
+	return BuildConfig{
+		WorkDir:      "/",
+		TargetDir:    "/dist",
+		BinPath:      "/dist/lockbox",
+		ZipPath:      "/out/lockbox_1.2.3_linux_amd64.zip",
+		Instructions: `go build -o "$BIN_PATH"`,
+		ZipDir:       "/out",
+		MetaDir:      "/meta",
+	}
+}
+
+func testBuildConfig(modifiers ...func(*BuildConfig)) BuildConfig {
+	return applyModifiers(standardBuildconfig(), modifiers...)
+}
+
 func TestConfig_BuildConfig_ok(t *testing.T) {
 	cases := []struct {
 		desc   string
@@ -27,23 +43,20 @@ func TestConfig_BuildConfig_ok(t *testing.T) {
 			"root",
 			testConfig(),
 			"/",
-			BuildConfig{
-				WorkDir:   "/",
-				TargetDir: "/dist",
-				BinPath:   "/dist/lockbox",
-				ZipPath:   "/out/lockbox_1.2.3_linux_amd64.zip",
-			},
+			testBuildConfig(),
 		},
 		{
 			"root/blah",
 			testConfig(),
 			"/blah",
-			BuildConfig{
-				WorkDir:   "/blah",
-				TargetDir: "/blah/dist",
-				BinPath:   "/blah/dist/lockbox",
-				ZipPath:   "/blah/out/lockbox_1.2.3_linux_amd64.zip",
-			},
+			testBuildConfig(func(bc *BuildConfig) {
+				bc.WorkDir = "/blah"
+				bc.TargetDir = "/blah/dist"
+				bc.BinPath = "/blah/dist/lockbox"
+				bc.ZipPath = "/blah/out/lockbox_1.2.3_linux_amd64.zip"
+				bc.ZipDir = "/blah/out"
+				bc.MetaDir = "/blah/meta"
+			}),
 		},
 		{
 			"root/blah+ent",
@@ -51,19 +64,21 @@ func TestConfig_BuildConfig_ok(t *testing.T) {
 				c.ZipName = "blargle.zip"
 			}),
 			"/blah",
-			BuildConfig{
-				WorkDir:   "/blah",
-				TargetDir: "/blah/dist",
-				BinPath:   "/blah/dist/lockbox",
-				ZipPath:   "/blah/out/blargle.zip",
-			},
+			testBuildConfig(func(bc *BuildConfig) {
+				bc.WorkDir = "/blah"
+				bc.TargetDir = "/blah/dist"
+				bc.BinPath = "/blah/dist/lockbox"
+				bc.ZipPath = "/blah/out/blargle.zip"
+				bc.ZipDir = "/blah/out"
+				bc.MetaDir = "/blah/meta"
+			}),
 		},
 	}
 
 	for _, c := range cases {
 		desc, config, root, want := c.desc, c.config, c.root, c.want
 		t.Run(desc, func(t *testing.T) {
-			got, err := config.BuildConfig(root)
+			got, err := config.buildConfig(root)
 			if err != nil {
 				t.Fatal(err)
 			}

@@ -8,7 +8,7 @@ PRODUCT_REVISION<<_GitHubActionsFileCommandDelimeter_
 cabba9e
 _GitHubActionsFileCommandDelimeter_
 PRODUCT_REVISION_TIME<<_GitHubActionsFileCommandDelimeter_
-2001-12-01T00:00:00Z
+2022-06-30T10:31:06Z
 _GitHubActionsFileCommandDelimeter_
 GO_VERSION<<_GitHubActionsFileCommandDelimeter_
 1.18
@@ -23,7 +23,7 @@ REPRODUCIBLE<<_GitHubActionsFileCommandDelimeter_
 assert
 _GitHubActionsFileCommandDelimeter_
 INSTRUCTIONS<<_GitHubActionsFileCommandDelimeter_
-go build -o $BIN_PATH
+go build -o "$BIN_PATH"
 _GitHubActionsFileCommandDelimeter_
 BIN_NAME<<_GitHubActionsFileCommandDelimeter_
 lockbox
