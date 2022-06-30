@@ -2,13 +2,16 @@ package build
 
 import (
 	"context"
+	"fmt"
 	"io"
 	"log"
 	"os"
 	"os/exec"
+	"path/filepath"
 
 	"github.com/hashicorp/actions-go-build/internal/config"
 	"github.com/hashicorp/actions-go-build/internal/fs"
+	"github.com/hashicorp/actions-go-build/pkg/digest"
 )
 
 type Build interface {
@@ -101,9 +104,26 @@ func (b *build) Run() error {
 		return err
 	}
 
+	binExists, err := fs.FileExists(c.BinPath)
+	if err != nil {
+		return err
+	}
+	if !binExists {
+		return fmt.Errorf("no file written to BIN_PATH %q", c.BinPath)
+	}
+
+	binSHA, err := digest.FileSHA256Hex(c.BinPath)
+	if err != nil {
+		return err
+	}
+
+	binDigestPath := filepath.Join(c.MetaDir, "bin_digest")
+
+	if err := fs.WriteFile(binDigestPath, binSHA); err != nil {
+		return err
+	}
+
 	// TODO
-	//   - Verify artifact written to BIN_PATH
-	//   - Record bin digest.
 	//   - Set mtime of all files in TARGET_DIR
 	//   - Zip contents of TARGET_DIR
 	//   - Record zip digest.
