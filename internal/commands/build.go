@@ -4,13 +4,13 @@ import (
 	"flag"
 
 	"github.com/hashicorp/actions-go-build/internal/config"
-	"github.com/hashicorp/actions-go-build/pkg/action"
 	"github.com/hashicorp/actions-go-build/pkg/build"
+	"github.com/hashicorp/actions-go-build/pkg/cli"
 )
 
-func Build() action.Command {
-	return action.Command{
-		Subcommands: action.Subcommands{
+func Build() cli.Command {
+	return cli.Command{
+		Subcommands: cli.Subcommands{
 			"run": BuildRun,
 			"env": BuildEnv,
 		},
@@ -38,9 +38,9 @@ func (bcc *buildCommandConfig) buildConfig() (config.BuildConfig, error) {
 	return c.PrimaryBuildConfig()
 }
 
-func BuildRun() action.Command {
+func BuildRun() cli.Command {
 	var bcc buildCommandConfig
-	return action.Command{
+	return cli.Command{
 		Flags: bcc.flagSet,
 		Run: func(args []string) error {
 			c, err := bcc.buildConfig()
@@ -56,16 +56,16 @@ func BuildRun() action.Command {
 	}
 }
 
-func BuildEnv() action.Command {
-	var bcc buildCommandConfig
-	return action.Command{
+func BuildEnv() cli.Command {
+	//var bcc buildCommandConfig
+	return cli.Command{
 		Run: func(args []string) error {
-			c, err := bcc.buildConfig()
-			if err != nil {
-				return err
-			}
-			print(c)
-			// TODO: Print build env.
+			//c, err := bcc.buildConfig()
+			//if err != nil {
+			//	return err
+			//}
+			//print(c)
+			//// TODO: Print build env.
 			return nil
 		},
 	}
