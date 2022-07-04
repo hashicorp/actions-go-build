@@ -11,7 +11,7 @@ import (
 // FileSHA256Hex calculates the SHA256 sum of file and returns it as a
 // hex string.
 func FileSHA256Hex(name string) (string, error) {
-	f, err := os.Open("file.txt")
+	f, err := os.Open(name)
 	if err != nil {
 		return "", err
 	}

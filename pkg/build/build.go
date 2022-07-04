@@ -85,11 +85,7 @@ type dirs struct {
 func (b *build) Run() error {
 	c := b.config
 	log.Printf("Starting build process.")
-	wd, err := os.Getwd()
-	if err != nil {
-		return err
-	}
-	log.Printf("Beginning build, rooted at %q", wd)
+	log.Printf("Beginning build, rooted at %q", b.config.WorkDir)
 	if err := fs.Mkdirs(c.TargetDir, c.ZipDir, c.MetaDir); err != nil {
 		return err
 	}
@@ -131,12 +127,97 @@ func (b *build) Run() error {
 	return nil
 }
 
-func (b *build) runInstructions(path string) error {
-	cmd := exec.CommandContext(b.settings.context, b.settings.bash, path)
+func (b *build) newCommand(name string, args ...string) *exec.Cmd {
+	cmd := exec.CommandContext(b.settings.context, name, args...)
+	cmd.Dir = b.config.WorkDir
 	cmd.Stdout = b.settings.stdout
 	cmd.Stderr = b.settings.stderr
+	return cmd
+}
 
-	return cmd.Run()
+func (b *build) runCommand(name string, args ...string) error {
+	return b.newCommand(name, args...).Run()
+}
+
+func (b *build) runInstructions(path string) error {
+	c := b.newCommand(b.settings.bash, path)
+	c.Env = os.Environ()
+	c.Env = append(c.Env, b.buildEnv()...)
+	return c.Run()
+}
+
+type envVar struct {
+	name, desc string
+	valueFunc  func(config.BuildConfig) string
+}
+
+func (ev envVar) String(c config.BuildConfig) string {
+	return fmt.Sprintf("%s=%s", ev.name, ev.valueFunc(c))
+}
+
+func buildEnvDef() []envVar {
+	return []envVar{
+		{
+			"TARGET_DIR",
+			"Absolute path to the zip contents directory.",
+			func(c config.BuildConfig) string { return c.TargetDir },
+		},
+		{
+			"PRODUCT_NAME",
+			"Same as the `product_name` input.",
+			func(c config.BuildConfig) string { return c.Product.Name },
+		},
+		{
+			"PRODUCT_VERSION",
+			"Same as the `product_version` input.",
+			func(c config.BuildConfig) string { return c.Product.Version },
+		},
+		{
+			"PRODUCT_REVISION",
+			"The git commit SHA of the product repo being built.",
+			func(c config.BuildConfig) string { return c.Product.Revision },
+		},
+		{
+			"PRODUCT_REVISION_TIME",
+			"UTC timestamp of the `PRODUCT_REVISION` commit in iso-8601 format.",
+			func(c config.BuildConfig) string { return c.Product.RevisionTime },
+		},
+		// NOTE omitting BIN_NAME as not strictly needed.
+		{
+			"BIN_PATH",
+			"Absolute path to where instructions must write Go executable.",
+			func(c config.BuildConfig) string { return c.BinPath },
+		},
+		{
+			"OS",
+			"Same as the `os` input.",
+			func(c config.BuildConfig) string { return c.TargetOS },
+		},
+		{
+			"ARCH",
+			"Same as the `arch` input.",
+			func(c config.BuildConfig) string { return c.TargetArch },
+		},
+		{
+			"GOOS",
+			"Same as `OS`.",
+			func(c config.BuildConfig) string { return c.TargetOS },
+		},
+		{
+			"GOARCH",
+			"Same as `ARCH`.",
+			func(c config.BuildConfig) string { return c.TargetArch },
+		},
+	}
+}
+
+func (b *build) buildEnv() []string {
+	bed := buildEnvDef()
+	env := make([]string, len(bed))
+	for i, e := range buildEnvDef() {
+		env[i] = e.String(b.config)
+	}
+	return env
 }
 
 func (b *build) writeInstructions() (path string, err error) {

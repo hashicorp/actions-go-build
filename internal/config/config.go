@@ -18,7 +18,7 @@ type Config struct {
 }
 
 // buildConfig returns a BuildConfig based on this Config, rooted at root.
-// The root must be the absolute path.
+// The root must be an absolute path.
 func (c Config) buildConfig(root string) (BuildConfig, error) {
 	if !filepath.IsAbs(root) {
 		return BuildConfig{}, fmt.Errorf("root path %q is not absolute", root)

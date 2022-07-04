@@ -18,6 +18,8 @@ type BuildConfig struct {
 	ZipPath string
 	// Instructions is the build instructions.
 	Instructions string
+	TargetOS     string
+	TargetArch   string
 
 	// TODO: Consider removing these fields if possible, we should be able
 	// to derive them from other context.
