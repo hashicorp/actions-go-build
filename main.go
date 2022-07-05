@@ -4,7 +4,7 @@ import (
 	"log"
 	"os"
 
-	"github.com/hashicorp/actions-go-build/internal/commands"
+	"github.com/hashicorp/actions-go-build/pkg/commands"
 )
 
 func main() {

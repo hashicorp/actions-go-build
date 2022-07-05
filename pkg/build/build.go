@@ -1,9 +1,7 @@
 package build
 
 import (
-	"context"
 	"fmt"
-	"io"
 	"log"
 	"os"
 	"os/exec"
@@ -18,16 +16,6 @@ type Build interface {
 	Run() error
 }
 
-// Settings contains settings for running the instructions.
-// Don't use this directly, use the With... functions to set
-// settings when calling New.
-type Settings struct {
-	bash    string
-	context context.Context
-	stdout  io.Writer
-	stderr  io.Writer
-}
-
 func resolveBashPath(path string) (string, error) {
 	if path == "" {
 		path = "bash"
@@ -35,40 +23,13 @@ func resolveBashPath(path string) (string, error) {
 	return exec.LookPath(path)
 }
 
-func (s *Settings) setDefaults() (err error) {
-	s.bash, err = resolveBashPath(s.bash)
-	if err != nil {
-		return err
-	}
-	if s.context == nil {
-		s.context = context.Background()
-	}
-	if s.stdout == nil {
-		s.stdout = os.Stdout
-	}
-	if s.stderr == nil {
-		s.stderr = os.Stderr
-	}
-	return nil
-}
-
-type Option func(*Settings)
-
-func WithContext(c context.Context) Option { return func(s *Settings) { s.context = c } }
-func WithStdout(w io.Writer) Option        { return func(s *Settings) { s.stdout = w } }
-func WithStderr(w io.Writer) Option        { return func(s *Settings) { s.stderr = w } }
-func WithBash(path string) Option          { return func(s *Settings) { s.bash = path } }
-
 func New(cfg crt.BuildConfig, options ...Option) (Build, error) {
-	s := &Settings{}
-	for _, option := range options {
-		option(s)
-	}
-	if err := s.setDefaults(); err != nil {
-		return nil, err
+	s, err := newSettings(options)
+	if err != nil {
+		return &build{}, err
 	}
 	return &build{
-		settings: *s,
+		settings: s,
 		config:   cfg,
 	}, nil
 }
@@ -144,80 +105,6 @@ func (b *build) runInstructions(path string) error {
 	c.Env = os.Environ()
 	c.Env = append(c.Env, b.buildEnv()...)
 	return c.Run()
-}
-
-type envVar struct {
-	name, desc string
-	valueFunc  func(crt.BuildConfig) string
-}
-
-func (ev envVar) String(c crt.BuildConfig) string {
-	return fmt.Sprintf("%s=%s", ev.name, ev.valueFunc(c))
-}
-
-func buildEnvDef() []envVar {
-	return []envVar{
-		{
-			"TARGET_DIR",
-			"Absolute path to the zip contents directory.",
-			func(c crt.BuildConfig) string { return c.TargetDir },
-		},
-		{
-			"PRODUCT_NAME",
-			"Same as the `product_name` input.",
-			func(c crt.BuildConfig) string { return c.Product.Name },
-		},
-		{
-			"PRODUCT_VERSION",
-			"Same as the `product_version` input.",
-			func(c crt.BuildConfig) string { return c.Product.Version },
-		},
-		{
-			"PRODUCT_REVISION",
-			"The git commit SHA of the product repo being built.",
-			func(c crt.BuildConfig) string { return c.Product.Revision },
-		},
-		{
-			"PRODUCT_REVISION_TIME",
-			"UTC timestamp of the `PRODUCT_REVISION` commit in iso-8601 format.",
-			func(c crt.BuildConfig) string { return c.Product.RevisionTime },
-		},
-		// NOTE omitting BIN_NAME as not strictly needed.
-		{
-			"BIN_PATH",
-			"Absolute path to where instructions must write Go executable.",
-			func(c crt.BuildConfig) string { return c.BinPath },
-		},
-		{
-			"OS",
-			"Same as the `os` input.",
-			func(c crt.BuildConfig) string { return c.TargetOS },
-		},
-		{
-			"ARCH",
-			"Same as the `arch` input.",
-			func(c crt.BuildConfig) string { return c.TargetArch },
-		},
-		{
-			"GOOS",
-			"Same as `OS`.",
-			func(c crt.BuildConfig) string { return c.TargetOS },
-		},
-		{
-			"GOARCH",
-			"Same as `ARCH`.",
-			func(c crt.BuildConfig) string { return c.TargetArch },
-		},
-	}
-}
-
-func (b *build) buildEnv() []string {
-	bed := buildEnvDef()
-	env := make([]string, len(bed))
-	for i, e := range buildEnvDef() {
-		env[i] = e.String(b.config)
-	}
-	return env
 }
 
 func (b *build) writeInstructions() (path string, err error) {
