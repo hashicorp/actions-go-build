@@ -18,10 +18,11 @@ test: test/bats test/go
 
 test/update: test/go/update
 
-CLI := bin/action
+CLI    := bin/action
+RUNCLI := @./$(CLI)
 
 cli:
-	go build -trimpath -o "$(CLI)"
+	@go build -trimpath -o "$(CLI)"
 
 # The run/cli/... targets build and then run the CLI itself
 # which is usful for quickly seeing its output whilst developing.
@@ -34,10 +35,14 @@ run/cli/%: export REPRODUCIBLE       := assert
 run/cli/%: export INSTRUCTIONS       := go build -o "$$BIN_PATH"
 
 run/cli/inputs: cli
-	./$(CLI) inputs
+	$(RUNCLI) inputs
 
 run/cli/inputs/digest: cli
-	./$(CLI) inputs digest
+	$(RUNCLI) inputs digest
+
+# run/cli/buld/env is called by dev/docs/environment_doc
+run/cli/build/env: cli
+	$(RUNCLI) build env
 
 test/bats:
 	# Running bats tests in scripts/

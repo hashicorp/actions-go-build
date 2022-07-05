@@ -162,11 +162,10 @@ already exported that you can make use of
 |  `PRODUCT_VERSION`        |  Same as the `product_version` input.                                |
 |  `PRODUCT_REVISION`       |  The git commit SHA of the product repo being built.                 |
 |  `PRODUCT_REVISION_TIME`  |  UTC timestamp of the `PRODUCT_REVISION` commit in iso-8601 format.  |
-|  `BIN_NAME`               |  Name of the Go binary file inside `TARGET_DIR`.                     |
-|  `BIN_PATH`               |  Same as `TARGET_DIR/BIN_NAME`.                                      |
+|  `BIN_PATH`               |  Absolute path to where instructions must write Go executable.       |
 |  `OS`                     |  Same as the `os` input.                                             |
 |  `ARCH`                   |  Same as the `arch` input.                                           |
-|  `GOOS`                   |  Same as `OS`                                                        |
+|  `GOOS`                   |  Same as `OS`.                                                       |
 |  `GOARCH`                 |  Same as `ARCH`.                                                     |
 <!-- end:insert:dev/docs/environment_doc -->
 
