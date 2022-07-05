@@ -25,9 +25,7 @@ func TestInputs_Config_ok(t *testing.T) {
 		{
 			"version +ent",
 			testInputs(func(i *Inputs) { i.Product.Version = "1.2.3+ent" }),
-			testRepoContext(func(bc *crt.RepoContext) {
-				//bc.Product.Version = "1.2.3+ent"
-			}),
+			testRepoContext(),
 			testConfig(func(c *Config) {
 				c.Product.Version = "1.2.3+ent"
 				c.ZipName = "lockbox_1.2.3+ent_linux_amd64.zip"
@@ -36,9 +34,7 @@ func TestInputs_Config_ok(t *testing.T) {
 		{
 			"version +ent.hsm",
 			testInputs(func(i *Inputs) { i.Product.Version = "1.2.3+ent.hsm" }),
-			testRepoContext(func(bc *crt.RepoContext) {
-				//bc.Product.Version = "1.2.3+ent.hsm"
-			}),
+			testRepoContext(),
 			testConfig(func(c *Config) {
 				c.Product.Version = "1.2.3+ent.hsm"
 				c.ZipName = "lockbox_1.2.3+ent.hsm_linux_amd64.zip"
