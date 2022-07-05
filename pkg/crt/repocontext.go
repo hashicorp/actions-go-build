@@ -1,4 +1,4 @@
-package config
+package crt
 
 import (
 	"fmt"
@@ -11,7 +11,7 @@ import (
 
 type RepoContext struct {
 	RepoName   string
-	WorkDir    string
+	Dir        string
 	CommitSHA  string
 	CommitTime time.Time
 }
@@ -28,16 +28,13 @@ func getRepoName() (string, error) {
 	return "", fmt.Errorf("Neither GITHUB_REPOSITORY nor PRODUCT_REPOSITORY set")
 }
 
-func readRepoContext() (RepoContext, error) {
+// GetRepoContext reads the repository context from the directory specified.
+func GetRepoContext(dir string) (RepoContext, error) {
 	repoName, err := getRepoName()
 	if err != nil {
 		return RepoContext{}, err
 	}
-	wd, err := os.Getwd()
-	if err != nil {
-		return RepoContext{}, err
-	}
-	repo, err := git.PlainOpen(wd)
+	repo, err := git.PlainOpen(dir)
 	if err != nil {
 		return RepoContext{}, err
 	}
@@ -52,7 +49,7 @@ func readRepoContext() (RepoContext, error) {
 
 	return RepoContext{
 		RepoName:   repoName,
-		WorkDir:    wd,
+		Dir:        dir,
 		CommitSHA:  sha,
 		CommitTime: ts,
 	}, nil

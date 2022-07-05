@@ -6,6 +6,7 @@ import (
 	"github.com/hashicorp/actions-go-build/internal/config"
 	"github.com/hashicorp/actions-go-build/pkg/build"
 	"github.com/hashicorp/actions-go-build/pkg/cli"
+	"github.com/hashicorp/actions-go-build/pkg/crt"
 )
 
 func Build() cli.Command {
@@ -27,10 +28,10 @@ func (bcc *buildCommandConfig) flagSet() *flag.FlagSet {
 	return fs
 }
 
-func (bcc *buildCommandConfig) buildConfig() (config.BuildConfig, error) {
+func (bcc *buildCommandConfig) buildConfig() (crt.BuildConfig, error) {
 	c, err := config.FromEnvironment()
 	if err != nil {
-		return config.BuildConfig{}, err
+		return crt.BuildConfig{}, err
 	}
 	if bcc.verification {
 		return c.VerificationBuildConfig()

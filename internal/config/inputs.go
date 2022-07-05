@@ -1,18 +1,17 @@
 package config
 
 import (
-	"context"
 	"fmt"
 	"path/filepath"
 	"strings"
 
-	"github.com/sethvargo/go-envconfig"
+	"github.com/hashicorp/actions-go-build/pkg/crt"
 )
 
 // Inputs roughly maps to the set of action inputs.
 type Inputs struct {
 	// Product contains the product details.
-	Product Product
+	Product crt.Product
 
 	GoVersion    string `env:"GO_VERSION"`
 	OS           string `env:"OS"`
@@ -35,7 +34,7 @@ type dirNames struct {
 
 var dirs = dirNames{"dist", "out", "meta"}
 
-func (i Inputs) Config(rc RepoContext) (Config, error) {
+func (i Inputs) Config(rc crt.RepoContext) (Config, error) {
 	i = i.trimSpace().setDefaults(rc)
 	if err := i.validate(); err != nil {
 		return Config{}, err
@@ -48,27 +47,12 @@ func (i Inputs) Config(rc RepoContext) (Config, error) {
 	}, nil
 }
 
-// FromEnvironment creates a new Config from environment variables.
-// See Inputs for a list of the environment variables read by Digest.
-func FromEnvironment() (Config, error) {
-	ctx := context.Background()
-
-	rc, err := readRepoContext()
-	if err != nil {
-		return Config{}, err
-	}
-
-	var inputs Inputs
-	if err := envconfig.Process(ctx, &inputs); err != nil {
-		return Config{}, err
-	}
-
-	return inputs.Config(rc)
+func (i Inputs) init(rc crt.RepoContext) Inputs {
+	return i.trimSpace().setDefaults(rc)
 }
 
 // trimSpace trims leading and trailing whitespace from every input string.
 func (i Inputs) trimSpace() Inputs {
-	i.Product = i.Product.trimSpace()
 	i.GoVersion = strings.TrimSpace(i.GoVersion)
 	i.OS = strings.TrimSpace(i.OS)
 	i.Arch = strings.TrimSpace(i.Arch)
@@ -81,8 +65,8 @@ func (i Inputs) trimSpace() Inputs {
 	return i
 }
 
-func (i Inputs) setDefaults(rc RepoContext) Inputs {
-	i.Product = i.Product.setDefaults(rc)
+func (i Inputs) setDefaults(rc crt.RepoContext) Inputs {
+	i.Product.Init(rc)
 	if i.BinName == "" {
 		i.BinName = i.Product.Name
 	}
@@ -90,7 +74,7 @@ func (i Inputs) setDefaults(rc RepoContext) Inputs {
 		i.ZipName = fmt.Sprintf("%s_%s_%s_%s.zip", i.Product.Name, i.Product.Version, i.OS, i.Arch)
 	}
 	if i.PrimaryBuildRoot == "" {
-		i.PrimaryBuildRoot = rc.WorkDir
+		i.PrimaryBuildRoot = rc.Dir
 	}
 	if i.VerificationBuildRoot == "" {
 		i.VerificationBuildRoot = adjacentPath(i.PrimaryBuildRoot, "verification")
@@ -100,13 +84,6 @@ func (i Inputs) setDefaults(rc RepoContext) Inputs {
 
 func adjacentPath(to, name string) string {
 	return filepath.Join(filepath.Dir(to), name)
-}
-
-func newBuildConfig(dirs dirNames, basePath, binName, zipName string) BuildConfig {
-	return BuildConfig{
-		BinPath: filepath.Join(basePath, dirs.target, binName),
-		ZipPath: filepath.Join(basePath, dirs.zip, zipName),
-	}
 }
 
 func errRequiredInputEmpty(name string) error {

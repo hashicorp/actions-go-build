@@ -5,13 +5,15 @@ import (
 	"strings"
 	"testing"
 	"time"
+
+	"github.com/hashicorp/actions-go-build/pkg/crt"
 )
 
 func TestInputs_Config_ok(t *testing.T) {
 	cases := []struct {
 		description string
 		inputs      Inputs
-		rc          RepoContext
+		rc          crt.RepoContext
 		want        Config
 	}{
 		{
@@ -23,7 +25,9 @@ func TestInputs_Config_ok(t *testing.T) {
 		{
 			"version +ent",
 			testInputs(func(i *Inputs) { i.Product.Version = "1.2.3+ent" }),
-			testRepoContext(),
+			testRepoContext(func(bc *crt.RepoContext) {
+				//bc.Product.Version = "1.2.3+ent"
+			}),
 			testConfig(func(c *Config) {
 				c.Product.Version = "1.2.3+ent"
 				c.ZipName = "lockbox_1.2.3+ent_linux_amd64.zip"
@@ -32,7 +36,9 @@ func TestInputs_Config_ok(t *testing.T) {
 		{
 			"version +ent.hsm",
 			testInputs(func(i *Inputs) { i.Product.Version = "1.2.3+ent.hsm" }),
-			testRepoContext(),
+			testRepoContext(func(bc *crt.RepoContext) {
+				//bc.Product.Version = "1.2.3+ent.hsm"
+			}),
 			testConfig(func(c *Config) {
 				c.Product.Version = "1.2.3+ent.hsm"
 				c.ZipName = "lockbox_1.2.3+ent.hsm_linux_amd64.zip"
@@ -87,7 +93,7 @@ func TestInputs_Config_err(t *testing.T) {
 	cases := []struct {
 		description string
 		inputsSet   []Inputs
-		rc          RepoContext
+		rc          crt.RepoContext
 		wantErr     string
 	}{
 		{
@@ -156,9 +162,10 @@ func testInputs(modifiers ...func(*Inputs)) Inputs {
 	return applyModifiers(standardInputs(), modifiers...)
 }
 
-// testRepoContext generates a RepoContext for testing by taking the standard inputs
-// and applying the provided modifier functions to it in the order provided.
-func testRepoContext(modifiers ...func(*RepoContext)) RepoContext {
+// testRepoContext generates a RepoContext for testing by taking the standard
+// RepoContext and applying the provided modifier functions to it in the order
+// provided.
+func testRepoContext(modifiers ...func(*crt.RepoContext)) crt.RepoContext {
 	return applyModifiers(standardRepoContext(), modifiers...)
 }
 
@@ -175,8 +182,8 @@ func applyModifiers[T any](to T, modifiers ...func(thing *T)) T {
 	return to
 }
 
-func standardProduct() Product {
-	return Product{
+func standardProduct() crt.Product {
+	return crt.Product{
 		Repository:   "github.com/dadgarcorp/lockbox",
 		Name:         "lockbox",
 		Version:      "1.2.3",
@@ -201,9 +208,9 @@ func standardInputs() Inputs {
 	}
 }
 
-func standardRepoContext() RepoContext {
-	return RepoContext{
-		WorkDir:    "/some/dir/work",
+func standardRepoContext() crt.RepoContext {
+	return crt.RepoContext{
+		Dir:        "/some/dir/work",
 		CommitSHA:  "cabba9e",
 		CommitTime: time.Date(2022, time.June, 30, 10, 31, 6, 0, time.UTC),
 	}

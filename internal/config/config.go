@@ -1,11 +1,14 @@
 package config
 
 import (
+	"context"
 	"fmt"
 	"log"
 	"os"
 	"path/filepath"
 
+	"github.com/hashicorp/actions-go-build/pkg/crt"
+	"github.com/sethvargo/go-envconfig"
 	"github.com/sethvargo/go-githubactions"
 )
 
@@ -17,13 +20,35 @@ type Config struct {
 	MetaDir   string
 }
 
+// FromEnvironment creates a new Config from environment variables
+// and repository context in the current working directory.
+func FromEnvironment() (Config, error) {
+	var inputs Inputs
+	ctx := context.Background()
+	if err := envconfig.Process(ctx, &inputs); err != nil {
+		return Config{}, err
+	}
+
+	wd, err := os.Getwd()
+	if err != nil {
+		return Config{}, err
+	}
+
+	bc, err := crt.GetRepoContext(wd)
+	if err != nil {
+		return Config{}, err
+	}
+
+	return inputs.Config(bc)
+}
+
 // buildConfig returns a BuildConfig based on this Config, rooted at root.
 // The root must be an absolute path.
-func (c Config) buildConfig(root string) (BuildConfig, error) {
+func (c Config) buildConfig(root string) (crt.BuildConfig, error) {
 	if !filepath.IsAbs(root) {
-		return BuildConfig{}, fmt.Errorf("root path %q is not absolute", root)
+		return crt.BuildConfig{}, fmt.Errorf("root path %q is not absolute", root)
 	}
-	return BuildConfig{
+	return crt.BuildConfig{
 		WorkDir:      root,
 		TargetDir:    filepath.Join(root, c.TargetDir),
 		BinPath:      filepath.Join(root, c.TargetDir, c.BinName),
@@ -36,12 +61,12 @@ func (c Config) buildConfig(root string) (BuildConfig, error) {
 }
 
 // PrimaryBuildConfig returns the config for the primary build.
-func (c Config) PrimaryBuildConfig() (BuildConfig, error) {
+func (c Config) PrimaryBuildConfig() (crt.BuildConfig, error) {
 	return c.buildConfig(c.PrimaryBuildRoot)
 }
 
 // VerificationBuildConfig returns the config for the verification build.
-func (c Config) VerificationBuildConfig() (BuildConfig, error) {
+func (c Config) VerificationBuildConfig() (crt.BuildConfig, error) {
 	return c.buildConfig(c.VerificationBuildRoot)
 }
 

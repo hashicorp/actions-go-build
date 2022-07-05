@@ -1,6 +1,6 @@
-package config
+package crt
 
-// BuildConfig contains the
+// BuildConfig contains the complete configuration to build a single binary.
 type BuildConfig struct {
 	// Product is the logical product being built.
 	Product Product

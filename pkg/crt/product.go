@@ -1,4 +1,4 @@
-package config
+package crt
 
 import (
 	"path/filepath"
@@ -32,6 +32,10 @@ type Product struct {
 	// keeping the binary reproducible. (It can be used as a sort of "build
 	// time").
 	RevisionTime string `env:"-"`
+}
+
+func (p Product) Init(rc RepoContext) Product {
+	return p.trimSpace().setDefaults(rc)
 }
 
 // trimSpace trims space from the user-provided input fields only.

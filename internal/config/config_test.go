@@ -6,6 +6,7 @@ import (
 
 	"github.com/google/go-cmp/cmp"
 	"github.com/hashicorp/actions-go-build/internal/testhelpers/goldenfile"
+	"github.com/hashicorp/actions-go-build/pkg/crt"
 )
 
 func TestConfig_ExportToGitHubEnv_ok(t *testing.T) {
@@ -16,8 +17,8 @@ func TestConfig_ExportToGitHubEnv_ok(t *testing.T) {
 	})
 }
 
-func standardBuildconfig() BuildConfig {
-	return BuildConfig{
+func standardBuildconfig() crt.BuildConfig {
+	return crt.BuildConfig{
 		WorkDir:      "/",
 		TargetDir:    "/dist",
 		BinPath:      "/dist/lockbox",
@@ -28,7 +29,7 @@ func standardBuildconfig() BuildConfig {
 	}
 }
 
-func testBuildConfig(modifiers ...func(*BuildConfig)) BuildConfig {
+func testBuildConfig(modifiers ...func(*crt.BuildConfig)) crt.BuildConfig {
 	return applyModifiers(standardBuildconfig(), modifiers...)
 }
 
@@ -37,7 +38,7 @@ func TestConfig_BuildConfig_ok(t *testing.T) {
 		desc   string
 		config Config
 		root   string
-		want   BuildConfig
+		want   crt.BuildConfig
 	}{
 		{
 			"root",
@@ -49,7 +50,7 @@ func TestConfig_BuildConfig_ok(t *testing.T) {
 			"root/blah",
 			testConfig(),
 			"/blah",
-			testBuildConfig(func(bc *BuildConfig) {
+			testBuildConfig(func(bc *crt.BuildConfig) {
 				bc.WorkDir = "/blah"
 				bc.TargetDir = "/blah/dist"
 				bc.BinPath = "/blah/dist/lockbox"
@@ -64,7 +65,7 @@ func TestConfig_BuildConfig_ok(t *testing.T) {
 				c.ZipName = "blargle.zip"
 			}),
 			"/blah",
-			testBuildConfig(func(bc *BuildConfig) {
+			testBuildConfig(func(bc *crt.BuildConfig) {
 				bc.WorkDir = "/blah"
 				bc.TargetDir = "/blah/dist"
 				bc.BinPath = "/blah/dist/lockbox"
@@ -90,6 +91,6 @@ func TestConfig_BuildConfig_ok(t *testing.T) {
 func assertEqual(t *testing.T, got, want interface{}) {
 	diff := cmp.Diff(got, want)
 	if diff != "" {
-		t.Errorf("Mismatch (-want +got):\n%s", diff)
+		t.Errorf("Mismatch (-got +want):\n%s", diff)
 	}
 }

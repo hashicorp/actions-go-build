@@ -7,9 +7,9 @@ import (
 	"testing"
 
 	"github.com/go-git/go-git/v5"
-	"github.com/hashicorp/actions-go-build/internal/config"
 	"github.com/hashicorp/actions-go-build/internal/fs"
 	"github.com/hashicorp/actions-go-build/internal/get"
+	"github.com/hashicorp/actions-go-build/pkg/crt"
 )
 
 func must1[T any](t *testing.T, do func() (T, error)) T {
@@ -88,9 +88,9 @@ func testTempDir(t *testing.T) string {
 	return f
 }
 
-func standardConfig(workDir string) config.BuildConfig {
-	return config.BuildConfig{
-		Product: config.Product{
+func standardConfig(workDir string) crt.BuildConfig {
+	return crt.BuildConfig{
+		Product: crt.Product{
 			Repository:   "dadgarcorp/lockbox",
 			Name:         "lockbox",
 			Version:      "1.2.3",

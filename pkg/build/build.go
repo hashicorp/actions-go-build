@@ -9,8 +9,8 @@ import (
 	"os/exec"
 	"path/filepath"
 
-	"github.com/hashicorp/actions-go-build/internal/config"
 	"github.com/hashicorp/actions-go-build/internal/fs"
+	"github.com/hashicorp/actions-go-build/pkg/crt"
 	"github.com/hashicorp/actions-go-build/pkg/digest"
 )
 
@@ -59,7 +59,7 @@ func WithStdout(w io.Writer) Option        { return func(s *Settings) { s.stdout
 func WithStderr(w io.Writer) Option        { return func(s *Settings) { s.stderr = w } }
 func WithBash(path string) Option          { return func(s *Settings) { s.bash = path } }
 
-func New(cfg config.BuildConfig, options ...Option) (Build, error) {
+func New(cfg crt.BuildConfig, options ...Option) (Build, error) {
 	s := &Settings{}
 	for _, option := range options {
 		option(s)
@@ -75,7 +75,7 @@ func New(cfg config.BuildConfig, options ...Option) (Build, error) {
 
 type build struct {
 	settings Settings
-	config   config.BuildConfig
+	config   crt.BuildConfig
 }
 
 type dirs struct {
@@ -148,10 +148,10 @@ func (b *build) runInstructions(path string) error {
 
 type envVar struct {
 	name, desc string
-	valueFunc  func(config.BuildConfig) string
+	valueFunc  func(crt.BuildConfig) string
 }
 
-func (ev envVar) String(c config.BuildConfig) string {
+func (ev envVar) String(c crt.BuildConfig) string {
 	return fmt.Sprintf("%s=%s", ev.name, ev.valueFunc(c))
 }
 
@@ -160,53 +160,53 @@ func buildEnvDef() []envVar {
 		{
 			"TARGET_DIR",
 			"Absolute path to the zip contents directory.",
-			func(c config.BuildConfig) string { return c.TargetDir },
+			func(c crt.BuildConfig) string { return c.TargetDir },
 		},
 		{
 			"PRODUCT_NAME",
 			"Same as the `product_name` input.",
-			func(c config.BuildConfig) string { return c.Product.Name },
+			func(c crt.BuildConfig) string { return c.Product.Name },
 		},
 		{
 			"PRODUCT_VERSION",
 			"Same as the `product_version` input.",
-			func(c config.BuildConfig) string { return c.Product.Version },
+			func(c crt.BuildConfig) string { return c.Product.Version },
 		},
 		{
 			"PRODUCT_REVISION",
 			"The git commit SHA of the product repo being built.",
-			func(c config.BuildConfig) string { return c.Product.Revision },
+			func(c crt.BuildConfig) string { return c.Product.Revision },
 		},
 		{
 			"PRODUCT_REVISION_TIME",
 			"UTC timestamp of the `PRODUCT_REVISION` commit in iso-8601 format.",
-			func(c config.BuildConfig) string { return c.Product.RevisionTime },
+			func(c crt.BuildConfig) string { return c.Product.RevisionTime },
 		},
 		// NOTE omitting BIN_NAME as not strictly needed.
 		{
 			"BIN_PATH",
 			"Absolute path to where instructions must write Go executable.",
-			func(c config.BuildConfig) string { return c.BinPath },
+			func(c crt.BuildConfig) string { return c.BinPath },
 		},
 		{
 			"OS",
 			"Same as the `os` input.",
-			func(c config.BuildConfig) string { return c.TargetOS },
+			func(c crt.BuildConfig) string { return c.TargetOS },
 		},
 		{
 			"ARCH",
 			"Same as the `arch` input.",
-			func(c config.BuildConfig) string { return c.TargetArch },
+			func(c crt.BuildConfig) string { return c.TargetArch },
 		},
 		{
 			"GOOS",
 			"Same as `OS`.",
-			func(c config.BuildConfig) string { return c.TargetOS },
+			func(c crt.BuildConfig) string { return c.TargetOS },
 		},
 		{
 			"GOARCH",
 			"Same as `ARCH`.",
-			func(c config.BuildConfig) string { return c.TargetArch },
+			func(c crt.BuildConfig) string { return c.TargetArch },
 		},
 	}
 }
