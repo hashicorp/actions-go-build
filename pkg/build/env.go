@@ -8,35 +8,21 @@ import (
 
 // envVar represents a documented environment variable alongside
 // a function showing how it is extracted from crt.BuildConfig.
-type envVar struct {
-	name, desc string
-	valueFunc  func(crt.BuildConfig) string
-}
-
-// String emits an env var string compatible with exec.CMD.Env.
-func (ev envVar) String(c crt.BuildConfig) string {
-	return fmt.Sprintf("%s=%s", ev.name, ev.valueFunc(c))
-}
-
-// EnvVar represents a documented environment variable.
 type EnvVar struct {
 	Name, Description string
+	valueFunc         func(crt.BuildConfig) string
+}
+
+// materialise emits an env var string compatible with exec.CMD.Env.
+func (ev EnvVar) materialise(c crt.BuildConfig) string {
+	return fmt.Sprintf("%s=%s", ev.Name, ev.valueFunc(c))
 }
 
 // BuildEnvDefinitions returns the set of env vars guaranteed
 // to be available to the build instructions, alongside a description
 // of each one.
 func BuildEnvDefinitions() []EnvVar {
-	bed := buildEnvDef()
-	out := make([]EnvVar, len(bed))
-	for i, e := range bed {
-		out[i] = EnvVar{Name: e.name, Description: e.desc}
-	}
-	return out
-}
-
-func buildEnvDef() []envVar {
-	return []envVar{
+	return []EnvVar{
 		{
 			"TARGET_DIR",
 			"Absolute path to the zip contents directory.",
@@ -62,7 +48,6 @@ func buildEnvDef() []envVar {
 			"UTC timestamp of the `PRODUCT_REVISION` commit in iso-8601 format.",
 			func(c crt.BuildConfig) string { return c.Product.RevisionTime },
 		},
-		// NOTE omitting BIN_NAME as not strictly needed.
 		{
 			"BIN_PATH",
 			"Absolute path to where instructions must write Go executable.",
@@ -91,13 +76,13 @@ func buildEnvDef() []envVar {
 	}
 }
 
-// buildEnv materialises the values for each defined env var as a slice
+// Env materialises the values for each defined env var as a slice
 // compatible with exec.CMD.Env.
-func (b *build) buildEnv() []string {
-	bed := buildEnvDef()
+func (b *build) Env() []string {
+	bed := BuildEnvDefinitions()
 	env := make([]string, len(bed))
-	for i, e := range buildEnvDef() {
-		env[i] = e.String(b.config)
+	for i, e := range bed {
+		env[i] = e.materialise(b.config)
 	}
 	return env
 }

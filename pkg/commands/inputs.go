@@ -5,23 +5,12 @@ import (
 	"github.com/hashicorp/actions-go-build/pkg/cli"
 )
 
-func Inputs() cli.Command {
-	return cli.Command{
-		Subcommands: cli.Subcommands{
-			"digest": InputsDigest,
-		},
-	}
-}
+var Inputs = cli.RootCommand("inputs", "parsing build inputs", Digest)
 
-func InputsDigest() cli.Command {
-	return cli.Command{
-		Run: func(args []string) error {
-			cfg, err := config.FromEnvironment()
-			if err != nil {
-				return err
-			}
-			cfg.ExportToGitHubEnv()
-			return nil
-		},
+var Digest = cli.LeafCommand("digest", "digest build inputs", func(cli.None) error {
+	cfg, err := config.FromEnvironment()
+	if err != nil {
+		return err
 	}
-}
+	return cfg.ExportToGitHubEnv()
+})

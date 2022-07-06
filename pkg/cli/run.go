@@ -2,8 +2,7 @@ package cli
 
 import "fmt"
 
-func runCLI(cf CommandFunc, args []string) error {
-	c := cf()
+func runCLI(c Command, args []string) error {
 	subArgs, err := parseFlags(c, args[1:])
 	if err != nil {
 		return err
@@ -15,7 +14,7 @@ func runCLI(cf CommandFunc, args []string) error {
 	if len(c.Subcommands) == 0 {
 		return run(c, subArgs)
 	}
-	sc, ok := c.Subcommands[sub]
+	sc, ok := c.getSubCommand(sub)
 	if !ok {
 		return fmt.Errorf("subcommand %q not found", sub)
 	}
@@ -26,19 +25,10 @@ func run(c Command, args []string) error {
 	if c.Run == nil {
 		return ErrNotImplemented
 	}
-	return c.Run(args)
-}
-
-func parseFlags(c Command, args []string) ([]string, error) {
-	if c.Flags == nil {
-		return args, nil
+	if c.Args != nil {
+		c.Args.ParseArgs(args)
+	} else if len(args) != 0 {
+		return ErrNoArgsAllowed
 	}
-	fs := c.Flags()
-	if fs == nil {
-		return args, nil
-	}
-	if err := fs.Parse(args); err != nil {
-		return nil, err
-	}
-	return fs.Args(), nil
+	return c.Run()
 }

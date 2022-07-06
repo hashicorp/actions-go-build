@@ -11,10 +11,8 @@ type buildFlags struct {
 	verification bool
 }
 
-func (bcc *buildFlags) flagSet() *flag.FlagSet {
-	fs := flag.NewFlagSet("buildrun", flag.ContinueOnError)
+func (bcc *buildFlags) Flags(fs *flag.FlagSet) {
 	fs.BoolVar(&bcc.verification, "verification", false, "verification build")
-	return fs
 }
 
 func (bcc *buildFlags) buildConfig() (crt.BuildConfig, error) {

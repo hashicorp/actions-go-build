@@ -26,12 +26,12 @@ type Product struct {
 	// deb and rpm packages, and container image tags.
 	Version string `env:"PRODUCT_VERSION"`
 	// Revision is the commit SHA of the product being built.
-	Revision string `env:"-"`
+	Revision string
 	// RevisionTime is the commit timestamp of Revision in RFC3339 format.
 	// This is useful when we need to include a timestamp in a binary whilst
 	// keeping the binary reproducible. (It can be used as a sort of "build
 	// time").
-	RevisionTime string `env:"-"`
+	RevisionTime string
 }
 
 func (p Product) Init(rc RepoContext) Product {

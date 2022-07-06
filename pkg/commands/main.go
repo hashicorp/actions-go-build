@@ -2,11 +2,4 @@ package commands
 
 import "github.com/hashicorp/actions-go-build/pkg/cli"
 
-func Main() cli.Command {
-	return cli.Command{
-		Subcommands: cli.Subcommands{
-			"inputs": Inputs,
-			"build":  Build,
-		},
-	}
-}
+var Main = cli.RootCommand("build", "build and related functions", Inputs, Run, Env)

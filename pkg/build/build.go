@@ -14,6 +14,7 @@ import (
 
 type Build interface {
 	Run() error
+	Env() []string
 }
 
 func resolveBashPath(path string) (string, error) {
@@ -103,7 +104,7 @@ func (b *build) runCommand(name string, args ...string) error {
 func (b *build) runInstructions(path string) error {
 	c := b.newCommand(b.settings.bash, path)
 	c.Env = os.Environ()
-	c.Env = append(c.Env, b.buildEnv()...)
+	c.Env = append(c.Env, b.Env()...)
 	return c.Run()
 }
 

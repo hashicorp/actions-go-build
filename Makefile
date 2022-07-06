@@ -40,9 +40,12 @@ run/cli/inputs: cli
 run/cli/inputs/digest: cli
 	$(RUNCLI) inputs digest
 
-# run/cli/buld/env is called by dev/docs/environment_doc
-run/cli/build/env: cli
-	$(RUNCLI) build env
+# run/cli/env is called by dev/docs/environment_doc
+run/cli/env: cli
+	$(RUNCLI) env
+
+run/cli/run: cli
+	$(RUNCLI) run
 
 test/bats:
 	# Running bats tests in scripts/
