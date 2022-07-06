@@ -10,10 +10,6 @@ CURR_VERSION_CL := dev/changes/v$(CURR_VERSION).md
 
 BATS := bats -j 10 -T
 
-testcompile:
-	@go test -c -o /dev/null
-
-
 test: test/bats test/go
 
 test/update: test/go/update
@@ -32,7 +28,7 @@ run/cli/%: export PRODUCT_VERSION    := 1.2.3
 run/cli/%: export OS                 := $(shell go env GOOS)
 run/cli/%: export ARCH               := $(shell go env GOARCH)
 run/cli/%: export REPRODUCIBLE       := assert
-run/cli/%: export INSTRUCTIONS       := go build -o "$$BIN_PATH"
+run/cli/%: export INSTRUCTIONS       := echo "Running build in bash"; go build -o "$$BIN_PATH"
 
 run/cli/inputs: cli
 	$(RUNCLI) inputs
@@ -60,7 +56,7 @@ test/bats:
 test/go/update: export UPDATE_TESTDATA := true
 test/go/update: test/go
 
-test/go: testcompile
+test/go: 
 	go test ./...
 
 .PHONY: docs

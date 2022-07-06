@@ -19,6 +19,9 @@ func TestConfig_ExportToGitHubEnv_ok(t *testing.T) {
 
 func standardBuildconfig() crt.BuildConfig {
 	return crt.BuildConfig{
+		Product:      standardProduct(),
+		TargetOS:     "linux",
+		TargetArch:   "amd64",
 		WorkDir:      "/",
 		TargetDir:    "/dist",
 		BinPath:      "/dist/lockbox",

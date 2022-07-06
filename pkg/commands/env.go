@@ -9,7 +9,7 @@ import (
 
 var Env = cli.RootCommand("env", "build environment info", EnvDescribe, EnvDump)
 
-var EnvDescribe = cli.LeafCommand("describe", "describe the build environment variables", func(cli.None) error {
+var EnvDescribe = cli.LeafCommand("describe", "describe the build environment", func(cli.None) error {
 	return writeEnvDescriptions()
 })
 
@@ -26,7 +26,11 @@ func writeEnv(buildFlags *buildFlags) error {
 	if err != nil {
 		return err
 	}
-	return cli.TabWrite(stdout, b.Env(), func(s string) string { return s })
+	return printList(b.Env())
+}
+
+func printList(list []string) error {
+	return cli.TabWrite(stdout, list, func(s string) string { return s })
 }
 
 func writeEnvDescriptions() error {

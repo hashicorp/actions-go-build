@@ -13,9 +13,15 @@ type EnvVar struct {
 	valueFunc         func(crt.BuildConfig) string
 }
 
-// materialise emits an env var string compatible with exec.CMD.Env.
-func (ev EnvVar) materialise(c crt.BuildConfig) string {
-	return fmt.Sprintf("%s=%s", ev.Name, ev.valueFunc(c))
+// Env materialises the values for each defined env var as a slice
+// compatible with exec.CMD.Env.
+func (b *build) Env() []string {
+	bed := BuildEnvDefinitions()
+	env := make([]string, len(bed))
+	for i, e := range bed {
+		env[i] = fmt.Sprintf("%s=%s", e.Name, e.valueFunc(b.config))
+	}
+	return env
 }
 
 // BuildEnvDefinitions returns the set of env vars guaranteed
@@ -74,15 +80,4 @@ func BuildEnvDefinitions() []EnvVar {
 			func(c crt.BuildConfig) string { return c.TargetArch },
 		},
 	}
-}
-
-// Env materialises the values for each defined env var as a slice
-// compatible with exec.CMD.Env.
-func (b *build) Env() []string {
-	bed := BuildEnvDefinitions()
-	env := make([]string, len(bed))
-	for i, e := range bed {
-		env[i] = e.materialise(b.config)
-	}
-	return env
 }

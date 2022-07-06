@@ -35,10 +35,11 @@ type dirNames struct {
 var dirs = dirNames{"dist", "out", "meta"}
 
 func (i Inputs) Config(rc crt.RepoContext) (Config, error) {
-	i = i.trimSpace().setDefaults(rc)
+	i = i.init(rc)
 	if err := i.validate(); err != nil {
 		return Config{}, err
 	}
+
 	return Config{
 		Inputs:    i,
 		TargetDir: dirs.target,
@@ -66,7 +67,7 @@ func (i Inputs) trimSpace() Inputs {
 }
 
 func (i Inputs) setDefaults(rc crt.RepoContext) Inputs {
-	i.Product.Init(rc)
+	i.Product = i.Product.Init(rc)
 	if i.BinName == "" {
 		i.BinName = i.Product.Name
 	}

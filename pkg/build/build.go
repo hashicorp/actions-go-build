@@ -56,8 +56,6 @@ func (b *build) Run() error {
 		return err
 	}
 
-	log.Printf("Running build instructions...")
-
 	if err := b.runInstructions(instructionsPath); err != nil {
 		return err
 	}
@@ -102,9 +100,14 @@ func (b *build) runCommand(name string, args ...string) error {
 }
 
 func (b *build) runInstructions(path string) error {
+	log.Printf("Running build instructions with environment:")
+	env := b.Env()
+	for _, e := range b.Env() {
+		fmt.Fprintln(b.settings.stderr, e)
+	}
 	c := b.newCommand(b.settings.bash, path)
 	c.Env = os.Environ()
-	c.Env = append(c.Env, b.Env()...)
+	c.Env = append(c.Env, env...)
 	return c.Run()
 }
 

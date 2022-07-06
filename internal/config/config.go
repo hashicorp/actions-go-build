@@ -49,14 +49,17 @@ func (c Config) buildConfig(root string) (crt.BuildConfig, error) {
 		return crt.BuildConfig{}, fmt.Errorf("root path %q is not absolute", root)
 	}
 	return crt.BuildConfig{
-		WorkDir:      root,
-		TargetDir:    filepath.Join(root, c.TargetDir),
-		BinPath:      filepath.Join(root, c.TargetDir, c.BinName),
-		ZipPath:      filepath.Join(root, c.ZipDir, c.ZipName),
-		Instructions: c.Instructions,
-
-		ZipDir:  filepath.Join(root, c.ZipDir),
-		MetaDir: filepath.Join(root, c.MetaDir),
+		Product:            c.Product,
+		ProductVersionMeta: "",
+		WorkDir:            root,
+		TargetDir:          filepath.Join(root, c.TargetDir),
+		BinPath:            filepath.Join(root, c.TargetDir, c.BinName),
+		ZipPath:            filepath.Join(root, c.ZipDir, c.ZipName),
+		Instructions:       c.Instructions,
+		TargetOS:           c.OS,
+		TargetArch:         c.Arch,
+		ZipDir:             filepath.Join(root, c.ZipDir),
+		MetaDir:            filepath.Join(root, c.MetaDir),
 	}, nil
 }
 
