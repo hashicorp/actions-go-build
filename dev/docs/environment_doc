@@ -7,7 +7,7 @@ source scripts/build_env.bash
 
 
 build_env_with_pipes() {
-	make run/cli/env | sed -E 's/^([^[:space:]]+[[:space:]]+)(.*)/\1 | \2/g'
+	make run/cli/env/describe | sed -E 's/^([^[:space:]]+[[:space:]]+)(.*)/\1 | \2/g'
 }
 
 read_output_to_array ROW_DATA build_env_with_pipes

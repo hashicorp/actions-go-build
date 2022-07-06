@@ -40,9 +40,15 @@ run/cli/inputs: cli
 run/cli/inputs/digest: cli
 	$(RUNCLI) inputs digest
 
-# run/cli/env is called by dev/docs/environment_doc
 run/cli/env: cli
 	$(RUNCLI) env
+
+# run/cli/env/describe is called by dev/docs/environment_doc
+run/cli/env/describe: cli
+	$(RUNCLI) env describe
+
+run/cli/env/dump: cli
+	$(RUNCLI) env dump
 
 run/cli/run: cli
 	$(RUNCLI) run

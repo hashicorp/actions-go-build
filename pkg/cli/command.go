@@ -1,5 +1,10 @@
 package cli
 
+import (
+	"fmt"
+	"os"
+)
+
 type cmd struct {
 	materialise func() Command
 	command     *Command
@@ -28,12 +33,26 @@ func Subcommands(commands ...CommandFunc) []CommandFunc {
 	return commands
 }
 
+// RootCommand is a command that only contains subcommands and doesn't do anything
+// by itself.
 func RootCommand(name, desc string, subcommands ...CommandFunc) CommandFunc {
 	return func() Command {
+		run := func() error {
+			o := os.Stdout
+			p := func(f string, args ...any) { fmt.Fprintf(o, f+"\n", args...) }
+			p("%s - %s", name, desc)
+			p("")
+			p("Subcommands:")
+			return TabWrite(o, subcommands, func(cf CommandFunc) string {
+				c := cf()
+				return fmt.Sprintf("\t%s\t%s", c.Name, c.Synopsis)
+			})
+		}
 		return Command{
 			Name:        name,
 			Synopsis:    desc,
 			Subcommands: subcommands,
+			Run:         run,
 		}
 	}
 }
