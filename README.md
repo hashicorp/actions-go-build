@@ -44,7 +44,7 @@ This example shows building a single `linux/amd64` binary.
 
 <!-- insert:dev/docs/print_example_workflow example.yml -->
 ```yaml
-name: Minimal(ish) Example
+name: Minimal Example (main)
 on: [push]
 jobs:
   example:
@@ -52,7 +52,7 @@ jobs:
     steps:
       - uses: actions/checkout@v3
       - name: Build
-        uses: hashicorp/actions-reproducible-build@main
+        uses: hashicorp/actions-go-build@main
         with:
           product_name: example-app
           product_version: 1.2.3
@@ -76,7 +76,7 @@ and disables CGO for linux and windows builds.
 
 <!-- insert:dev/docs/print_example_workflow example-matrix.yml -->
 ```yaml
-name: Matrix Example
+name: Matrix Example (main)
 on: [push]
 jobs:
   example:
@@ -92,7 +92,7 @@ jobs:
     steps:
       - uses: actions/checkout@v3
       - name: Build
-        uses: hashicorp/actions-reproducible-build@main
+        uses: hashicorp/actions-go-build@main
         with:
           product_name: example-app
           product_version: 1.2.3

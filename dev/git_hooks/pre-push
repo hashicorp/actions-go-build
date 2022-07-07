@@ -57,6 +57,54 @@ assert_success() {
 	log "✓ $NAME passed."
 }
 
+if [[ "${DEBUG:-}" == "1" ]]; then
+	run_log() {
+		local ARGS=("$@")
+		local WHAT="${ARGS[*]@Q}"
+		log "==> Running $WHAT"
+		local OUT
+		if OUT="$("$@")"; then log "OK: $WHAT"; X=0; else log "FAILED: $WHAT"; X=1; fi
+		log "$OUT"
+		echo "$OUT"
+		return $X
+	}
+	grep() {
+		$(which grep) -E "$@"
+	}
+else
+	run_log() {
+		"$@"
+	}
+	grep() {
+		$(which grep) -Eq "$@"
+	}
+fi
+
+changed_files() {
+	git diff --name-only "$range"
+}
+
+changed_files_include() {
+	local PATTERN="$1"
+	run_log changed_files | "$GREP" "^$PATTERN\$"
+}
+
+changed_go_files() {
+	run_log changed_files | grep '.*\.go$'
+}
+
+go_implementation_changed() {
+	run_log changed_go_files | grep -v '_test\.go$'
+}
+
+go_tests_changed() {
+	run_log changed_files | grep '_test\.go$'
+}
+
+should_have_changelog_update() {
+	run_log go_tests_changed && run_log go_implementation_changed
+}
+
 # shellcheck disable=SC2021 # We want to replace square brackets.
 zero="$(git hash-object --stdin </dev/null | tr '[0-9a-f]' '0')"
 
@@ -79,23 +127,31 @@ do
 		# Check for version consistency.
 		assert_success "$local_oid" "Version check" make version/check
 
-		CL_FILE="dev/changes/v$(cat dev/VERSION).md"
-		# Check for changelog update.
-		git diff --name-only "$range" | grep -qE "^$CL_FILE\$" || {
-			die "No update to changelog file '$CL_FILE'; run 'make changelog/add' to update it."
-		}
-		log "✓ Changes logged in $CL_FILE"
+		# Check for changelog update, only if the push includes both a
+		# test change and a non-test change to the Go code.
+		if run_log should_have_changelog_update; then 
+			CL_FILE="dev/changes/v$(cat dev/VERSION).md"
+			git diff --name-only "$range" | grep -qE "^$CL_FILE\$" || {
+				die "No update to changelog file '$CL_FILE'; run 'make changelog/add' to update it."
+			}
+			log "✓ Changes logged in $CL_FILE"
+		else
+			log "- Skipping changelog update check."
+		fi
 
 		# Check docs are up-to-date.
 		assert_no_diff_caused_by "$local_oid" "CHANGELOG.md" make changelog
 		assert_no_diff_caused_by "$local_oid" "README.md"    make readme
 
+		# Check example workflows are up-to-date.
+		assert_no_diff_caused_by "$local_oid" ".github/workflows/*.currentbranch.yml" make examples
+
 		# Check tests pass with commited changes.
-		assert_success "$local_oid" "Tests" make test
-
-		# Check example target still works.
-		assert_success "$local_oid" "Example target" make example
-
+		if ( go_tests_changed || go_implementation_changed; ); then
+			assert_success "$local_oid" "Tests" make test
+		else
+			log "- Skipping test run."
+		fi
 	fi
 done
 

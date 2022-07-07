@@ -20,18 +20,18 @@ jobs:
         run: |
           sudo git clone --depth 1 --branch "v$BATS_VERSION" "$BATS_REPO" "$BATS_PATH"
           echo "$BATS_PATH/bin" >> "$GITHUB_PATH"
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
       - name: Run BATS tests
-        run: make test
+        run: make test/bats
 
-  example-target:
+  go-tests:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/setup-go@v2
         with:
           go-version: 1.18
-      - uses: actions/checkout@v2
-      - run: make example
+      - uses: actions/checkout@v3
+      - run: make test/go
 
   macos:
     uses: ./.github/workflows/self-test-suite.yml

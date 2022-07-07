@@ -10,11 +10,40 @@ CURR_VERSION_CL := dev/changes/v$(CURR_VERSION).md
 
 BATS := bats -j 10 -T
 
-test: test/bats
+test: test/bats test/go
+
+test/update: test/go/update
+
+CLI := bin/action
+
+cli:
+	go build -trimpath -o "$(CLI)"
+
+# The run/cli/... targets build and then run the CLI itself
+# which is usful for quickly seeing its output whilst developing.
+
+run/cli/%: export PRODUCT_REPOSITORY := hashicorp/actions-go-build
+run/cli/%: export PRODUCT_VERSION    := 1.2.3
+run/cli/%: export OS                 := $(shell go env GOOS)
+run/cli/%: export ARCH               := $(shell go env GOARCH)
+run/cli/%: export REPRODUCIBLE       := assert
+run/cli/%: export INSTRUCTIONS       := go build -o "$$BIN_PATH"
+
+run/cli/inputs: cli
+	./$(CLI) inputs
+
+run/cli/inputs/digest: cli
+	./$(CLI) inputs digest
 
 test/bats:
 	# Running bats tests in scripts/
 	@$(BATS) scripts/
+
+test/go/update:
+	go test ./... -update
+
+test/go:
+	go test ./...
 
 .PHONY: docs
 docs: readme changelog
@@ -42,7 +71,7 @@ changelog/add:
 	@echo " END $(CL_REMINDERS_COMMENT) -->" >> "$(CURR_VERSION_CL)"
 	@$(EDITOR) "$(CURR_VERSION_CL)"
 	@$(MAKE) changelog
-	@git add CHANGELOG.md "$(CURR_VERSION_CL)" && git commit -m "update changelog for v$(CURR_VERSION)" && \
+	@git add CHANGELOG.md "$(CURR_VERSION_CL)" && git commit -em "update changelog for v$(CURR_VERSION)" && \
 		echo "==> Changelog updated and committed, thanks for keeping it up-to-date!"
 
 .PHONY: debug/docs
@@ -58,30 +87,6 @@ example-app:
 	@cd testdata/example-app && go build -ldflags "$(LDFLAGS)" . && ./example-app
 
 GO_BUILD := go build -trimpath -buildvcs=false -ldflags "$(LDFLAGS)" -o "$$BIN_PATH"
-
-example: export REPRODUCIBLE             := assert
-example: export INSTRUCTIONS             := cd testdata/example-app && $(GO_BUILD)
-example: export OS                       := $(shell go env GOOS)
-example: export ARCH                     := $(shell go env GOARCH)
-example: export PRODUCT_REPOSITORY       := example-app
-example: export PRODUCT_NAME             := example-app
-example: export PRODUCT_VERSION          := 1.2.3
-example: export EXAMPLE_TMP              := $(shell mktemp -d)
-example: export GITHUB_ENV               := $(EXAMPLE_TMP)/github_env
-example: export GITHUB_STEP_SUMMARY      := $(EXAMPLE_TMP)/github_step_summary
-example: export PRIMARY_BUILD_ROOT       := $(EXAMPLE_TMP)/primary
-example: export VERIFICATION_BUILD_ROOT  := $(EXAMPLE_TMP)/verification
-example:
-	rm -rf "$(EXAMPLE_TMP)" && mkdir -p "$(EXAMPLE_TMP)"
-	cp -Rf . "$(PRIMARY_BUILD_ROOT)"
-	cd $(PRIMARY_BUILD_ROOT) && \
-		source scripts/inputs.bash && \
-		digest_inputs && \
-		./scripts/primary_build && \
-		./scripts/local_verification_build && \
-		trap 'cat $(GITHUB_STEP_SUMMARY)' EXIT && \
-		./scripts/compare_digests
-
 
 # 'make tools' will use the brew target if on Darwin.
 # Otherwise it just prints a message about dependencies.
@@ -117,3 +122,21 @@ version/set:
 	./dev/release/set_version "$(VERSION)" && \
 	git add dev/VERSION dev/changes/v$(VERSION).md && \
 	git commit -m "set development version to v$(VERSION)"
+
+EXAMPLE1         := .github/workflows/example.yml
+EXAMPLE1_CURRENT := .github/workflows/example_currentbranch.yml
+EXAMPLE2         := .github/workflows/example-matrix.yml
+EXAMPLE2_CURRENT := .github/workflows/example-matrix_currentbranch.yml
+
+REPLACEMENTS := -e 's|hashicorp/actions-go-build@main|./|g'
+REPLACEMENTS += -e 's|(main)|(current branch)|g'
+
+define UPDATE_CURRENT_BRANCH_EXAMPLE
+TARGET="$(1).currentbranch.yml" && \
+echo "# GENERATED FILE, DO NOT MODIFY; INSTEAD EDIT $(1) AND RUN 'make examples'" > "$$TARGET" && \
+sed $(REPLACEMENTS)  "$(1)" >> "$$TARGET"
+endef
+
+examples:
+	$(call UPDATE_CURRENT_BRANCH_EXAMPLE,$(EXAMPLE1))
+	$(call UPDATE_CURRENT_BRANCH_EXAMPLE,$(EXAMPLE2))
