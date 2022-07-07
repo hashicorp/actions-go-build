@@ -14,7 +14,7 @@ test: test/bats test/go
 
 test/update: test/go/update
 
-CLI    := bin/action
+CLI    := bin/go-build
 RUNCLI := @./$(CLI)
 
 cli:
@@ -30,11 +30,11 @@ run/cli/%: export ARCH               := $(shell go env GOARCH)
 run/cli/%: export REPRODUCIBLE       := assert
 run/cli/%: export INSTRUCTIONS       := echo "Running build in bash"; go build -o "$$BIN_PATH"
 
-run/cli/inputs: cli
-	$(RUNCLI) inputs
+run/cli/config: cli
+	$(RUNCLI) config
 
-run/cli/inputs/digest: cli
-	$(RUNCLI) inputs digest
+run/cli/config/github: cli
+	$(RUNCLI) config -github
 
 run/cli/env: cli
 	$(RUNCLI) env
@@ -46,8 +46,11 @@ run/cli/env/describe: cli
 run/cli/env/dump: cli
 	$(RUNCLI) env dump
 
-run/cli/run: cli
-	$(RUNCLI) run
+run/cli/primary: cli
+	$(RUNCLI) primary
+
+run/cli/verification: cli
+	$(RUNCLI) verification
 
 test/bats:
 	# Running bats tests in scripts/

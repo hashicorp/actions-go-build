@@ -2,6 +2,7 @@ package config
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"log"
 	"os"
@@ -85,10 +86,13 @@ func newEnvSetter() envSetter {
 	return envSetter{nil}
 }
 
-// ExportToGitHubEnv writes this config to GITHUB_ENV so it can be read by
-// future steps in this job. If GITHUB_ENV isn't set, it prints a warning
-// and just logs what would have been set.
-func (c Config) ExportToGitHubEnv() error {
+type EnvVar struct{ Name, Value string }
+
+func (c Config) EnvVars() ([]EnvVar, error) {
+	var kvs []EnvVar
+	addEnv := func(key, value string) {
+		kvs = append(kvs, EnvVar{key, value})
+	}
 
 	// TODO don't serialise primary and verification build configs to env here.
 	// We can derive them from the rest of the config anyway so there's probably
@@ -99,47 +103,66 @@ func (c Config) ExportToGitHubEnv() error {
 
 	primary, err := c.PrimaryBuildConfig()
 	if err != nil {
-		return err
+		return nil, err
 	}
 	verification, err := c.VerificationBuildConfig()
 	if err != nil {
-		return err
+		return nil, err
 	}
 
-	es := newEnvSetter()
-	es.setEnv("PRODUCT_NAME", c.Product.Name)
-	es.setEnv("PRODUCT_VERSION", c.Product.Version)
-	es.setEnv("PRODUCT_REVISION", c.Product.Revision)
-	es.setEnv("PRODUCT_REVISION_TIME", c.Product.RevisionTime)
-	es.setEnv("GO_VERSION", c.GoVersion)
-	es.setEnv("OS", c.OS)
-	es.setEnv("ARCH", c.Arch)
-	es.setEnv("REPRODUCIBLE", c.Reproducible)
-	es.setEnv("INSTRUCTIONS", c.Instructions)
-	es.setEnv("BIN_NAME", c.BinName)
-	es.setEnv("BIN_PATH", filepath.Join(c.TargetDir, c.BinName))
-	es.setEnv("ZIP_PATH", filepath.Join(c.ZipDir, c.ZipName))
-	es.setEnv("ZIP_NAME", c.ZipName)
-	es.setEnv("PRIMARY_BUILD_ROOT", c.PrimaryBuildRoot)
-	es.setEnv("VERIFICATION_BUILD_ROOT", c.VerificationBuildRoot)
-	es.setEnv("BIN_PATH_PRIMARY", primary.BinPath)
-	es.setEnv("ZIP_PATH_PRIMARY", primary.ZipPath)
-	es.setEnv("BIN_PATH_VERIFICATION", verification.BinPath)
-	es.setEnv("ZIP_PATH_VERIFICATION", verification.ZipPath)
-	es.setEnv("TARGET_DIR", c.TargetDir)
-	es.setEnv("ZIP_DIR", c.ZipDir)
-	es.setEnv("META_DIR", c.MetaDir)
+	addEnv("PRODUCT_NAME", c.Product.Name)
+	addEnv("PRODUCT_VERSION", c.Product.Version)
+	addEnv("PRODUCT_REVISION", c.Product.Revision)
+	addEnv("PRODUCT_REVISION_TIME", c.Product.RevisionTime)
+	addEnv("GO_VERSION", c.GoVersion)
+	addEnv("OS", c.OS)
+	addEnv("ARCH", c.Arch)
+	addEnv("REPRODUCIBLE", c.Reproducible)
+	addEnv("INSTRUCTIONS", c.Instructions)
+	addEnv("BIN_NAME", c.BinName)
+	addEnv("BIN_PATH", filepath.Join(c.TargetDir, c.BinName))
+	addEnv("ZIP_PATH", filepath.Join(c.ZipDir, c.ZipName))
+	addEnv("ZIP_NAME", c.ZipName)
+	addEnv("PRIMARY_BUILD_ROOT", c.PrimaryBuildRoot)
+	addEnv("VERIFICATION_BUILD_ROOT", c.VerificationBuildRoot)
+	addEnv("BIN_PATH_PRIMARY", primary.BinPath)
+	addEnv("ZIP_PATH_PRIMARY", primary.ZipPath)
+	addEnv("BIN_PATH_VERIFICATION", verification.BinPath)
+	addEnv("ZIP_PATH_VERIFICATION", verification.ZipPath)
+	addEnv("TARGET_DIR", c.TargetDir)
+	addEnv("ZIP_DIR", c.ZipDir)
+	addEnv("META_DIR", c.MetaDir)
 
 	// Extra vars set for the build environment.
-	es.setEnv("GOOS", c.OS)
-	es.setEnv("GOARCH", c.Arch)
+	addEnv("GOOS", c.OS)
+	addEnv("GOARCH", c.Arch)
 
+	return kvs, nil
+}
+
+func (c Config) foreach(fn func(key, value string)) error {
+	vars, err := c.EnvVars()
+	if err != nil {
+		return err
+	}
+	for _, pair := range vars {
+		fn(pair.Name, pair.Value)
+	}
 	return nil
+}
+
+// ExportToGitHubEnv writes this config to GITHUB_ENV so it can be read by
+// future steps in this job. If GITHUB_ENV isn't set, it prints a warning
+// and just logs what would have been set.
+func (c Config) ExportToGitHubEnv() error {
+	if os.Getenv("GITHUB_ENV") == "" {
+		return errors.New("GITHUB_ENV not set")
+	}
+	es := newEnvSetter()
+	return c.foreach(es.setEnv)
 }
 
 func (es envSetter) setEnv(name, value string) {
 	log.Printf("Setting %q to %q", name, value)
-	if os.Getenv("GITHUB_ENV") != "" {
-		es.setEnvFunc(name, value)
-	}
+	es.setEnvFunc(name, value)
 }

@@ -15,11 +15,7 @@ func (bcc *buildFlags) Flags(fs *flag.FlagSet) {
 	fs.BoolVar(&bcc.verification, "verification", false, "verification build")
 }
 
-func (bcc *buildFlags) buildConfig() (crt.BuildConfig, error) {
-	c, err := config.FromEnvironment()
-	if err != nil {
-		return crt.BuildConfig{}, err
-	}
+func (bcc *buildFlags) buildConfig(c config.Config) (crt.BuildConfig, error) {
 	if bcc.verification {
 		return c.VerificationBuildConfig()
 	}
