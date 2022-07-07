@@ -8,6 +8,7 @@ import (
 	"path/filepath"
 
 	"github.com/hashicorp/actions-go-build/internal/fs"
+	"github.com/hashicorp/actions-go-build/internal/zipper"
 	"github.com/hashicorp/actions-go-build/pkg/crt"
 	"github.com/hashicorp/actions-go-build/pkg/digest"
 )
@@ -68,25 +69,34 @@ func (b *build) Run() error {
 		return fmt.Errorf("no file written to BIN_PATH %q", c.BinPath)
 	}
 
-	binSHA, err := digest.FileSHA256Hex(c.BinPath)
+	if err := b.writeDigest(c.BinPath, "bin_digest"); err != nil {
+		return err
+	}
+
+	if err := fs.SetMtimes(c.TargetDir, c.Product.RevisionTimestamp()); err != nil {
+		return err
+	}
+
+	if err := zipper.ZipToFile(c.TargetDir, c.ZipPath); err != nil {
+		return err
+	}
+
+	if err := b.writeDigest(c.ZipPath, "zip_digest"); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (b *build) writeDigest(of, named string) error {
+	sha, err := digest.FileSHA256Hex(of)
 	if err != nil {
 		return err
 	}
 
-	binDigestPath := filepath.Join(c.MetaDir, "bin_digest")
+	digestPath := filepath.Join(b.config.MetaDir, named)
 
-	if err := fs.WriteFile(binDigestPath, binSHA); err != nil {
-		return err
-	}
-
-	if err := fs.SetMtimes(c.TargetDir, c.Product.RevisionTimestamp); err != nil {
-		return err
-	}
-	// TODO
-	//   - Zip contents of TARGET_DIR
-	//   - Record zip digest.
-
-	return nil
+	return fs.WriteFile(digestPath, sha)
 }
 
 func (b *build) newCommand(name string, args ...string) *exec.Cmd {

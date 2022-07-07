@@ -77,7 +77,7 @@ func (z *Zipper) writeEntry(name string, source io.Reader) error {
 // ZipToFile is a convenience function meant to be equivalent to using the command line:
 // 'zip -Xrj $zipFile $dir`
 func ZipToFile(dir, zipFile string) error {
-	f, err := os.OpenFile(zipFile, os.O_CREATE|os.O_TRUNC, os.ModePerm)
+	f, err := os.OpenFile(zipFile, os.O_CREATE|os.O_TRUNC|os.O_RDWR, os.ModePerm)
 	if err != nil {
 		return err
 	}
