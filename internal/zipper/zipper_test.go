@@ -5,11 +5,11 @@ import (
 	"testing"
 )
 
-func TestZipper_WriteEntry(t *testing.T) {
+func TestZipper_writeEntry(t *testing.T) {
 
 	buf := &bytes.Buffer{}
 
-	z := New("", buf)
+	z := New(buf)
 
 	source := bytes.NewBufferString("blah")
 

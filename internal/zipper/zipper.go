@@ -16,24 +16,22 @@ type Zipper struct {
 }
 
 // NewZipper returns a new zipper configured to zip the contents of dir.
-func New(dir string, w io.Writer) *Zipper {
+func New(w io.Writer) *Zipper {
 	return &Zipper{
-		dir:     dir,
 		written: map[string]struct{}{},
 		zw:      zip.NewWriter(w),
 	}
 }
 
-// Zip zips the contents of dir to the provided writer, and flattens any
+// ZipDir zips the contents of dir to the provided writer, and flattens any
 // directory hierarchy, so the resultant zip has just a flat list of
 // files. Filename conflicts result in error.
 // It aims to produce reproducible zips by writing entries in a predictable
 // order.
 //
 // It is intended to perform the same function as calling 'zip -Xrj $zipFile $dir'
-func (z *Zipper) Zip() error {
-
-	if err := filepath.WalkDir(z.dir, func(path string, d fs.DirEntry, err error) error {
+func (z *Zipper) ZipDir(dir string) error {
+	if err := filepath.WalkDir(dir, func(path string, d fs.DirEntry, err error) error {
 		if err != nil {
 			return err
 		}
@@ -76,6 +74,8 @@ func (z *Zipper) writeEntry(name string, source io.Reader) error {
 	return err
 }
 
+// ZipToFile is a convenience function meant to be equivalent to using the command line:
+// 'zip -Xrj $zipFile $dir`
 func ZipToFile(dir, zipFile string) error {
 	f, err := os.OpenFile(zipFile, os.O_CREATE|os.O_TRUNC, os.ModePerm)
 	if err != nil {
@@ -84,9 +84,9 @@ func ZipToFile(dir, zipFile string) error {
 	var closeErr error
 	defer func() { closeErr = f.Close() }()
 
-	z := New(dir, f)
+	z := New(f)
 
-	if err := z.Zip(); err != nil {
+	if err := z.ZipDir(dir); err != nil {
 		return err
 	}
 
