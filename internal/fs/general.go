@@ -5,12 +5,6 @@ import (
 	"os"
 )
 
-func FileExists(name string) (bool, error) { return existsAndPassesTest(name, isFile) }
-func DirExists(name string) (bool, error)  { return existsAndPassesTest(name, isDir) }
-
-func isDir(info os.FileInfo) bool  { return info.IsDir() }
-func isFile(info os.FileInfo) bool { return !info.IsDir() }
-
 func existsAndPassesTest(name string, test func(os.FileInfo) bool) (bool, error) {
 	info, exists, err := stat(name)
 	if err != nil {

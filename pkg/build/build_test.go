@@ -5,6 +5,7 @@ import (
 	"path/filepath"
 	"strings"
 	"testing"
+	"time"
 
 	"github.com/go-git/go-git/v5"
 	"github.com/hashicorp/actions-go-build/internal/fs"
@@ -88,14 +89,22 @@ func testTempDir(t *testing.T) string {
 	return f
 }
 
+func standardCommitTime() (ts time.Time, rfc3339 string) {
+	ts = time.Date(2022, 7, 4, 11, 33, 33, 0, time.UTC)
+	rfc3339 = ts.Format(time.RFC3339)
+	return
+}
+
 func standardConfig(workDir string) crt.BuildConfig {
+	revisionTimestamp, revisionTimestampRFC3339 := standardCommitTime()
 	return crt.BuildConfig{
 		Product: crt.Product{
-			Repository:   "dadgarcorp/lockbox",
-			Name:         "lockbox",
-			Version:      "1.2.3",
-			Revision:     "cabba9e",
-			RevisionTime: "2022-07-04T11:33:33Z",
+			Repository:        "dadgarcorp/lockbox",
+			Name:              "lockbox",
+			Version:           "1.2.3",
+			Revision:          "cabba9e",
+			RevisionTime:      revisionTimestampRFC3339,
+			RevisionTimestamp: revisionTimestamp,
 		},
 		ProductVersionMeta: "",
 		WorkDir:            workDir,
@@ -104,7 +113,7 @@ func standardConfig(workDir string) crt.BuildConfig {
 		ZipDir:             filepath.Join(workDir, "out"),
 		ZipPath:            filepath.Join(workDir, "out", "lockbox_1.2.3_amd64.zip"),
 		MetaDir:            filepath.Join(workDir, "meta"),
-		Instructions:       "go build -o $BIN_PATH",
+		Instructions:       `echo -n "Building '$BIN_PATH'..." && go build -o $BIN_PATH && echo "Done!"`,
 		TargetOS:           "linux",
 		TargetArch:         "amd64",
 	}

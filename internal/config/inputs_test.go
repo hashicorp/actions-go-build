@@ -180,11 +180,12 @@ func applyModifiers[T any](to T, modifiers ...func(thing *T)) T {
 
 func standardProduct() crt.Product {
 	return crt.Product{
-		Repository:   "github.com/dadgarcorp/lockbox",
-		Name:         "lockbox",
-		Version:      "1.2.3",
-		Revision:     "cabba9e",
-		RevisionTime: "2022-06-30T10:31:06Z",
+		Repository:        "github.com/dadgarcorp/lockbox",
+		Name:              "lockbox",
+		Version:           "1.2.3",
+		Revision:          "cabba9e",
+		RevisionTime:      standardCommitTimeRFC3339(),
+		RevisionTimestamp: standardCommitTimestamp(),
 	}
 }
 
@@ -204,11 +205,19 @@ func standardInputs() Inputs {
 	}
 }
 
+func standardCommitTimestamp() time.Time {
+	return time.Date(2022, time.June, 30, 10, 31, 6, 0, time.UTC)
+}
+
+func standardCommitTimeRFC3339() string {
+	return "2022-06-30T10:31:06Z"
+}
+
 func standardRepoContext() crt.RepoContext {
 	return crt.RepoContext{
 		Dir:        "/some/dir/work",
 		CommitSHA:  "cabba9e",
-		CommitTime: time.Date(2022, time.June, 30, 10, 31, 6, 0, time.UTC),
+		CommitTime: standardCommitTimestamp(),
 	}
 }
 

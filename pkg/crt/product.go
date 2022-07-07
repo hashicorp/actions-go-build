@@ -32,6 +32,8 @@ type Product struct {
 	// keeping the binary reproducible. (It can be used as a sort of "build
 	// time").
 	RevisionTime string
+	// RevisionTimestamp is the underlying timestamp representing RevisionTime.
+	RevisionTimestamp time.Time
 }
 
 func (p Product) Init(rc RepoContext) Product {
@@ -51,6 +53,7 @@ func (p Product) setDefaults(rc RepoContext) Product {
 		p.Name = filepath.Base(p.Repository)
 	}
 	p.Revision = rc.CommitSHA
-	p.RevisionTime = rc.CommitTime.UTC().Format(time.RFC3339)
+	p.RevisionTimestamp = rc.CommitTime.UTC()
+	p.RevisionTime = p.RevisionTimestamp.Format(time.RFC3339)
 	return p
 }

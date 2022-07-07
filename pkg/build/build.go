@@ -79,8 +79,10 @@ func (b *build) Run() error {
 		return err
 	}
 
+	if err := fs.SetMtimes(c.TargetDir, c.Product.RevisionTimestamp); err != nil {
+		return err
+	}
 	// TODO
-	//   - Set mtime of all files in TARGET_DIR
 	//   - Zip contents of TARGET_DIR
 	//   - Record zip digest.
 
