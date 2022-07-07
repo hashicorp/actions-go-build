@@ -106,12 +106,14 @@ func (i Inputs) setDefaults(rc RepoContext) Inputs {
 		i.PrimaryBuildRoot = rc.WorkDir
 	}
 	if i.VerificationBuildRoot == "" {
-		i.VerificationBuildRoot = adjacentPath(i.PrimaryBuildRoot, "verification")
+		i.VerificationBuildRoot = siblingPath(i.PrimaryBuildRoot, "verification")
 	}
 	return i
 }
 
-func adjacentPath(to, name string) string {
+// siblingPath returns the sibling path name of to. Sibling path is defined as
+// a path with the same directory component but a different base name.
+func siblingPath(to, name string) string {
 	return filepath.Join(filepath.Dir(to), name)
 }
 
