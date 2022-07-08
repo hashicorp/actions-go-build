@@ -87,16 +87,16 @@ runs:
     # Compile the CLI inline. We should work to remove this step by using
     # precompiled binaries for tagged versions (maybe stored as release
     # assets).
-    - name: Compile the CLI
+    - name: Install the CLI
       shell: bash
       working-directory: ${{ github.action_path }}
-      run: make cli
+      run: make install
 
-    # Digest inputs and context.
-    - name: Calculate default values and paths; set env vars.
+    # Read config and
+    - name: Read config from inputs; export to GITHUB_ENV
       shell: bash
+      run: actions-go-build config -github
       env:
-        PRODUCT_REPOSITORY: ${{ github.repository }}
         PRODUCT_NAME: ${{ inputs.product_name }}
         PRODUCT_VERSION: ${{ inputs.product_version }}
         OS: ${{ inputs.os }}
@@ -105,7 +105,6 @@ runs:
         BIN_NAME: ${{ inputs.bin_name }}
         ZIP_NAME: ${{ inputs.zip_name }}
         INSTRUCTIONS: ${{ inputs.instructions }}
-      run: ${{ github.action_path }}/bin/action inputs digest
 
     # Setup Go
     - uses: actions/setup-go@v2
@@ -120,7 +119,7 @@ runs:
     # Primary Build
     - name: Run Primary Build
       shell: bash
-      run: ${{ github.action_path }}/scripts/primary_build
+      run: actions-go-build primary
 
     # Upload Primary Build
     - name: Upload primary build zip file.
@@ -134,7 +133,7 @@ runs:
     - name: Run Local Verification Build
       if: inputs.reproducible == 'assert' || inputs.reproducible == 'report'
       shell: bash
-      run: ${{ github.action_path }}/scripts/local_verification_build
+      run: actions-go-build verification
 
     # Upload Local Verification Build
     - name: Upload local verification build zip file.

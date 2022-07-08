@@ -14,11 +14,23 @@ test: test/bats test/go
 
 test/update: test/go/update
 
-CLI    := bin/go-build
-RUNCLI := @./$(CLI)
+CLINAME := $(notdir $(CURDIR))
+CLI     := bin/$(CLINAME)
+RUNCLI  := @./$(CLI)
 
 cli:
 	@go build -trimpath -o "$(CLI)"
+
+ifneq ($(GITHUB_PATH),)
+install: cli
+	@echo "$(dir $(CURDIR)/$(CLI))" >> "$$GITHUB_PATH"
+	@echo "Command '$(CLINAME)' installed to GITHUB_PATH"
+else
+install: cli
+	@go install "$(CLIPKG)"
+	@echo "Command '$(CLINAME)' installed to GOBIN"
+endif
+
 
 # The run/cli/... targets build and then run the CLI itself
 # which is usful for quickly seeing its output whilst developing.

@@ -4,7 +4,7 @@ import (
 	"os"
 	"testing"
 
-	"github.com/google/go-cmp/cmp"
+	"github.com/hashicorp/actions-go-build/internal/testhelpers/assert"
 	"github.com/hashicorp/actions-go-build/internal/testhelpers/goldenfile"
 	"github.com/hashicorp/actions-go-build/pkg/crt"
 )
@@ -86,14 +86,7 @@ func TestConfig_BuildConfig_ok(t *testing.T) {
 			if err != nil {
 				t.Fatal(err)
 			}
-			assertEqual(t, got, want)
+			assert.Equal(t, got, want)
 		})
-	}
-}
-
-func assertEqual(t *testing.T, got, want interface{}) {
-	diff := cmp.Diff(got, want)
-	if diff != "" {
-		t.Errorf("Mismatch (-got +want):\n%s", diff)
 	}
 }

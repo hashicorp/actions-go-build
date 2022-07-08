@@ -6,6 +6,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/hashicorp/actions-go-build/internal/testhelpers/assert"
 	"github.com/hashicorp/actions-go-build/pkg/crt"
 )
 
@@ -80,7 +81,7 @@ func TestInputs_Config_ok(t *testing.T) {
 			if err != nil {
 				t.Fatal(err)
 			}
-			assertEqual(t, got, want)
+			assert.Equal(t, got, want)
 		})
 	}
 }
