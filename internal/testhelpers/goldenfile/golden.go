@@ -54,6 +54,7 @@ func shouldUpdate() bool {
 
 // Do allows you to run a function to write to the actual file.
 // It asserts that the actual file written matches the golden file.
+// If updating it also updates the golden file.
 func Do(t *testing.T, fn FileAction) {
 	t.Helper()
 	gf := new(t)
@@ -61,7 +62,7 @@ func Do(t *testing.T, fn FileAction) {
 	defer gf.clean()
 	fn(gf.actualFile)
 	got := gf.readActual()
-	if *update {
+	if shouldUpdate() {
 		gf.update()
 	}
 	want := gf.read()
