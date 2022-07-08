@@ -180,12 +180,11 @@ func applyModifiers[T any](to T, modifiers ...func(thing *T)) T {
 
 func standardProduct() crt.Product {
 	return crt.Product{
-		Repository:        "github.com/dadgarcorp/lockbox",
-		Name:              "lockbox",
-		Version:           "1.2.3",
-		Revision:          "cabba9e",
-		RevisionTime:      standardCommitTimeRFC3339(),
-		RevisionTimestamp: standardCommitTimestamp(),
+		Repository:   "github.com/dadgarcorp/lockbox",
+		Name:         "lockbox",
+		Version:      "1.2.3",
+		Revision:     "cabba9e",
+		RevisionTime: standardCommitTimeRFC3339(),
 	}
 }
 

@@ -48,6 +48,13 @@ type dirs struct {
 func (b *build) Run() error {
 	c := b.config
 	log.Printf("Starting build process.")
+
+	// A quick bit of validation before running the build.
+	productRevisionTimestamp, err := c.Product.RevisionTimestamp()
+	if err != nil {
+		return err
+	}
+
 	log.Printf("Beginning build, rooted at %q", b.config.WorkDir)
 	if err := fs.Mkdirs(c.TargetDir, c.ZipDir, c.MetaDir); err != nil {
 		return err
@@ -73,7 +80,7 @@ func (b *build) Run() error {
 		return err
 	}
 
-	if err := fs.SetMtimes(c.TargetDir, c.Product.RevisionTimestamp()); err != nil {
+	if err := fs.SetMtimes(c.TargetDir, productRevisionTimestamp); err != nil {
 		return err
 	}
 

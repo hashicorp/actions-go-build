@@ -1,11 +1,9 @@
 package config
 
 import (
-	"context"
 	"fmt"
 	"path/filepath"
 	"strings"
-	"time"
 
 	"github.com/hashicorp/actions-go-build/pkg/crt"
 )

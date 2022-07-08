@@ -96,15 +96,14 @@ func standardCommitTime() (ts time.Time, rfc3339 string) {
 }
 
 func standardConfig(workDir string) crt.BuildConfig {
-	revisionTimestamp, revisionTimestampRFC3339 := standardCommitTime()
+	_, revisionTimestampRFC3339 := standardCommitTime()
 	return crt.BuildConfig{
 		Product: crt.Product{
-			Repository:        "dadgarcorp/lockbox",
-			Name:              "lockbox",
-			Version:           "1.2.3",
-			Revision:          "cabba9e",
-			RevisionTime:      revisionTimestampRFC3339,
-			RevisionTimestamp: revisionTimestamp,
+			Repository:   "dadgarcorp/lockbox",
+			Name:         "lockbox",
+			Version:      "1.2.3",
+			Revision:     "cabba9e",
+			RevisionTime: revisionTimestampRFC3339,
 		},
 		ProductVersionMeta: "",
 		WorkDir:            workDir,

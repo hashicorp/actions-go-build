@@ -1,6 +1,7 @@
 package crt
 
 import (
+	"fmt"
 	"path/filepath"
 	"strings"
 	"time"
@@ -32,16 +33,22 @@ type Product struct {
 	// keeping the binary reproducible. (It can be used as a sort of "build
 	// time").
 	RevisionTime string
-	// revisionTimestamp is the underlying timestamp representing RevisionTime.
-	revisionTimestamp time.Time
 }
 
 func (p Product) Init(rc RepoContext) Product {
 	return p.trimSpace().setDefaults(rc)
 }
 
-func (p Product) RevisionTimestamp() time.Time {
-	return p.revisionTimestamp
+func maybeErr(err error, format string, args ...any) error {
+	if err == nil {
+		return nil
+	}
+	return fmt.Errorf(format+": %w", append(args, err))
+}
+
+func (p Product) RevisionTimestamp() (time.Time, error) {
+	ts, err := time.Parse(time.RFC3339, p.RevisionTime)
+	return ts, maybeErr(err, "invalid revision timestamp %q", p.RevisionTime)
 }
 
 // trimSpace trims space from the user-provided input fields only.
@@ -57,7 +64,6 @@ func (p Product) setDefaults(rc RepoContext) Product {
 		p.Name = filepath.Base(p.Repository)
 	}
 	p.Revision = rc.CommitSHA
-	p.revisionTimestamp = rc.CommitTime.UTC()
-	p.RevisionTime = p.revisionTimestamp.Format(time.RFC3339)
+	p.RevisionTime = rc.CommitTime.UTC().Format(time.RFC3339)
 	return p
 }
