@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"io"
 	"io/fs"
+	"log"
 	"os"
 	"path/filepath"
 )
@@ -15,7 +16,7 @@ type Zipper struct {
 	zw      *zip.Writer
 }
 
-// NewZipper returns a new zipper configured to zip the contents of dir.
+// New returns a new zipper configured to zip the contents of dir.
 func New(w io.Writer) *Zipper {
 	return &Zipper{
 		written: map[string]struct{}{},
@@ -31,23 +32,32 @@ func New(w io.Writer) *Zipper {
 //
 // It is intended to perform the same function as calling 'zip -Xrj $zipFile $dir'
 func (z *Zipper) ZipDir(dir string) error {
+	log.Printf("Zipping %q", dir)
 	if err := filepath.WalkDir(dir, func(path string, d fs.DirEntry, err error) error {
 		if err != nil {
 			return err
 		}
 		if d.IsDir() {
-			return fs.SkipDir
+			return nil
 		}
 		name := filepath.Base(path)
+
+		log.Printf("Adding %q to zip file, from %q", name, path)
+
 		source, err := os.Open(path)
 		if err != nil {
+			log.Println(err)
 			return err
 		}
 		var closeErr error
 		defer func() {
-			closeErr = source.Close()
+			if err := source.Close(); err != nil {
+				log.Println(err)
+				closeErr = err
+			}
 		}()
 		if err := z.writeEntry(name, source); err != nil {
+			log.Println(err)
 			return err
 		}
 		return closeErr
@@ -58,15 +68,28 @@ func (z *Zipper) ZipDir(dir string) error {
 		return err
 	}
 
+	log.Printf("Finished zipping %q", dir)
+
 	return nil
 }
 
-func (z *Zipper) writeEntry(name string, source io.Reader) error {
-	if _, ok := z.written[name]; ok {
+func (z *Zipper) writeEntry(name string, source *os.File) error {
+	info, err := source.Stat()
+	if err != nil {
+		return err
+	}
+	header, err := zip.FileInfoHeader(info)
+	if err != nil {
+		return err
+	}
+	if _, ok := z.written[header.Name]; ok {
 		return fmt.Errorf("duplicate entry %q", name)
 	}
+
+	header.Method = zip.Deflate
+
 	z.written[name] = struct{}{}
-	entry, err := z.zw.Create(name)
+	entry, err := z.zw.CreateHeader(header)
 	if err != nil {
 		return err
 	}
@@ -77,7 +100,7 @@ func (z *Zipper) writeEntry(name string, source io.Reader) error {
 // ZipToFile is a convenience function meant to be equivalent to using the command line:
 // 'zip -Xrj $zipFile $dir`
 func ZipToFile(dir, zipFile string) error {
-	f, err := os.OpenFile(zipFile, os.O_CREATE|os.O_TRUNC|os.O_RDWR, os.ModePerm)
+	f, err := os.Create(zipFile)
 	if err != nil {
 		return err
 	}
