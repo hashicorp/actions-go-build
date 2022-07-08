@@ -88,7 +88,7 @@ changelog/add:
 	@echo " END $(CL_REMINDERS_COMMENT) -->" >> "$(CURR_VERSION_CL)"
 	@$(EDITOR) "$(CURR_VERSION_CL)"
 	@$(MAKE) changelog
-	@git add CHANGELOG.md "$(CURR_VERSION_CL)" && git commit -em "update changelog for v$(CURR_VERSION)" && \
+	@git add CHANGELOG.md "$(CURR_VERSION_CL)" && git commit -m "update changelog for v$(CURR_VERSION)" && \
 		echo "==> Changelog updated and committed, thanks for keeping it up-to-date!"
 
 .PHONY: debug/docs

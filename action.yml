@@ -84,8 +84,12 @@ runs:
       with:
         go-version: 1.18
 
+    # Compile the CLI inline. We should work to remove this step by using
+    # precompiled binaries for tagged versions (maybe stored as release
+    # assets).
     - name: Compile the CLI
       shell: bash
+      working-directory: ${{ github.action_path }}
       run: make cli
 
     # Digest inputs and context.

@@ -13,6 +13,12 @@ import (
 	"github.com/sethvargo/go-githubactions"
 )
 
+// BuildConfig contains the
+type BuildConfig struct {
+	BinPath string
+	ZipPath string
+}
+
 // Config is a complete configuration for this action.
 type Config struct {
 	Inputs
