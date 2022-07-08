@@ -139,10 +139,6 @@ func (c Config) EnvVars() ([]EnvVar, error) {
 	addEnv("ZIP_DIR", c.ZipDir)
 	addEnv("META_DIR", c.MetaDir)
 
-	// Extra vars set for the build environment.
-	addEnv("GOOS", c.OS)
-	addEnv("GOARCH", c.Arch)
-
 	return kvs, nil
 }
 
