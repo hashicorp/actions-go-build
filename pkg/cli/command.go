@@ -5,18 +5,46 @@ import (
 	"os"
 )
 
+// cmd represents a command cmd in the CLI graph.
+// Don't construct Commands manually, instead use the RootCommand
+// and LeafCommand functions to construct root and leaf commands.
 type cmd struct {
-	materialise func() Command
-	command     *Command
+	name  string
+	desc  string
+	run   func() error
+	flags Flags
+	args  Args
+	subs  []Command
 }
 
-type Command struct {
-	Name        string
-	Run         func() error
-	Flags       Flags
-	Args        Args
-	Synopsis    string
-	Subcommands []Command
+// Command represents a command or subcommand that could be either a leaf
+// command (meaning it runs its own custom functionality) or a root command
+// (meaning it contains subcommands).
+type Command interface {
+	Name() string
+	Description() string
+	Run() func() error
+	Flags() Flags
+	Args() Args
+	Subcommands() []Command
+	Execute(args []string) error
+}
+
+func (c cmd) Name() string                { return c.name }
+func (c cmd) Description() string         { return c.desc }
+func (c cmd) Run() func() error           { return c.run }
+func (c cmd) Flags() Flags                { return c.flags }
+func (c cmd) Args() Args                  { return c.args }
+func (c cmd) Subcommands() []Command      { return c.subs }
+func (c cmd) Execute(args []string) error { return runCLI(c, args) }
+
+func getSubCommand(parent Command, name string) (Command, bool) {
+	for _, c := range parent.Subcommands() {
+		if c.Name() == name {
+			return c, true
+		}
+	}
+	return cmd{}, false
 }
 
 // RootCommand is a command that only contains subcommands and doesn't do anything
@@ -29,14 +57,14 @@ func RootCommand(name, desc string, subcommands ...Command) Command {
 		p("")
 		p("Subcommands:")
 		return TabWrite(o, subcommands, func(c Command) string {
-			return fmt.Sprintf("\t%s\t%s", c.Name, c.Synopsis)
+			return fmt.Sprintf("\t%s\t%s", c.Name(), c.Description())
 		})
 	}
-	return Command{
-		Name:        name,
-		Synopsis:    desc,
-		Subcommands: subcommands,
-		Run:         run,
+	return cmd{
+		name: name,
+		desc: desc,
+		subs: subcommands,
+		run:  run,
 	}
 }
 
@@ -72,25 +100,11 @@ func LeafCommand[T any](name, desc string, run func(opts *T) error) Command {
 	//log.Printf("flags = % #v", flags)
 	//log.Printf("args = % #v", args)
 	// End Debugging
-	return Command{
-		Name:     name,
-		Synopsis: desc,
-		Flags:    flags,
-		Args:     args,
-		Run:      func() error { return run(opts) },
+	return cmd{
+		name:  name,
+		desc:  desc,
+		flags: flags,
+		args:  args,
+		run:   func() error { return run(opts) },
 	}
-}
-
-// Execute executes this command using the provided args.
-func (c Command) Execute(args []string) error {
-	return runCLI(c, args)
-}
-
-func (c Command) getSubCommand(name string) (Command, bool) {
-	for _, c := range c.Subcommands {
-		if c.Name == name {
-			return c, true
-		}
-	}
-	return Command{}, false
 }

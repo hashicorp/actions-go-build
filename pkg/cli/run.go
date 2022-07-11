@@ -11,10 +11,10 @@ func runCLI(c Command, args []string) error {
 		return run(c, nil)
 	}
 	sub := subArgs[0]
-	if len(c.Subcommands) == 0 {
+	if len(c.Subcommands()) == 0 {
 		return run(c, subArgs)
 	}
-	sc, ok := c.getSubCommand(sub)
+	sc, ok := getSubCommand(c, sub)
 	if !ok {
 		return fmt.Errorf("subcommand %q not found", sub)
 	}
@@ -22,13 +22,13 @@ func runCLI(c Command, args []string) error {
 }
 
 func run(c Command, args []string) error {
-	if c.Run == nil {
+	if c.Run() == nil {
 		return ErrNotImplemented
 	}
-	if c.Args != nil {
-		c.Args.ParseArgs(args)
+	if a := c.Args(); a != nil {
+		a.ParseArgs(args)
 	} else if len(args) != 0 {
 		return ErrNoArgsAllowed
 	}
-	return c.Run()
+	return c.Run()()
 }

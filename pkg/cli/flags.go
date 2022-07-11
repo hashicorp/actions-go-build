@@ -8,24 +8,13 @@ type Flags interface {
 	Flags(*flag.FlagSet)
 }
 
-func MergeFlags(flags ...Flags) Flags {
-	return mergedFlags(flags)
-}
-
-type mergedFlags []Flags
-
-func (mf mergedFlags) Flags(fs *flag.FlagSet) {
-	for _, f := range mf {
-		f.Flags(fs)
-	}
-}
-
 func parseFlags(c Command, args []string) ([]string, error) {
-	if c.Flags == nil {
+	f := c.Flags()
+	if f == nil {
 		return args, nil
 	}
-	fs := flag.NewFlagSet(c.Name, flag.ContinueOnError)
-	c.Flags.Flags(fs)
+	fs := flag.NewFlagSet(c.Name(), flag.ContinueOnError)
+	f.Flags(fs)
 	if err := fs.Parse(args); err != nil {
 		return nil, err
 	}
