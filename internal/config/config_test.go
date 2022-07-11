@@ -17,25 +17,6 @@ func TestConfig_ExportToGitHubEnv_ok(t *testing.T) {
 	})
 }
 
-func standardBuildconfig() crt.BuildConfig {
-	return crt.BuildConfig{
-		Product:      standardProduct(),
-		TargetOS:     "linux",
-		TargetArch:   "amd64",
-		WorkDir:      "/",
-		TargetDir:    "/dist",
-		BinPath:      "/dist/lockbox",
-		ZipPath:      "/out/lockbox_1.2.3_linux_amd64.zip",
-		Instructions: `go build -o "$BIN_PATH"`,
-		ZipDir:       "/out",
-		MetaDir:      "/meta",
-	}
-}
-
-func testBuildConfig(modifiers ...func(*crt.BuildConfig)) crt.BuildConfig {
-	return applyModifiers(standardBuildconfig(), modifiers...)
-}
-
 func TestConfig_BuildConfig_ok(t *testing.T) {
 	cases := []struct {
 		desc   string
@@ -63,7 +44,7 @@ func TestConfig_BuildConfig_ok(t *testing.T) {
 			}),
 		},
 		{
-			"root/blah+ent",
+			"root/blah (overridden zip name)",
 			testConfig(func(c *Config) {
 				c.ZipName = "blargle.zip"
 			}),
@@ -89,4 +70,23 @@ func TestConfig_BuildConfig_ok(t *testing.T) {
 			assert.Equal(t, got, want)
 		})
 	}
+}
+
+func standardBuildconfig() crt.BuildConfig {
+	return crt.BuildConfig{
+		Product:      standardProduct(),
+		TargetOS:     "linux",
+		TargetArch:   "amd64",
+		WorkDir:      "/",
+		TargetDir:    "/dist",
+		BinPath:      "/dist/lockbox",
+		ZipPath:      "/out/lockbox_1.2.3_linux_amd64.zip",
+		Instructions: `go build -o "$BIN_PATH"`,
+		ZipDir:       "/out",
+		MetaDir:      "/meta",
+	}
+}
+
+func testBuildConfig(modifiers ...func(*crt.BuildConfig)) crt.BuildConfig {
+	return applyModifiers(standardBuildconfig(), modifiers...)
 }
