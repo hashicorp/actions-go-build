@@ -69,7 +69,7 @@ func testCLI() (Command, *bytes.Buffer) {
 			return write("leaf5", o.flag1, o.flag2, strings.Join(o.args, ", "))
 		}),
 	)
-	return root(), buf
+	return root, buf
 }
 
 func TestCommand_ok(t *testing.T) {
