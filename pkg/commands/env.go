@@ -5,8 +5,9 @@ import (
 
 	"github.com/hashicorp/actions-go-build/internal/config"
 	"github.com/hashicorp/actions-go-build/pkg/build"
-	"github.com/hashicorp/actions-go-build/pkg/cli"
 	"github.com/hashicorp/actions-go-build/pkg/crt"
+
+	"github.com/hashicorp/composite-action-framework-go/pkg/cli"
 )
 
 var Env = cli.RootCommand("env", "build environment info", EnvDescribe, EnvDump)

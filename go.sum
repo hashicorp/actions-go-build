@@ -30,6 +30,10 @@ github.com/go-git/go-git/v5 v5.4.2/go.mod h1:gQ1kArt6d+n+BGd+/B/I74HwRTLhth2+zti
 github.com/google/go-cmp v0.3.0/go.mod h1:8QqcDgzrUqlUb/G2PQTWiueGozuR1884gddMywk6iLU=
 github.com/google/go-cmp v0.5.8 h1:e6P7q2lk1O+qJJb4BtCQXlK8vWEO8V1ZeuEdJNOqZyg=
 github.com/google/go-cmp v0.5.8/go.mod h1:17dUlkBOakJ0+DkrSSNjCkIjxS6bF9zb3elmeNGIjoY=
+github.com/hashicorp/composite-action-framework-go v0.0.1 h1:5H+qCaAzWU7nVk4KUO694xtidJpdQxeR6NJtSuMaTU8=
+github.com/hashicorp/composite-action-framework-go v0.0.1/go.mod h1:8GmdFaq9P2lLQ1OQcIdq9XDAePWgSMOoaPxqyLRVCjo=
+github.com/hashicorp/composite-action-framework-go v0.0.2 h1:wU9UTq8z6s3jBP3PUq34MVgztRgpWmLOFHo8jzhgmK4=
+github.com/hashicorp/composite-action-framework-go v0.0.2/go.mod h1:DXuNXUBdsCMQMRIQcmm6jTXFVIRW2qov4FLsDvo7Etw=
 github.com/imdario/mergo v0.3.12 h1:b6R2BslTbIEToALKP7LxUvijTsNI9TAe80pLWN2g/HU=
 github.com/imdario/mergo v0.3.12/go.mod h1:jmQim1M+e3UYxmgPu/WyfjB3N3VflVyUjjjwH0dnCYA=
 github.com/jbenet/go-context v0.0.0-20150711004518-d14ea06fba99 h1:BQSFePA1RWJOlocH6Fxy8MmwDt+yVQYULKfN0RoTN8A=

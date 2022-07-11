@@ -5,7 +5,7 @@ import (
 	"fmt"
 
 	"github.com/hashicorp/actions-go-build/internal/config"
-	"github.com/hashicorp/actions-go-build/pkg/cli"
+	"github.com/hashicorp/composite-action-framework-go/pkg/cli"
 )
 
 type configOpts struct {

@@ -4,8 +4,8 @@ import (
 	"log"
 
 	"github.com/hashicorp/actions-go-build/internal/config"
-	"github.com/hashicorp/actions-go-build/pkg/cli"
 	"github.com/hashicorp/actions-go-build/pkg/crt"
+	"github.com/hashicorp/composite-action-framework-go/pkg/cli"
 	cp "github.com/otiai10/copy"
 )
 
