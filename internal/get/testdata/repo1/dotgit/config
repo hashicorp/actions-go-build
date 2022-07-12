@@ -4,3 +4,9 @@
 	ignorecase = true
 	precomposeunicode = true
 	worktree = ..
+[remote "origin"]
+	url = https://github.com/dadgarcorp/lockbox
+	fetch = +refs/heads/*:refs/remotes/origin/*
+[user]
+	name = test
+	email = test@test.com
