@@ -30,14 +30,6 @@ github.com/go-git/go-git/v5 v5.4.2/go.mod h1:gQ1kArt6d+n+BGd+/B/I74HwRTLhth2+zti
 github.com/google/go-cmp v0.3.0/go.mod h1:8QqcDgzrUqlUb/G2PQTWiueGozuR1884gddMywk6iLU=
 github.com/google/go-cmp v0.5.8 h1:e6P7q2lk1O+qJJb4BtCQXlK8vWEO8V1ZeuEdJNOqZyg=
 github.com/google/go-cmp v0.5.8/go.mod h1:17dUlkBOakJ0+DkrSSNjCkIjxS6bF9zb3elmeNGIjoY=
-github.com/hashicorp/composite-action-framework-go v0.0.3-0.20220712115927-11dd45ba59a2 h1:jS+Fpa6Iku3jYdgo2CPUmUV9P60IwYh9gyC/hWIA0u4=
-github.com/hashicorp/composite-action-framework-go v0.0.3-0.20220712115927-11dd45ba59a2/go.mod h1:DXuNXUBdsCMQMRIQcmm6jTXFVIRW2qov4FLsDvo7Etw=
-github.com/hashicorp/composite-action-framework-go v0.0.3-0.20220712122030-ba3b688c22ae h1:cXJ2HkyciEGS4nFiBUsoN7DTIJ6II2OMG/HdIVnO3d0=
-github.com/hashicorp/composite-action-framework-go v0.0.3-0.20220712122030-ba3b688c22ae/go.mod h1:e24goEkB4cg4gwqnvOLluQTXQxwwULAbNdy0DC3sI1Q=
-github.com/hashicorp/composite-action-framework-go v0.0.3-0.20220713091909-cf7295cdd310 h1:jA7pu9hEP5HS+Yb6IfawY+jExEUwT5/pi2IGyBEeDlo=
-github.com/hashicorp/composite-action-framework-go v0.0.3-0.20220713091909-cf7295cdd310/go.mod h1:1MP80j69ZGtAtm/+5DUiDRVfyj7VxizuPABA0TtSpPc=
-github.com/hashicorp/composite-action-framework-go v0.0.3-0.20220713100458-ca4186a384be h1:bb+K+M/rQTRO5v5lOtK0I/xN+grjkYYZE7JDM4aU0zY=
-github.com/hashicorp/composite-action-framework-go v0.0.3-0.20220713100458-ca4186a384be/go.mod h1:1MP80j69ZGtAtm/+5DUiDRVfyj7VxizuPABA0TtSpPc=
 github.com/hashicorp/composite-action-framework-go v0.0.3-0.20220713102318-b2f143b34c02 h1:UirwtKAYBXfnt7rF5gCKMWTNv22TsbeO+UOPcbtUp8g=
 github.com/hashicorp/composite-action-framework-go v0.0.3-0.20220713102318-b2f143b34c02/go.mod h1:1MP80j69ZGtAtm/+5DUiDRVfyj7VxizuPABA0TtSpPc=
 github.com/hashicorp/go-version v1.6.0 h1:feTTfFNnjP967rlCxM/I9g701jU+RN74YKx2mOkIeek=
@@ -83,10 +75,6 @@ github.com/sethvargo/go-githubactions v1.0.0/go.mod h1:UaidDD1ENTLXzTtj/4MnYjY40
 github.com/sirupsen/logrus v1.4.1/go.mod h1:ni0Sbl8bgC9z8RoU9G6nDWqqs/fq4eDPysMBDgk/93Q=
 github.com/stretchr/objx v0.1.0/go.mod h1:HFkY916IF+rwdDfMAkV7OtwuqBVzrE8GR6GFx+wExME=
 github.com/stretchr/objx v0.1.1/go.mod h1:HFkY916IF+rwdDfMAkV7OtwuqBVzrE8GR6GFx+wExME=
-github.com/stretchr/testify v1.2.2/go.mod h1:a8OnRcib4nhh0OaRAV+Yts87kKdq0PP7pXfy6kDkUVs=
-github.com/stretchr/testify v1.4.0/go.mod h1:j7eGeouHqKxXV5pUuKE4zz7dFj8WfuZ+81PSLYec5m4=
-github.com/stretchr/testify v1.7.0 h1:nwc3DEeHmmLAfoZucVR881uASk0Mfjw8xYJ99tb5CcY=
-github.com/stretchr/testify v1.7.0/go.mod h1:6Fq8oRcR53rry900zMqJjRRixrwX3KX962/h/Wwjteg=
 github.com/xanzy/ssh-agent v0.3.0 h1:wUMzuKtKilRgBAD1sUb8gOwwRr2FGoBVumcjoOACClI=
 github.com/xanzy/ssh-agent v0.3.0/go.mod h1:3s9xbODqPuuhK9JV1R321M/FlMZSBvE5aY6eAcqrDh0=
 golang.org/x/crypto v0.0.0-20190219172222-a4c6cb3142f2/go.mod h1:6SG95UA2DQfeDnfUPMdvaQW0Q7yPrPDi9nlGo2tz2b4=
