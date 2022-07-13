@@ -9,6 +9,8 @@ setup() {
 	cd "$BATS_TEST_TMPDIR"
 	git init
 	git add .
+	git config user.email testing@example.com
+	git config user.name "Test User"
 	git commit -m "initial commit"
 	# Set the OS and arch to produce a binary that will execute on this platform.
 	# You need to have Go installed locally anyway to run the test, so using go env
