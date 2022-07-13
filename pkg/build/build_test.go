@@ -50,7 +50,7 @@ go 1.18
 func (b *build) createTestProductRepo(t *testing.T) {
 	b.writeTestFile(t, "main.go", mainDotGo)
 	b.writeTestFile(t, "go.mod", goDotMod)
-	repo, err := git.Init(b.config.WorkDir)
+	repo, err := git.Init(b.config.WorkDir, git.WithAuthor("test", "test@test.com"))
 	if err != nil {
 		t.Fatal(err)
 	}
