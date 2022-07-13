@@ -40,15 +40,19 @@ func TestProduct_Init(t *testing.T) {
 			testRepoContext(),
 			testProduct(func(p *Product) {
 				p.Name = "blargle"
+				p.CoreName = "blargle"
 			}),
 		},
 		{
 			"repository set",
-			Product{Repository: "othercorp/blargle"},
+			Product{
+				Repository: "othercorp/blargle",
+			},
 			testRepoContext(),
 			testProduct(func(p *Product) {
 				p.Repository = "othercorp/blargle"
 				p.Name = "blargle"
+				p.CoreName = "blargle"
 			}),
 		},
 		{
@@ -61,6 +65,43 @@ func TestProduct_Init(t *testing.T) {
 			testProduct(func(p *Product) {
 				p.Repository = "othercorp/blargle"
 				p.Name = "fish"
+				p.CoreName = "fish"
+			}),
+		},
+		{
+			"repository set enterprise",
+			Product{
+				Repository: "othercorp/blargle-enterprise",
+			},
+			testRepoContext(),
+			testProduct(func(p *Product) {
+				p.Repository = "othercorp/blargle-enterprise"
+				p.Name = "blargle-enterprise"
+				p.CoreName = "blargle"
+			}),
+		},
+		{
+			"name set enterprise",
+			Product{
+				Name: "shipit-enterprise",
+			},
+			testRepoContext(),
+			testProduct(func(p *Product) {
+				p.Name = "shipit-enterprise"
+				p.CoreName = "shipit"
+			}),
+		},
+		{
+			"repository and name set enterprise",
+			Product{
+				Repository: "othercorp/blargle-enterprise",
+				Name:       "fish-enterprise",
+			},
+			testRepoContext(),
+			testProduct(func(p *Product) {
+				p.Repository = "othercorp/blargle-enterprise"
+				p.Name = "fish-enterprise"
+				p.CoreName = "fish"
 			}),
 		},
 	}
@@ -106,6 +147,7 @@ func standardProduct() Product {
 	return Product{
 		Repository:   "dadgarcorp/lockbox",
 		Name:         "lockbox",
+		CoreName:     "lockbox",
 		Version:      "1.2.3",
 		Revision:     "cabba9e",
 		RevisionTime: "2022-07-13T12:50:01Z",

@@ -22,6 +22,10 @@ type Product struct {
 	// For single-product repositories, Name is typically the repository
 	// name (i.e. the last path segment of Repository).
 	Name string `env:"PRODUCT_NAME"`
+	// CoreName is the product's core name. This is the same as Name,
+	// minus any "-enterprise" suffix. This is a derived value not read from
+	// the env directly.
+	CoreName string
 	// Version is the base version + prerelease, not including any metadata.
 	// It is used alongside Name to derive default names for the zip package,
 	// deb and rpm packages, and container image tags.
@@ -59,6 +63,7 @@ func (p Product) setDefaults(rc RepoContext) Product {
 	if p.Name == "" {
 		p.Name = filepath.Base(p.Repository)
 	}
+	p.CoreName = strings.TrimSuffix(p.Name, "-enterprise")
 	if p.Version == "" {
 		p.Version = rc.CoreVersion.String()
 	}
