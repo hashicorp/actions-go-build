@@ -114,6 +114,7 @@ func standardProduct() crt.Product {
 	return crt.Product{
 		Repository:   "github.com/dadgarcorp/lockbox",
 		Name:         "lockbox",
+		CoreName:     "lockbox",
 		Version:      "1.2.3",
 		Revision:     "cabba9e",
 		RevisionTime: standardCommitTimeRFC3339(),
