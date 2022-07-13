@@ -12,6 +12,10 @@ BATS := bats -j 10 -T
 
 test: test/bats test/go
 
+cover: GO_TEST_FLAGS := -coverprofile=coverage.profile
+cover: test/go
+	@go tool cover -html=coverage.profile && rm coverage.profile
+
 test/update: test/go/update
 
 CLINAME := $(notdir $(CURDIR))
@@ -75,7 +79,7 @@ test/go/update: export UPDATE_TESTDATA := true
 test/go/update: test/go
 
 test/go: 
-	go test ./...
+	go test $(GO_TEST_FLAGS) ./...
 
 .PHONY: docs
 docs: readme changelog
