@@ -43,11 +43,17 @@ func GetRepoContext(dir string) (RepoContext, error) {
 	sha := commits[0].ID
 	ts := commits[0].AuthorTime
 
+	v, err := getCoreVersion(dir)
+	if err != nil {
+		return RepoContext{}, err
+	}
+
 	return RepoContext{
-		RepoName:   repoName,
-		Dir:        dir,
-		CommitSHA:  sha,
-		CommitTime: ts,
+		RepoName:    repoName,
+		Dir:         dir,
+		CommitSHA:   sha,
+		CommitTime:  ts,
+		CoreVersion: *v,
 	}, nil
 }
 
@@ -81,10 +87,10 @@ func getCoreVersionFromVersionFile(dir string) (*version.Version, error) {
 	if err != nil {
 		return nil, err
 	}
-	vs := string(b)
+	vs := strings.TrimSpace(string(b))
 	v, err := version.NewVersion(vs)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("parsing version %q from %s: %w", vs, vf, err)
 	}
 	if m := v.Metadata(); m != "" {
 		return nil, fmt.Errorf("version %q contains metadata (from %s)", vs, vf)
@@ -143,8 +149,7 @@ func findFilesNamed(dir, name string) ([]string, error) {
 
 type findPredicate func(d fs.DirEntry, path string) bool
 
-// findFiles looks for files in the repo, excluding gitignored files and
-// those in the .git dir.
+// findFiles looks for files in the repo, excluding the .git dir.
 func findFiles(dir string, predicate findPredicate) ([]string, error) {
 	var got []string
 	err := filepath.WalkDir(dir, func(path string, d fs.DirEntry, err error) error {
@@ -152,6 +157,9 @@ func findFiles(dir string, predicate findPredicate) ([]string, error) {
 			return err
 		}
 		if d.IsDir() {
+			if d.Name() == ".git" {
+				return fs.SkipDir
+			}
 			return nil
 		}
 		if predicate(d, path) {

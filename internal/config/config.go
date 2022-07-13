@@ -116,6 +116,7 @@ func (c Config) EnvVars() ([]EnvVar, error) {
 		return nil, err
 	}
 
+	addEnv("PRODUCT_REPOSITORY", c.Product.Repository)
 	addEnv("PRODUCT_NAME", c.Product.Name)
 	addEnv("PRODUCT_VERSION", c.Product.Version)
 	addEnv("PRODUCT_REVISION", c.Product.Revision)

@@ -2,10 +2,13 @@ package config
 
 import (
 	"fmt"
+	"log"
 	"path/filepath"
+	"runtime"
 	"strings"
 
 	"github.com/hashicorp/actions-go-build/pkg/crt"
+	"github.com/hashicorp/go-version"
 )
 
 // Inputs roughly maps to the set of action inputs.
@@ -18,6 +21,8 @@ type Inputs struct {
 	Arch         string `env:"ARCH"`
 	Reproducible string `env:"REPRODUCIBLE"`
 	Instructions string `env:"INSTRUCTIONS"`
+
+	MainPackage string `env:"MAIN_PACKAGE"`
 
 	// Optional inputs.
 	BinName string `env:"BIN_NAME"`
@@ -68,6 +73,18 @@ func (i Inputs) trimSpace() Inputs {
 
 func (i Inputs) setDefaults(rc crt.RepoContext) Inputs {
 	i.Product = i.Product.Init(rc)
+	if i.GoVersion == "" {
+		i.GoVersion = strings.TrimPrefix(runtime.Version(), "go")
+	}
+	if i.OS == "" {
+		i.OS = runtime.GOOS
+	}
+	if i.Arch == "" {
+		i.Arch = runtime.GOARCH
+	}
+	if i.Reproducible == "" {
+		i.Reproducible = "assert"
+	}
 	if i.BinName == "" {
 		i.BinName = i.Product.Name
 	}
@@ -80,7 +97,34 @@ func (i Inputs) setDefaults(rc crt.RepoContext) Inputs {
 	if i.VerificationBuildRoot == "" {
 		i.VerificationBuildRoot = siblingPath(i.PrimaryBuildRoot, "verification")
 	}
+	if i.MainPackage == "" {
+		i.MainPackage = "."
+	}
+	if i.Instructions == "" {
+		i.Instructions = defaultInstructions(i)
+	}
 	return i
+}
+
+func goVersion118OrGreater(i Inputs) bool {
+	goVersion, err := version.NewVersion(i.GoVersion)
+	if err != nil {
+		log.Panic(err)
+	}
+	go118 := version.Must(version.NewVersion("1.18"))
+	return goVersion.GreaterThanOrEqual(go118)
+}
+
+func defaultInstructions(i Inputs) string {
+	var flags []string
+	flags = append(flags, "go", "build")
+	flags = append(flags, "-o", `"$BIN_PATH"`)
+	flags = append(flags, "-trimpath")
+	if goVersion118OrGreater(i) {
+		flags = append(flags, "-buildvcs=false")
+	}
+	flags = append(flags, i.MainPackage)
+	return strings.Join(flags, " ")
 }
 
 // siblingPath returns the sibling path name of to. Sibling path is defined as

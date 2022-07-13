@@ -53,8 +53,14 @@ func (p Product) trimSpace() Product {
 }
 
 func (p Product) setDefaults(rc RepoContext) Product {
+	if p.Repository == "" {
+		p.Repository = rc.RepoName
+	}
 	if p.Name == "" {
 		p.Name = filepath.Base(p.Repository)
+	}
+	if p.Version == "" {
+		p.Version = rc.CoreVersion.String()
 	}
 	p.Revision = rc.CommitSHA
 	p.RevisionTime = rc.CommitTime.UTC().Format(time.RFC3339)
