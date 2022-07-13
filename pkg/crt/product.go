@@ -76,5 +76,5 @@ func maybeErr(err error, format string, args ...any) error {
 	if err == nil {
 		return nil
 	}
-	return fmt.Errorf(format+": %w", append(args, err))
+	return fmt.Errorf(format+": %w", append(args, err)...)
 }
