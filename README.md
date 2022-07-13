@@ -118,17 +118,17 @@ jobs:
 ### Inputs
 
 <!-- insert:dev/docs/inputs_doc -->
-|  Name                                     |  Description                                                                                              |
-|  -----                                    |  -----                                                                                                    |
-|  `product_name`&nbsp;_(optional)_         |  Used to calculate default `bin_name` and `zip_name`. Defaults to repository name.                        |
-|  **`product_version`**&nbsp;_(required)_  |  Version of the product being built.                                                                      |
-|  **`go_version`**&nbsp;_(required)_       |  Version of Go to use for this build.                                                                     |
-|  **`os`**&nbsp;_(required)_               |  Target product operating system.                                                                         |
-|  **`arch`**&nbsp;_(required)_             |  Target product architecture.                                                                             |
-|  `reproducible`&nbsp;_(optional)_         |  Assert that this build is reproducible. Options are `assert` (the default), `report`, or `nope`.         |
-|  `bin_name`&nbsp;_(optional)_             |  Name of the product binary generated. Defaults to `product_name` minus any `-enterprise` suffix.         |
-|  `zip_name`&nbsp;_(optional)_             |  Name of the product zip file. Defaults to `<product_name>_<product_version>_<os>_<arch>.zip`.            |
-|  **`instructions`**&nbsp;_(required)_     |  Build instructions to generate the binary. See [Build Instructions](#build-instructions) for more info.  |
+|  Name                                  |  Description                                                                                              |
+|  -----                                 |  -----                                                                                                    |
+|  `product_name`&nbsp;_(optional)_      |  Used to calculate default `bin_name` and `zip_name`. Defaults to repository name.                        |
+|  `product_version`&nbsp;_(optional)_   |  Version of the product being built.                                                                      |
+|  **`go_version`**&nbsp;_(required)_    |  Version of Go to use for this build.                                                                     |
+|  **`os`**&nbsp;_(required)_            |  Target product operating system.                                                                         |
+|  **`arch`**&nbsp;_(required)_          |  Target product architecture.                                                                             |
+|  `reproducible`&nbsp;_(optional)_      |  Assert that this build is reproducible. Options are `assert` (the default), `report`, or `nope`.         |
+|  `bin_name`&nbsp;_(optional)_          |  Name of the product binary generated. Defaults to `product_name` minus any `-enterprise` suffix.         |
+|  `zip_name`&nbsp;_(optional)_          |  Name of the product zip file. Defaults to `<product_name>_<product_version>_<os>_<arch>.zip`.            |
+|  **`instructions`**&nbsp;_(required)_  |  Build instructions to generate the binary. See [Build Instructions](#build-instructions) for more info.  |
 <!-- end:insert:dev/docs/inputs_doc -->
 
 ### Build Instructions
