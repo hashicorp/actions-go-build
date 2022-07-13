@@ -7,6 +7,9 @@ load assertions.bash
 setup() {
 	cp -r testdata/example-app/* "$BATS_TEST_TMPDIR"
 	cd "$BATS_TEST_TMPDIR"
+	git init
+	git add .
+	git commit -m "initial commit"
 	# Set the OS and arch to produce a binary that will execute on this platform.
 	# You need to have Go installed locally anyway to run the test, so using go env
 	# to determine the platform.
@@ -16,17 +19,13 @@ setup() {
 	export ARCH
 	export GOOS="$OS"
 	export GOARCH="$ARCH"
+	export PRODUCT_REPOSITORY="dadgarcorp/blargles"
 	export PRODUCT_NAME="blargles"
 	export PRODUCT_VERSION="1.2.3"
 	export PRODUCT_REVISION="cabba9e"
 	export PRODUCT_REVISION_TIME="2006-02-02T22:00:01+00:00"
-	export TARGET_DIR="dist"
 	export BIN_NAME="blargles"
-	export BIN_PATH="$TARGET_DIR/$BIN_NAME"
-	export ZIP_DIR="zip"
 	export ZIP_NAME="blargles.zip"
-	export ZIP_PATH="$ZIP_DIR/$ZIP_NAME"
-	export META_DIR="meta"
 }
 
 build() {
@@ -35,8 +34,8 @@ build() {
 
 @test "working build instructions are executed correctly" {
 	# shellcheck disable=SC2016 # We don't want to expand the vars in instructions yet.
-	INSTRUCTIONS='
-		go build -o $TARGET_DIR/$BIN_NAME .
+	export INSTRUCTIONS='
+		go build -o $BIN_PATH .
 	'
 	# Run the build function.
 	build || {
@@ -51,11 +50,11 @@ build() {
 	./dist/blargles
 
 	# Assert the zip was created.
-	assert_file_exists "zip/blargles.zip"
+	assert_file_exists "out/blargles.zip"
 }
 
 @test "failing build instructions result in failure" {
-	INSTRUCTIONS='
+	export INSTRUCTIONS='
 		echo "On no!"
 		exit 1
 		echo "WAT!"
