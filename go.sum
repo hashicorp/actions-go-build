@@ -38,6 +38,8 @@ github.com/hashicorp/composite-action-framework-go v0.0.3-0.20220713144444-1a8ca
 github.com/hashicorp/composite-action-framework-go v0.0.3-0.20220713144444-1a8cad49381d/go.mod h1:1MP80j69ZGtAtm/+5DUiDRVfyj7VxizuPABA0TtSpPc=
 github.com/hashicorp/composite-action-framework-go v0.0.3-0.20220713144705-314121164032 h1:uZxvGId3Pxjsxwm24iZyGeeEk88Cbg91iLBtGjKPPgY=
 github.com/hashicorp/composite-action-framework-go v0.0.3-0.20220713144705-314121164032/go.mod h1:1MP80j69ZGtAtm/+5DUiDRVfyj7VxizuPABA0TtSpPc=
+github.com/hashicorp/composite-action-framework-go v0.0.3-0.20220713153520-f09226f477a6 h1:1x4Dnj800CVvuw3vQUt2Nzgk8LFhcbrKeK0lfI/2UjI=
+github.com/hashicorp/composite-action-framework-go v0.0.3-0.20220713153520-f09226f477a6/go.mod h1:1MP80j69ZGtAtm/+5DUiDRVfyj7VxizuPABA0TtSpPc=
 github.com/hashicorp/go-version v1.6.0 h1:feTTfFNnjP967rlCxM/I9g701jU+RN74YKx2mOkIeek=
 github.com/hashicorp/go-version v1.6.0/go.mod h1:fltr4n8CU8Ke44wwGCBoEymUuxUHl09ZGVZPK5anwXA=
 github.com/imdario/mergo v0.3.12 h1:b6R2BslTbIEToALKP7LxUvijTsNI9TAe80pLWN2g/HU=
