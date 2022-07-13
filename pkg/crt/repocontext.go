@@ -1,22 +1,26 @@
 package crt
 
 import (
+	"errors"
 	"fmt"
+	"io/fs"
+	"io/ioutil"
 	"net/url"
 	"os"
 	"path/filepath"
 	"strings"
 	"time"
 
-	"github.com/go-git/go-git/v5"
-	"github.com/hashicorp/actions-go-build/internal/get"
+	"github.com/hashicorp/composite-action-framework-go/pkg/git"
+	"github.com/hashicorp/go-version"
 )
 
 type RepoContext struct {
-	RepoName   string
-	Dir        string
-	CommitSHA  string
-	CommitTime time.Time
+	RepoName    string
+	Dir         string
+	CommitSHA   string
+	CommitTime  time.Time
+	CoreVersion version.Version
 }
 
 // GetRepoContext reads the repository context from the directory specified.
@@ -25,18 +29,19 @@ func GetRepoContext(dir string) (RepoContext, error) {
 	if err != nil {
 		return RepoContext{}, err
 	}
-	repo, err := git.PlainOpen(dir)
+	repo, err := git.Open(dir)
 	if err != nil {
 		return RepoContext{}, err
 	}
-	logIter, err := repo.Log(&git.LogOptions{})
-	defer logIter.Close()
-	commit, err := logIter.Next()
+	commits, err := repo.Log(1)
 	if err != nil {
 		return RepoContext{}, err
 	}
-	sha := commit.ID().String()
-	ts := commit.Author.When
+	if len(commits) != 1 {
+		return RepoContext{}, fmt.Errorf("no commits")
+	}
+	sha := commits[0].ID
+	ts := commits[0].AuthorTime
 
 	return RepoContext{
 		RepoName:   repoName,
@@ -44,6 +49,47 @@ func GetRepoContext(dir string) (RepoContext, error) {
 		CommitSHA:  sha,
 		CommitTime: ts,
 	}, nil
+}
+
+var (
+	ErrNoVersionFile        = errors.New("no VERSION file found")
+	ErrMultipleVersionFiles = errors.New("multiple VERSION files found")
+)
+
+// getCoreVersion exists so that we can add additional version strategies
+// in the future. Currently we're only adding a single strategy, which is
+// to read from a VERSION file.
+func getCoreVersion(dir string) (*version.Version, error) {
+	return getCoreVersionFromVersionFile(dir)
+}
+
+var versionSearchPath = []string{".", ".release", "dev"}
+
+func getCoreVersionFromVersionFile(dir string) (*version.Version, error) {
+	versionFiles, err := findFilesNamed(dir, "VERSION")
+	if err != nil {
+		return nil, err
+	}
+	if len(versionFiles) == 0 {
+		return nil, ErrNoVersionFile
+	}
+	if len(versionFiles) > 1 {
+		return nil, fmt.Errorf("multiple VERSION files found: %s", strings.Join(versionFiles, ", "))
+	}
+	vf := versionFiles[0]
+	b, err := ioutil.ReadFile(vf)
+	if err != nil {
+		return nil, err
+	}
+	vs := string(b)
+	v, err := version.NewVersion(vs)
+	if err != nil {
+		return nil, err
+	}
+	if m := v.Metadata(); m != "" {
+		return nil, fmt.Errorf("version %q contains metadata (from %s)", vs, vf)
+	}
+	return v, nil
 }
 
 func getRepoName(dir string) (string, error) {
@@ -57,7 +103,11 @@ func getRepoName(dir string) (string, error) {
 	}
 	// For the sake of running this locally, we'll guess
 	// the repo name by inspecting Git config.
-	origin, err := get.GetRemote(dir, "origin")
+	repo, err := git.Open(dir)
+	if err != nil {
+		return "", err
+	}
+	origin, err := repo.GetRemoteNamed("origin")
 	if err == nil && len(origin.URLs) > 0 {
 		return getRepoNameFromRemoteURL(origin.URLs[0])
 	}
@@ -66,9 +116,48 @@ func getRepoName(dir string) (string, error) {
 }
 
 func getRepoNameFromRemoteURL(remoteURL string) (string, error) {
+	var path string
 	u, err := url.Parse(remoteURL)
-	if err != nil {
+	if err == nil {
+		path = u.Path
+	} else if path, err = getRepoPathFromRemoteSpecialGitURL(remoteURL); err != nil {
 		return "", err
 	}
-	return strings.TrimSuffix(u.Path, ".git"), nil
+	out := strings.Trim(path, "/")
+	return strings.TrimSuffix(out, ".git"), nil
+}
+
+func getRepoPathFromRemoteSpecialGitURL(remoteURL string) (string, error) {
+	parts := strings.SplitN(remoteURL, ":", 2)
+	if len(parts) != 2 {
+		return "", fmt.Errorf("unable to parse remote URL %q", remoteURL)
+	}
+	return parts[1], nil
+}
+
+func findFilesNamed(dir, name string) ([]string, error) {
+	return findFiles(dir, func(d fs.DirEntry, path string) bool {
+		return d.Name() == name
+	})
+}
+
+type findPredicate func(d fs.DirEntry, path string) bool
+
+// findFiles looks for files in the repo, excluding gitignored files and
+// those in the .git dir.
+func findFiles(dir string, predicate findPredicate) ([]string, error) {
+	var got []string
+	err := filepath.WalkDir(dir, func(path string, d fs.DirEntry, err error) error {
+		if err != nil {
+			return err
+		}
+		if d.IsDir() {
+			return nil
+		}
+		if predicate(d, path) {
+			got = append(got, path)
+		}
+		return nil
+	})
+	return got, err
 }

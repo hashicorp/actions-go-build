@@ -1,1 +1,0 @@
-WARN  2022-07-12T09:59:22.705 76692 log_path_init:96: Failed to create directory /nowhere for writing logs: Unknown system error 1

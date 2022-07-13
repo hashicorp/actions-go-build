@@ -39,13 +39,6 @@ func (p Product) Init(rc RepoContext) Product {
 	return p.trimSpace().setDefaults(rc)
 }
 
-func maybeErr(err error, format string, args ...any) error {
-	if err == nil {
-		return nil
-	}
-	return fmt.Errorf(format+": %w", append(args, err))
-}
-
 func (p Product) RevisionTimestamp() (time.Time, error) {
 	ts, err := time.Parse(time.RFC3339, p.RevisionTime)
 	return ts, maybeErr(err, "invalid revision timestamp %q", p.RevisionTime)
@@ -66,4 +59,11 @@ func (p Product) setDefaults(rc RepoContext) Product {
 	p.Revision = rc.CommitSHA
 	p.RevisionTime = rc.CommitTime.UTC().Format(time.RFC3339)
 	return p
+}
+
+func maybeErr(err error, format string, args ...any) error {
+	if err == nil {
+		return nil
+	}
+	return fmt.Errorf(format+": %w", append(args, err))
 }

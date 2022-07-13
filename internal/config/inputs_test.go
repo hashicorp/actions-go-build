@@ -6,8 +6,8 @@ import (
 	"testing"
 	"time"
 
-	"github.com/hashicorp/actions-go-build/internal/testhelpers/assert"
 	"github.com/hashicorp/actions-go-build/pkg/crt"
+	"github.com/hashicorp/composite-action-framework-go/pkg/testhelpers/assert"
 )
 
 func TestInputs_Config_ok(t *testing.T) {

@@ -1,16 +1,14 @@
 package build
 
 import (
-	"os"
 	"path/filepath"
-	"strings"
 	"testing"
 	"time"
 
-	"github.com/go-git/go-git/v5"
-	"github.com/hashicorp/actions-go-build/internal/fs"
-	"github.com/hashicorp/actions-go-build/internal/get"
 	"github.com/hashicorp/actions-go-build/pkg/crt"
+	"github.com/hashicorp/composite-action-framework-go/pkg/fs"
+	"github.com/hashicorp/composite-action-framework-go/pkg/git"
+	tmp "github.com/hashicorp/composite-action-framework-go/pkg/testhelpers/tmptest"
 )
 
 func must1[T any](t *testing.T, do func() (T, error)) T {
@@ -22,7 +20,7 @@ func must1[T any](t *testing.T, do func() (T, error)) T {
 }
 
 func TestBuild_Run_ok(t *testing.T) {
-	dir := testTempDir(t)
+	dir := tmp.Dir(t)
 
 	testBuild := must1(t, func() (Build, error) { return New(standardConfig(dir)) })
 	b := testBuild.(*build)
@@ -52,16 +50,16 @@ go 1.18
 func (b *build) createTestProductRepo(t *testing.T) {
 	b.writeTestFile(t, "main.go", mainDotGo)
 	b.writeTestFile(t, "go.mod", goDotMod)
-	repo, err := get.Init(b.config.WorkDir)
+	repo, err := git.Init(b.config.WorkDir)
 	if err != nil {
 		t.Fatal(err)
 	}
-	wt, err := repo.Worktree()
-	if err != nil {
+	if err := repo.Add("."); err != nil {
 		t.Fatal(err)
 	}
-	wt.Add(".")
-	wt.Commit("initial commmit", &git.CommitOptions{})
+	if err := repo.Commit("initial commit"); err != nil {
+		t.Fatal(err)
+	}
 }
 
 // must is a quick way to fail a test depending on if an error is nil or not.
@@ -78,15 +76,6 @@ func (b *build) runTestCommand(t *testing.T, name string, args ...string) {
 func (b *build) writeTestFile(t *testing.T, name, contents string) {
 	name = filepath.Join(b.config.WorkDir, name)
 	must(t, fs.WriteFile(name, contents))
-}
-
-func testTempDir(t *testing.T) string {
-	t.Helper()
-	name := strings.ReplaceAll(t.Name(), "/", "_")
-	f, err := os.MkdirTemp("", name+".*")
-	must(t, err)
-	must(t, os.Chmod(f, os.ModePerm))
-	return f
 }
 
 func standardCommitTime() (ts time.Time, rfc3339 string) {

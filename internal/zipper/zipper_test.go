@@ -9,7 +9,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/hashicorp/actions-go-build/internal/fs"
+	"github.com/hashicorp/composite-action-framework-go/pkg/fs"
 )
 
 type files map[string]string

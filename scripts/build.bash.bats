@@ -5,7 +5,6 @@ set -Eeuo pipefail
 load assertions.bash
 
 setup() {
-	source scripts/build.bash
 	cp -r testdata/example-app/* "$BATS_TEST_TMPDIR"
 	cd "$BATS_TEST_TMPDIR"
 	# Set the OS and arch to produce a binary that will execute on this platform.
@@ -28,6 +27,10 @@ setup() {
 	export ZIP_NAME="blargles.zip"
 	export ZIP_PATH="$ZIP_DIR/$ZIP_NAME"
 	export META_DIR="meta"
+}
+
+build() {
+	actions-go-build primary
 }
 
 @test "working build instructions are executed correctly" {

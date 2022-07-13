@@ -4,9 +4,9 @@ import (
 	"os"
 	"testing"
 
-	"github.com/hashicorp/actions-go-build/internal/testhelpers/assert"
-	"github.com/hashicorp/actions-go-build/internal/testhelpers/goldenfile"
 	"github.com/hashicorp/actions-go-build/pkg/crt"
+	"github.com/hashicorp/composite-action-framework-go/pkg/testhelpers/assert"
+	"github.com/hashicorp/composite-action-framework-go/pkg/testhelpers/goldenfile"
 )
 
 func TestConfig_ExportToGitHubEnv_ok(t *testing.T) {

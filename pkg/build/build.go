@@ -7,10 +7,10 @@ import (
 	"os/exec"
 	"path/filepath"
 
-	"github.com/hashicorp/actions-go-build/internal/fs"
 	"github.com/hashicorp/actions-go-build/internal/zipper"
 	"github.com/hashicorp/actions-go-build/pkg/crt"
 	"github.com/hashicorp/actions-go-build/pkg/digest"
+	"github.com/hashicorp/composite-action-framework-go/pkg/fs"
 )
 
 type Build interface {

@@ -13,7 +13,7 @@ inputs:
   product_version:
     description: >
       Version of the product being built.
-    required: true
+    required: false
 
   go_version:
     description: Version of Go to use for this build.

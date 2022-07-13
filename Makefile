@@ -31,6 +31,9 @@ install: cli
 	@echo "Command '$(CLINAME)' installed to GOBIN"
 endif
 
+mod/framework/update:
+	@REF="$$(cd ../composite-action-framework-go && make module/ref/head)" && \
+		go get "$$REF"
 
 # The run/cli/... targets build and then run the CLI itself
 # which is usful for quickly seeing its output whilst developing.
