@@ -9,8 +9,8 @@ jobs:
           - { runner: ubuntu, os: linux,   arch: arm64 }
           - { runner: ubuntu, os: windows, arch: amd64 }
           - { runner: ubuntu, os: windows, arch: arm64 }
-          - { runner: macos,  os: macos,   arch: amd64 }
-          - { runner: macos,  os: macos,   arch: arm64 }
+          - { runner: macos,  os: darwin,  arch: amd64 }
+          - { runner: macos,  os: darwin,  arch: arm64 }
     runs-on: ${{ matrix.runner }}-latest
     env:
       GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
