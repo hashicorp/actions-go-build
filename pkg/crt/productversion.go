@@ -3,7 +3,6 @@ package crt
 import (
 	"fmt"
 	"io/ioutil"
-	"log"
 	"path/filepath"
 	"strings"
 
@@ -38,7 +37,6 @@ func searchPaths(filename string, paths ...string) (string, error) {
 		if exists {
 			return p, nil
 		}
-		log.Printf("path %q not exists", p)
 	}
 	return "", nil
 }
