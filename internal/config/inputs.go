@@ -3,7 +3,7 @@ package config
 import (
 	"fmt"
 	"log"
-	"path/filepath"
+	"os"
 	"runtime"
 	"strings"
 
@@ -95,7 +95,11 @@ func (i Inputs) setDefaults(rc crt.RepoContext) Inputs {
 		i.PrimaryBuildRoot = rc.Dir
 	}
 	if i.VerificationBuildRoot == "" {
-		i.VerificationBuildRoot = siblingPath(i.PrimaryBuildRoot, "verification")
+		dir, err := os.MkdirTemp("", "actions-go-build.verification-build.*")
+		if err != nil {
+			log.Panic(err)
+		}
+		i.VerificationBuildRoot = dir
 	}
 	if i.MainPackage == "" {
 		i.MainPackage = "."
@@ -125,12 +129,6 @@ func defaultInstructions(i Inputs) string {
 	}
 	flags = append(flags, i.MainPackage)
 	return strings.Join(flags, " ")
-}
-
-// siblingPath returns the sibling path name of to. Sibling path is defined as
-// a path with the same directory component but a different base name.
-func siblingPath(to, name string) string {
-	return filepath.Join(filepath.Dir(to), name)
 }
 
 func errRequiredInputEmpty(name string) error {

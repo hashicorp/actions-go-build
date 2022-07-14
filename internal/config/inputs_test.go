@@ -79,6 +79,17 @@ func TestInputs_Config_ok(t *testing.T) {
 			if err != nil {
 				t.Fatal(err)
 			}
+
+			// Test the verification build root separately because it's
+			// a temp directory with an unpredictable name.
+			if got.VerificationBuildRoot == "" {
+				t.Errorf("got empty VerificationBuildRoot")
+			}
+			// Force got and want to be empty so we can assert equality on
+			// everything else.
+			got.VerificationBuildRoot = ""
+			want.VerificationBuildRoot = ""
+
 			assert.Equal(t, got, want)
 		})
 	}
