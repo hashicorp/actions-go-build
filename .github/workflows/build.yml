@@ -1,0 +1,25 @@
+name: Build
+on: push
+jobs:
+  build:
+    strategy:
+      matrix:
+        include:
+          - { runner: ubuntu, os: linux,   arch: amd64 }
+          - { runner: ubuntu, os: linux,   arch: arm64 }
+          - { runner: ubuntu, os: windows, arch: amd64 }
+          - { runner: ubuntu, os: windows, arch: arm64 }
+          - { runner: macos,  os: macos,   arch: amd64 }
+          - { runner: macos,  os: macos,   arch: arm64 }
+    runs-on: ${{ matrix.runner }}-latest
+    env:
+      GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+    steps:
+      - uses: actions/checkout@v3
+      # Dogfood this Action to build its own CLI.
+      - uses: ./
+        with:
+          go_version: 1.18
+          os: ${{ matrix.os }}
+          arch: ${{ matrix.arch }}
+          instructions: go build -o $BIN_PATH -trimpath -buildvcs=false
