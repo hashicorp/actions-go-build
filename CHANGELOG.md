@@ -11,7 +11,8 @@ Instead, edit the files in dev/changes/, then run 'make docs' to update this fil
 ### Added
 
 ### Changed
-- The `version` input is now optional.
+- The `version` input is now optional. Instead we should use a VERSION file
+  in either the repo root, or .release/ or dev/.
 
 ---
 Internal Changes
