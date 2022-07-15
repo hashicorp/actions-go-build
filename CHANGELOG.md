@@ -11,6 +11,7 @@ Instead, edit the files in dev/changes/, then run 'make docs' to update this fil
 ### Added
 
 ### Changed
+- The `version` input is now optional.
 
 ---
 Internal Changes
@@ -19,6 +20,7 @@ Internal Changes
   - When pre-push hook fails you now see the output so it's easier to debug.
   - Readme tidied up.
   - Converted digest inputs to Go.
+  - Converted build functionality to Go.
 
 ## [v0.1.3](https://github.com/hashicorp/actions-go-build/releases/tag/v0.1.3) - June 15, 2022
 
