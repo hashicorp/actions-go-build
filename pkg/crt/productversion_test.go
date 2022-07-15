@@ -11,17 +11,29 @@ import (
 	"github.com/hashicorp/go-version"
 )
 
-func TestGetCoreVersionFromVersionFile_ok(t *testing.T) {
+type versionFile struct {
+	path, version string
+}
 
-	type versionFile struct {
-		path, version string
-	}
+func TestGetCoreVersionFromVersionFile_ok(t *testing.T) {
 
 	cases := []struct {
 		desc  string
 		want  string
 		files []versionFile
 	}{
+		{
+			desc:  "no version files",
+			want:  "0.0.0-version-file-missing",
+			files: nil,
+		},
+		{
+			desc: "no version files in correct paths",
+			want: "0.0.0-version-file-missing",
+			files: []versionFile{
+				{"random/path/VERSION", "1.2.3"},
+			},
+		},
 		{
 			desc: "standard",
 			want: "1.2.3",
@@ -65,13 +77,7 @@ func TestGetCoreVersionFromVersionFile_ok(t *testing.T) {
 		desc, files, want := c.desc, c.files, version.Must(version.NewVersion(c.want))
 		t.Run(desc, func(t *testing.T) {
 			// Setup.
-			dir := tmp.Dir(t)
-			for _, f := range files {
-				p := filepath.Join(dir, f.path)
-				if err := fs.WriteFile(p, f.version); err != nil {
-					t.Fatal(err)
-				}
-			}
+			dir := writeTmpFileTree(t, files)
 			// Run.
 			got, err := getCoreVersionFromVersionFile(dir)
 			if err != nil {
@@ -84,27 +90,12 @@ func TestGetCoreVersionFromVersionFile_ok(t *testing.T) {
 }
 
 func TestGetCoreVersionFromVersionFile_err(t *testing.T) {
-	type versionFile struct {
-		path, version string
-	}
 
 	cases := []struct {
 		desc  string
 		want  string
 		files []versionFile
 	}{
-		{
-			desc:  "no version files",
-			want:  "no VERSION file found",
-			files: nil,
-		},
-		{
-			desc: "no version files in correct paths",
-			want: "no VERSION file found",
-			files: []versionFile{
-				{"random/path/VERSION", "1.2.3"},
-			},
-		},
 		{
 			desc: "invalid version",
 			want: `parsing version file ".release/VERSION": invalid version "this isn't a version"`,
@@ -125,13 +116,7 @@ func TestGetCoreVersionFromVersionFile_err(t *testing.T) {
 		desc, files, want := c.desc, c.files, c.want
 		t.Run(desc, func(t *testing.T) {
 			// Setup.
-			dir := tmp.Dir(t)
-			for _, f := range files {
-				p := filepath.Join(dir, f.path)
-				if err := fs.WriteFile(p, f.version); err != nil {
-					t.Fatal(err)
-				}
-			}
+			dir := writeTmpFileTree(t, files)
 			// Run.
 			_, gotErr := getCoreVersionFromVersionFile(dir)
 			// Assert.
@@ -144,4 +129,16 @@ func TestGetCoreVersionFromVersionFile_err(t *testing.T) {
 			}
 		})
 	}
+}
+
+func writeTmpFileTree(t *testing.T, files []versionFile) string {
+	t.Helper()
+	dir := tmp.Dir(t)
+	for _, f := range files {
+		p := filepath.Join(dir, f.path)
+		if err := fs.WriteFile(p, f.version); err != nil {
+			t.Fatal(err)
+		}
+	}
+	return dir
 }

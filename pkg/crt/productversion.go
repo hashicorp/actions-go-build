@@ -3,12 +3,17 @@ package crt
 import (
 	"fmt"
 	"io/ioutil"
+	"log"
 	"path/filepath"
 	"strings"
 
 	"github.com/hashicorp/composite-action-framework-go/pkg/fs"
 	"github.com/hashicorp/go-version"
 )
+
+const defaultVersionString = "0.0.0-version-file-missing"
+
+var defaultVersion = version.Must(version.NewVersion(defaultVersionString))
 
 // getCoreVersion exists so that we can add additional version strategies
 // in the future. Currently we're only adding a single strategy, which is
@@ -55,7 +60,11 @@ func getVersionFile(dir string) (string, error) {
 func getCoreVersionFromVersionFile(dir string) (*version.Version, error) {
 	versionFile, err := getVersionFile(dir)
 	if err != nil {
-		return nil, err
+		// Just warn for now; we may make this a hard requirement in the future.
+		log.Printf("WARNING: No VERSION file found in  any of %s: %v; "+
+			"using %s as the default if the version input isn't set.",
+			strings.Join(versionSearchPath, ", "), err, defaultVersion)
+		return defaultVersion, nil
 	}
 	b, err := ioutil.ReadFile(versionFile)
 	if err != nil {
