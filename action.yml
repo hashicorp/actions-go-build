@@ -12,7 +12,12 @@ inputs:
 
   product_version:
     description: >
-      Version of the product being built.
+      Full version of the product being built (including metadata).
+    required: false
+
+  product_version_meta:
+    description: >
+      The metadata field of the version.
     required: false
 
   go_version:
@@ -99,6 +104,7 @@ runs:
       env:
         PRODUCT_NAME: ${{ inputs.product_name }}
         PRODUCT_VERSION: ${{ inputs.product_version }}
+        PRODUCT_VERSION_META: ${{ inputs.product_version_meta }}
         OS: ${{ inputs.os }}
         ARCH: ${{ inputs.arch }}
         REPRODUCIBLE: ${{ inputs.reproducible }}

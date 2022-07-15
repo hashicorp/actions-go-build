@@ -27,6 +27,8 @@ func TestInputs_Config_ok(t *testing.T) {
 			testRepoContext(),
 			testConfig(func(c *Config) {
 				c.Product.Version = "1.2.3+ent"
+				c.Product.CoreVersion = "1.2.3"
+				c.Product.VersionMeta = "ent"
 				c.ZipName = "lockbox_1.2.3+ent_linux_amd64.zip"
 			}),
 		},
@@ -36,6 +38,8 @@ func TestInputs_Config_ok(t *testing.T) {
 			testRepoContext(),
 			testConfig(func(c *Config) {
 				c.Product.Version = "1.2.3+ent.hsm"
+				c.Product.CoreVersion = "1.2.3"
+				c.Product.VersionMeta = "ent.hsm"
 				c.ZipName = "lockbox_1.2.3+ent.hsm_linux_amd64.zip"
 			}),
 		},
@@ -126,7 +130,9 @@ func standardProduct() crt.Product {
 		Repository:   "github.com/dadgarcorp/lockbox",
 		Name:         "lockbox",
 		CoreName:     "lockbox",
+		CoreVersion:  "1.2.3",
 		Version:      "1.2.3",
+		VersionMeta:  "",
 		Revision:     "cabba9e",
 		RevisionTime: standardCommitTimeRFC3339(),
 	}

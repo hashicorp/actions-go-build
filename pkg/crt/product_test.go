@@ -30,6 +30,44 @@ func TestProduct_Init(t *testing.T) {
 			testRepoContext(),
 			testProduct(func(p *Product) {
 				p.Version = "2.0.0"
+				p.CoreVersion = "2.0.0"
+			}),
+		},
+		{
+			"version with meta set",
+			Product{
+				Version: "2.0.0+meta.1",
+			},
+			testRepoContext(),
+			testProduct(func(p *Product) {
+				p.Version = "2.0.0+meta.1"
+				p.CoreVersion = "2.0.0"
+				p.VersionMeta = "meta.1"
+			}),
+		},
+		{
+			"core version found - version not set",
+			Product{},
+			testRepoContext(func(rc *RepoContext) {
+				rc.CoreVersion = *version.Must(version.NewVersion("2.0.0"))
+			}),
+			testProduct(func(p *Product) {
+				p.Version = "2.0.0"
+				p.CoreVersion = "2.0.0"
+			}),
+		},
+		{
+			"core version found - version meta set - version not set",
+			Product{
+				VersionMeta: "ent",
+			},
+			testRepoContext(func(rc *RepoContext) {
+				rc.CoreVersion = *version.Must(version.NewVersion("2.0.0"))
+			}),
+			testProduct(func(p *Product) {
+				p.Version = "2.0.0+ent"
+				p.CoreVersion = "2.0.0"
+				p.VersionMeta = "ent"
 			}),
 		},
 		{
@@ -149,6 +187,8 @@ func standardProduct() Product {
 		Name:         "lockbox",
 		CoreName:     "lockbox",
 		Version:      "1.2.3",
+		CoreVersion:  "1.2.3",
+		VersionMeta:  "",
 		Revision:     "cabba9e",
 		RevisionTime: "2022-07-13T12:50:01Z",
 	}

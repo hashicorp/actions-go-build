@@ -2,9 +2,12 @@ package crt
 
 import (
 	"fmt"
+	"log"
 	"path/filepath"
 	"strings"
 	"time"
+
+	"github.com/hashicorp/go-version"
 )
 
 // Product represents a single logical product. There may be multiple
@@ -26,9 +29,15 @@ type Product struct {
 	// minus any "-enterprise" suffix. This is a derived value not read from
 	// the env directly.
 	CoreName string
-	// Version is the base version + prerelease, not including any metadata.
+	// CoreVersion is the base version + prerelease, not including any metadata.
 	// It is used alongside Name to derive default names for the zip package,
 	// deb and rpm packages, and container image tags.
+	CoreVersion string
+	// VersionMeta is the metadata portion of the version string.
+	VersionMeta string `env:"PRODUCT_VERSION_META"`
+	// Version is the full version string made up of CoreVersion + VersionMeta.
+	// If this is set externally via the PRODUCT_VERSION variable, then CoreVersion
+	// and VersionMeta are disregarded.
 	Version string `env:"PRODUCT_VERSION"`
 	// Revision is the commit SHA of the product being built.
 	Revision string
@@ -64,9 +73,26 @@ func (p Product) setDefaults(rc RepoContext) Product {
 		p.Name = filepath.Base(p.Repository)
 	}
 	p.CoreName = strings.TrimSuffix(p.Name, "-enterprise")
-	if p.Version == "" {
-		p.Version = rc.CoreVersion.String()
+
+	// Figure out the version.
+	if p.Version != "" && p.VersionMeta != "" {
+		// TODO: Handle this case gracefully by returning an error.
+		log.Panicf("both version and version_meta are set")
 	}
+	if p.Version == "" {
+		vfmt := rc.CoreVersion.String()
+		if p.VersionMeta != "" {
+			vfmt += fmt.Sprintf("+%s", p.VersionMeta)
+		}
+		// TODO: Handle error instead of using must, and return the error.
+		v := version.Must(version.NewVersion(vfmt))
+		p.Version = v.String()
+	}
+	v := version.Must(version.NewVersion(p.Version))
+	p.CoreVersion = v.Core().String()
+	p.VersionMeta = v.Metadata()
+
+	// Revision things.
 	p.Revision = rc.CommitSHA
 	p.RevisionTime = rc.CommitTime.UTC().Format(time.RFC3339)
 	return p
