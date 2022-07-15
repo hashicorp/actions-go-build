@@ -11,21 +11,17 @@ import (
 	tmp "github.com/hashicorp/composite-action-framework-go/pkg/testhelpers/tmptest"
 )
 
-func must1[T any](t *testing.T, do func() (T, error)) T {
-	res, err := do()
+func TestBuild_Run_ok(t *testing.T) {
+	dir := tmp.Dir(t)
+	t.Logf("Test dir: %q", dir)
+
+	testBuild, err := New(standardConfig(dir))
 	if err != nil {
 		t.Fatal(err)
 	}
-	return res
-}
 
-func TestBuild_Run_ok(t *testing.T) {
-	dir := tmp.Dir(t)
-
-	testBuild := must1(t, func() (Build, error) { return New(standardConfig(dir)) })
 	b := testBuild.(*build)
 	b.createTestProductRepo(t)
-	t.Logf("Test dir: %q", dir)
 	if err := b.Run(); err != nil {
 		t.Fatal(err)
 	}
