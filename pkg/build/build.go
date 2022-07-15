@@ -64,6 +64,8 @@ func (b *build) Run() error {
 		return err
 	}
 
+	b.listInstructions()
+
 	if err := b.runInstructions(instructionsPath); err != nil {
 		return err
 	}
@@ -133,18 +135,11 @@ func (b *build) runInstructions(path string) error {
 // writeInstructions writes the build instructions to a temporary file
 // and returns its path, or an error if writing fails.
 func (b *build) writeInstructions() (path string, err error) {
-	c := b.config
 	log.Printf("Writing build instructions to temp file.")
-	tempFile, err := os.CreateTemp("", "instructions.*")
-	if err != nil {
-		return "", err
-	}
-	if _, err := tempFile.WriteString(c.Instructions); err != nil {
-		// Ignore the error from close, the write error is more important.
-		tempFile.Close()
-		return "", err
-	}
+	return fs.WriteTempFile("actions-go-build.instructions", b.config.Instructions)
+}
+
+func (b *build) listInstructions() {
 	log.Printf("Listing build instructions...")
-	log.Println(c.Instructions)
-	return tempFile.Name(), tempFile.Close()
+	log.Println(b.config.Instructions)
 }
