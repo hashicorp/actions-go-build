@@ -139,9 +139,6 @@ func errRequiredInputEmpty(name string) error {
 // is about the set of inputs as given, with the expectation that missing fields will
 // be filled in automatically.
 func (i Inputs) validate() error {
-	if i.Product.Version == "" {
-		return errRequiredInputEmpty("product_version")
-	}
 	if i.OS == "" {
 		return errRequiredInputEmpty("os")
 	}
