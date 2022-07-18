@@ -165,12 +165,13 @@ EXAMPLE2         := .github/workflows/example-matrix.yml
 EXAMPLE2_CURRENT := .github/workflows/example-matrix_currentbranch.yml
 
 REPLACEMENTS := -e 's|hashicorp/actions-go-build@main|./|g'
-REPLACEMENTS += -e 's|(main)|(*)|g'
+REPLACEMENTS += -e 's|on: \{ push: \{ branches: main \} \}|on: [push]|g'
+REPLACEMENTS += -e 's|main|current branch|g'
 
 define UPDATE_CURRENT_BRANCH_EXAMPLE
 TARGET="$(1).currentbranch.yml" && \
 echo "# GENERATED FILE, DO NOT MODIFY; INSTEAD EDIT $(1) AND RUN 'make examples'" > "$$TARGET" && \
-sed $(REPLACEMENTS)  "$(1)" >> "$$TARGET"
+sed -E $(REPLACEMENTS)  "$(1)" >> "$$TARGET"
 endef
 
 examples:
