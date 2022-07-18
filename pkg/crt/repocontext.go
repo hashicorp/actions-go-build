@@ -16,6 +16,7 @@ import (
 type RepoContext struct {
 	RepoName    string
 	Dir         string
+	RootDir     string
 	CommitSHA   string
 	CommitTime  time.Time
 	CoreVersion version.Version
@@ -49,6 +50,7 @@ func GetRepoContext(dir string) (RepoContext, error) {
 	return RepoContext{
 		RepoName:    repoName,
 		Dir:         dir,
+		RootDir:     repo.RootDir(),
 		CommitSHA:   sha,
 		CommitTime:  ts,
 		CoreVersion: *v,

@@ -142,6 +142,30 @@ func TestProduct_Init(t *testing.T) {
 				p.CoreName = "fish"
 			}),
 		},
+		{
+			"product in subdirectory",
+			Product{},
+			testRepoContext(func(rc *RepoContext) {
+				rc.RootDir = "/test"
+				rc.Dir = "/test/subdir"
+			}),
+			testProduct(func(p *Product) {
+				p.Name = "subdir"
+				p.CoreName = "subdir"
+			}),
+		},
+		{
+			"product in subdirectory enterprise",
+			Product{},
+			testRepoContext(func(rc *RepoContext) {
+				rc.RootDir = "/test"
+				rc.Dir = "/test/subdir-enterprise"
+			}),
+			testProduct(func(p *Product) {
+				p.Name = "subdir-enterprise"
+				p.CoreName = "subdir"
+			}),
+		},
 	}
 
 	for _, c := range cases {
@@ -166,7 +190,8 @@ func standardRepoContext() RepoContext {
 	v := version.Must(version.NewVersion("1.2.3"))
 	return RepoContext{
 		RepoName:    "dadgarcorp/lockbox",
-		Dir:         "not relevant to this test",
+		Dir:         "/root-dir",
+		RootDir:     "/root-dir",
 		CommitSHA:   "cabba9e",
 		CommitTime:  time.Date(2022, 7, 13, 12, 50, 1, 1, time.UTC),
 		CoreVersion: *v,

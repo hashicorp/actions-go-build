@@ -70,7 +70,7 @@ func (p Product) setDefaults(rc RepoContext) Product {
 		p.Repository = rc.RepoName
 	}
 	if p.Name == "" {
-		p.Name = filepath.Base(p.Repository)
+		p.Name = p.defaultProductName(rc)
 	}
 	p.CoreName = strings.TrimSuffix(p.Name, "-enterprise")
 
@@ -96,6 +96,15 @@ func (p Product) setDefaults(rc RepoContext) Product {
 	p.Revision = rc.CommitSHA
 	p.RevisionTime = rc.CommitTime.UTC().Format(time.RFC3339)
 	return p
+}
+
+func (p Product) defaultProductName(rc RepoContext) string {
+	// If we're in the repo root, use the repo name.
+	if rc.Dir == rc.RootDir {
+		return filepath.Base(p.Repository)
+	}
+	// Otherwise use the subdirectory name.
+	return filepath.Base(rc.Dir)
 }
 
 func maybeErr(err error, format string, args ...any) error {
