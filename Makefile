@@ -165,7 +165,7 @@ EXAMPLE2         := .github/workflows/example-matrix.yml
 EXAMPLE2_CURRENT := .github/workflows/example-matrix_currentbranch.yml
 
 REPLACEMENTS := -e 's|hashicorp/actions-go-build@main|./|g'
-REPLACEMENTS += -e 's|(main)|(current branch)|g'
+REPLACEMENTS += -e 's|(main)|(*)|g'
 
 define UPDATE_CURRENT_BRANCH_EXAMPLE
 TARGET="$(1).currentbranch.yml" && \

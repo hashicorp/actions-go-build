@@ -1,6 +1,6 @@
 # GENERATED FILE, DO NOT MODIFY; INSTEAD EDIT .github/workflows/example-matrix.yml AND RUN 'make examples'
-name: Matrix Example (current branch)
-on: [push]
+name: Matrix Example (*)
+on: { push: { branches: main } }
 jobs:
   example:
     runs-on: ${{ matrix.runner }}

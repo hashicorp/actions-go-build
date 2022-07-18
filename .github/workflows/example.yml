@@ -1,5 +1,5 @@
 name: Minimal Example (main)
-on: [push]
+on: { push: { branches: main } }
 jobs:
   example:
     runs-on: ubuntu-latest
