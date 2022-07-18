@@ -54,13 +54,11 @@ jobs:
       - name: Build
         uses: hashicorp/actions-go-build@main
         with:
-          product_name: example-app
-          product_version: 1.2.3
           go_version: 1.18
           os: linux
           arch: amd64
-          instructions: |-
-            cd ./testdata/example-app
+          work_dir: testdata/example-app
+          instructions: |
             go build -o "$BIN_PATH" -trimpath -buildvcs=false
 ```
 <!-- end:insert:dev/docs/print_example_workflow example.yml -->
