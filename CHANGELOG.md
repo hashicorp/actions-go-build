@@ -10,10 +10,14 @@ Instead, edit the files in dev/changes/, then run 'make docs' to update this fil
 
 ### Added
 - New input `product_version_meta` for adding a metadata field to the product version.
+- New input `work_dir` for setting the working directory.
 
 ### Changed
 - The `product_version` input is now optional. Instead we should use a VERSION file
   in either the repo root, or .release/ or dev/.
+- The `product_name` input's default is now the working directory name, unless
+  the working directory is the repository root, in which case it still defaults
+  to the repository name.
 
 ---
 Internal Changes
