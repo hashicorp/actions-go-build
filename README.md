@@ -129,6 +129,7 @@ jobs:
 |  `reproducible`&nbsp;_(optional)_          |  Assert that this build is reproducible. Options are `assert` (the default), `report`, or `nope`.         |
 |  `bin_name`&nbsp;_(optional)_              |  Name of the product binary generated. Defaults to `product_name` minus any `-enterprise` suffix.         |
 |  `zip_name`&nbsp;_(optional)_              |  Name of the product zip file. Defaults to `<product_name>_<product_version>_<os>_<arch>.zip`.            |
+|  `work_dir`&nbsp;_(optional)_              |  The working directory, to run the instructions in. Defaults to the current directory.                    |
 |  **`instructions`**&nbsp;_(required)_      |  Build instructions to generate the binary. See [Build Instructions](#build-instructions) for more info.  |
 <!-- end:insert:dev/docs/inputs_doc -->
 

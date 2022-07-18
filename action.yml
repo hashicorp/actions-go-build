@@ -53,6 +53,13 @@ inputs:
       Defaults to `<product_name>_<product_version>_<os>_<arch>.zip`.
     required: false
 
+  work_dir:
+    description: >
+      The working directory, to run the instructions in.
+      Defaults to the current directory.
+    required: false
+    default: .
+
   instructions:
     description: >
       Build instructions to generate the binary.
@@ -125,7 +132,7 @@ runs:
     # Primary Build
     - name: Run Primary Build
       shell: bash
-      run: actions-go-build primary
+      run: cd ${{ inputs.work_dir }} && actions-go-build primary
 
     # Upload Primary Build
     - name: Upload primary build zip file.
@@ -139,7 +146,7 @@ runs:
     - name: Run Local Verification Build
       if: inputs.reproducible == 'assert' || inputs.reproducible == 'report'
       shell: bash
-      run: actions-go-build verification
+      run: cd ${{ inputs.work_dir }} && actions-go-build verification
 
     # Upload Local Verification Build
     - name: Upload local verification build zip file.
