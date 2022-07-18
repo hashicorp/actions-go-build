@@ -1,6 +1,6 @@
 # GENERATED FILE, DO NOT MODIFY; INSTEAD EDIT .github/workflows/example.yml AND RUN 'make examples'
 name: Minimal Example (current branch)
-on: [push]
+on: push
 jobs:
   example:
     runs-on: ubuntu-latest
