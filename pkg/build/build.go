@@ -13,6 +13,9 @@ import (
 	"github.com/hashicorp/composite-action-framework-go/pkg/fs"
 )
 
+// Build represents the build of a single binary.
+// It could be a primary build or a verification build, this Build doesn't
+// need to know.
 type Build interface {
 	Run() error
 	Env() []string

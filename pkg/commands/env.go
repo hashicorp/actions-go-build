@@ -3,9 +3,8 @@ package commands
 import (
 	"fmt"
 
-	"github.com/hashicorp/actions-go-build/internal/config"
 	"github.com/hashicorp/actions-go-build/pkg/build"
-	"github.com/hashicorp/actions-go-build/pkg/crt"
+	"github.com/hashicorp/actions-go-build/pkg/commands/opts"
 
 	"github.com/hashicorp/composite-action-framework-go/pkg/cli"
 )
@@ -16,28 +15,9 @@ var EnvDescribe = cli.LeafCommand("describe", "describe the build environment", 
 	return writeEnvDescriptions()
 })
 
-var EnvDump = cli.LeafCommand("dump", "print the current build environment", func(opts *buildFlags) error {
-	c, err := config.FromEnvironment()
-	if err != nil {
-		return err
-	}
-	if opts.verification {
-		return writeEnv(c.VerificationBuildConfig)
-	}
-	return writeEnv(c.PrimaryBuildConfig)
+var EnvDump = cli.LeafCommand("dump", "print the current build environment", func(opts *opts.EnvDumpOpts) error {
+	return printList(opts.Build.Env())
 })
-
-func writeEnv(bcFunc func() (crt.BuildConfig, error)) error {
-	bc, err := bcFunc()
-	if err != nil {
-		return err
-	}
-	b, err := build.New(bc)
-	if err != nil {
-		return err
-	}
-	return printList(b.Env())
-}
 
 func printList(list []string) error {
 	return cli.TabWrite(stdout, list, func(s string) string { return s })

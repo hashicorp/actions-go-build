@@ -155,11 +155,11 @@ func standardCommitTimeRFC3339() string {
 func standardRepoContext() crt.RepoContext {
 	return crt.RepoContext{
 		RepoName:    "dadgarcorp/lockbox",
-		CoreVersion: *version.Must(version.NewVersion("1.2.3")),
-		RootDir:     "/some/dir/work",
 		Dir:         "/some/dir/work",
+		RootDir:     "/some/dir/work",
 		CommitSHA:   "cabba9e",
 		CommitTime:  standardCommitTimestamp(),
+		CoreVersion: *version.Must(version.NewVersion("1.2.3")),
 	}
 }
 
