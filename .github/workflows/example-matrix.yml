@@ -1,5 +1,5 @@
 name: Matrix Example (main)
-on: [push]
+on: { push: { branches: main } }
 jobs:
   example:
     runs-on: ${{ matrix.runner }}

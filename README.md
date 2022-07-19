@@ -45,7 +45,7 @@ This example shows building a single `linux/amd64` binary.
 <!-- insert:dev/docs/print_example_workflow example.yml -->
 ```yaml
 name: Minimal Example (main)
-on: [push]
+on: push
 jobs:
   example:
     runs-on: ubuntu-latest
@@ -54,13 +54,11 @@ jobs:
       - name: Build
         uses: hashicorp/actions-go-build@main
         with:
-          product_name: example-app
-          product_version: 1.2.3
           go_version: 1.18
           os: linux
           arch: amd64
-          instructions: |-
-            cd ./testdata/example-app
+          work_dir: testdata/example-app
+          instructions: |
             go build -o "$BIN_PATH" -trimpath -buildvcs=false
 ```
 <!-- end:insert:dev/docs/print_example_workflow example.yml -->
@@ -77,7 +75,7 @@ and disables CGO for linux and windows builds.
 <!-- insert:dev/docs/print_example_workflow example-matrix.yml -->
 ```yaml
 name: Matrix Example (main)
-on: [push]
+on: push
 jobs:
   example:
     runs-on: ${{ matrix.runner }}
@@ -118,17 +116,19 @@ jobs:
 ### Inputs
 
 <!-- insert:dev/docs/inputs_doc -->
-|  Name                                     |  Description                                                                                              |
-|  -----                                    |  -----                                                                                                    |
-|  `product_name`&nbsp;_(optional)_         |  Used to calculate default `bin_name` and `zip_name`. Defaults to repository name.                        |
-|  **`product_version`**&nbsp;_(required)_  |  Version of the product being built.                                                                      |
-|  **`go_version`**&nbsp;_(required)_       |  Version of Go to use for this build.                                                                     |
-|  **`os`**&nbsp;_(required)_               |  Target product operating system.                                                                         |
-|  **`arch`**&nbsp;_(required)_             |  Target product architecture.                                                                             |
-|  `reproducible`&nbsp;_(optional)_         |  Assert that this build is reproducible. Options are `assert` (the default), `report`, or `nope`.         |
-|  `bin_name`&nbsp;_(optional)_             |  Name of the product binary generated. Defaults to `product_name` minus any `-enterprise` suffix.         |
-|  `zip_name`&nbsp;_(optional)_             |  Name of the product zip file. Defaults to `<product_name>_<product_version>_<os>_<arch>.zip`.            |
-|  **`instructions`**&nbsp;_(required)_     |  Build instructions to generate the binary. See [Build Instructions](#build-instructions) for more info.  |
+|  Name                                      |  Description                                                                                              |
+|  -----                                     |  -----                                                                                                    |
+|  `product_name`&nbsp;_(optional)_          |  Used to calculate default `bin_name` and `zip_name`. Defaults to repository name.                        |
+|  `product_version`&nbsp;_(optional)_       |  Full version of the product being built (including metadata).                                            |
+|  `product_version_meta`&nbsp;_(optional)_  |  The metadata field of the version.                                                                       |
+|  **`go_version`**&nbsp;_(required)_        |  Version of Go to use for this build.                                                                     |
+|  **`os`**&nbsp;_(required)_                |  Target product operating system.                                                                         |
+|  **`arch`**&nbsp;_(required)_              |  Target product architecture.                                                                             |
+|  `reproducible`&nbsp;_(optional)_          |  Assert that this build is reproducible. Options are `assert` (the default), `report`, or `nope`.         |
+|  `bin_name`&nbsp;_(optional)_              |  Name of the product binary generated. Defaults to `product_name` minus any `-enterprise` suffix.         |
+|  `zip_name`&nbsp;_(optional)_              |  Name of the product zip file. Defaults to `<product_name>_<product_version>_<os>_<arch>.zip`.            |
+|  `work_dir`&nbsp;_(optional)_              |  The working directory, to run the instructions in. Defaults to the current directory.                    |
+|  **`instructions`**&nbsp;_(required)_      |  Build instructions to generate the binary. See [Build Instructions](#build-instructions) for more info.  |
 <!-- end:insert:dev/docs/inputs_doc -->
 
 ### Build Instructions
@@ -162,11 +162,10 @@ already exported that you can make use of
 |  `PRODUCT_VERSION`        |  Same as the `product_version` input.                                |
 |  `PRODUCT_REVISION`       |  The git commit SHA of the product repo being built.                 |
 |  `PRODUCT_REVISION_TIME`  |  UTC timestamp of the `PRODUCT_REVISION` commit in iso-8601 format.  |
-|  `BIN_NAME`               |  Name of the Go binary file inside `TARGET_DIR`.                     |
-|  `BIN_PATH`               |  Same as `TARGET_DIR/BIN_NAME`.                                      |
+|  `BIN_PATH`               |  Absolute path to where instructions must write Go executable.       |
 |  `OS`                     |  Same as the `os` input.                                             |
 |  `ARCH`                   |  Same as the `arch` input.                                           |
-|  `GOOS`                   |  Same as `OS`                                                        |
+|  `GOOS`                   |  Same as `OS`.                                                       |
 |  `GOARCH`                 |  Same as `ARCH`.                                                     |
 <!-- end:insert:dev/docs/environment_doc -->
 

@@ -12,8 +12,13 @@ inputs:
 
   product_version:
     description: >
-      Version of the product being built.
-    required: true
+      Full version of the product being built (including metadata).
+    required: false
+
+  product_version_meta:
+    description: >
+      The metadata field of the version.
+    required: false
 
   go_version:
     description: Version of Go to use for this build.
@@ -47,6 +52,13 @@ inputs:
       Name of the product zip file.
       Defaults to `<product_name>_<product_version>_<os>_<arch>.zip`.
     required: false
+
+  work_dir:
+    description: >
+      The working directory, to run the instructions in.
+      Defaults to the current directory.
+    required: false
+    default: .
 
   instructions:
     description: >
@@ -87,25 +99,25 @@ runs:
     # Compile the CLI inline. We should work to remove this step by using
     # precompiled binaries for tagged versions (maybe stored as release
     # assets).
-    - name: Compile the CLI
+    - name: Install the CLI
       shell: bash
       working-directory: ${{ github.action_path }}
-      run: make cli
+      run: make install
 
-    # Digest inputs and context.
-    - name: Calculate default values and paths; set env vars.
+    # Read config and
+    - name: Read config from inputs; export to GITHUB_ENV
       shell: bash
+      run: actions-go-build config -github
       env:
-        PRODUCT_REPOSITORY: ${{ github.repository }}
         PRODUCT_NAME: ${{ inputs.product_name }}
         PRODUCT_VERSION: ${{ inputs.product_version }}
+        PRODUCT_VERSION_META: ${{ inputs.product_version_meta }}
         OS: ${{ inputs.os }}
         ARCH: ${{ inputs.arch }}
         REPRODUCIBLE: ${{ inputs.reproducible }}
         BIN_NAME: ${{ inputs.bin_name }}
         ZIP_NAME: ${{ inputs.zip_name }}
         INSTRUCTIONS: ${{ inputs.instructions }}
-      run: ${{ github.action_path }}/bin/action inputs digest
 
     # Setup Go
     - uses: actions/setup-go@v2
@@ -120,7 +132,7 @@ runs:
     # Primary Build
     - name: Run Primary Build
       shell: bash
-      run: ${{ github.action_path }}/scripts/primary_build
+      run: cd ${{ inputs.work_dir }} && actions-go-build primary
 
     # Upload Primary Build
     - name: Upload primary build zip file.
@@ -134,7 +146,7 @@ runs:
     - name: Run Local Verification Build
       if: inputs.reproducible == 'assert' || inputs.reproducible == 'report'
       shell: bash
-      run: ${{ github.action_path }}/scripts/local_verification_build
+      run: cd ${{ inputs.work_dir }} && actions-go-build verification
 
     # Upload Local Verification Build
     - name: Upload local verification build zip file.

@@ -12,12 +12,32 @@ BATS := bats -j 10 -T
 
 test: test/bats test/go
 
+cover: GO_TEST_FLAGS := -coverprofile=coverage.profile
+cover: test/go
+	@go tool cover -html=coverage.profile && rm coverage.profile
+
 test/update: test/go/update
 
-CLI := bin/action
+CLINAME := $(notdir $(CURDIR))
+CLI     := bin/$(CLINAME)
+RUNCLI  := @./$(CLI)
 
 cli:
-	go build -trimpath -o "$(CLI)"
+	@go build -trimpath -o "$(CLI)"
+
+ifneq ($(GITHUB_PATH),)
+install: cli
+	@echo "$(dir $(CURDIR)/$(CLI))" >> "$$GITHUB_PATH"
+	@echo "Command '$(CLINAME)' installed to GITHUB_PATH"
+else
+install: cli
+	@go install "$(CLIPKG)"
+	@echo "Command '$(CLINAME)' installed to GOBIN"
+endif
+
+mod/framework/update:
+	@REF="$$(cd ../composite-action-framework-go && make module/ref/head)" && \
+		go get "$$REF"
 
 # The run/cli/... targets build and then run the CLI itself
 # which is usful for quickly seeing its output whilst developing.
@@ -27,23 +47,39 @@ run/cli/%: export PRODUCT_VERSION    := 1.2.3
 run/cli/%: export OS                 := $(shell go env GOOS)
 run/cli/%: export ARCH               := $(shell go env GOARCH)
 run/cli/%: export REPRODUCIBLE       := assert
-run/cli/%: export INSTRUCTIONS       := go build -o "$$BIN_PATH"
+run/cli/%: export INSTRUCTIONS       := echo "Running build in bash"; go build -o "$$BIN_PATH"
 
-run/cli/inputs: cli
-	./$(CLI) inputs
+run/cli/config: cli
+	$(RUNCLI) config
 
-run/cli/inputs/digest: cli
-	./$(CLI) inputs digest
+run/cli/config/github: cli
+	$(RUNCLI) config -github
+
+run/cli/env: cli
+	$(RUNCLI) env
+
+# run/cli/env/describe is called by dev/docs/environment_doc
+run/cli/env/describe: cli
+	$(RUNCLI) env describe
+
+run/cli/env/dump: cli
+	$(RUNCLI) env dump
+
+run/cli/primary: cli
+	$(RUNCLI) primary
+
+run/cli/verification: cli
+	$(RUNCLI) verification
 
 test/bats:
 	# Running bats tests in scripts/
 	@$(BATS) scripts/
 
-test/go/update:
-	go test ./... -update
+test/go/update: export UPDATE_TESTDATA := true
+test/go/update: test/go
 
-test/go:
-	go test ./...
+test/go: 
+	go test $(GO_TEST_FLAGS) ./...
 
 .PHONY: docs
 docs: readme changelog
@@ -129,12 +165,14 @@ EXAMPLE2         := .github/workflows/example-matrix.yml
 EXAMPLE2_CURRENT := .github/workflows/example-matrix_currentbranch.yml
 
 REPLACEMENTS := -e 's|hashicorp/actions-go-build@main|./|g'
-REPLACEMENTS += -e 's|(main)|(current branch)|g'
+REPLACEMENTS += -e 's|on: \{ push: \{ branches: main \} \}|on: push|g'
+REPLACEMENTS += -e 's|main|current branch|g'
 
 define UPDATE_CURRENT_BRANCH_EXAMPLE
-TARGET="$(1).currentbranch.yml" && \
+@TARGET="$(1).currentbranch.yml" && \
 echo "# GENERATED FILE, DO NOT MODIFY; INSTEAD EDIT $(1) AND RUN 'make examples'" > "$$TARGET" && \
-sed $(REPLACEMENTS)  "$(1)" >> "$$TARGET"
+sed -E $(REPLACEMENTS)  "$(1)" >> "$$TARGET" && \
+echo "Example file updated: $$TARGET"
 endef
 
 examples:

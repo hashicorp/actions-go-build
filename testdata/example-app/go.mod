@@ -1,3 +1,3 @@
-module github.com/actions-reproducible-build/example-app
+module github.com/actions-go-build/example-app
 
-go 1.17
+go 1.18

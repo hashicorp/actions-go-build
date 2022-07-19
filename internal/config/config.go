@@ -1,80 +1,132 @@
 package config
 
 import (
+	"context"
+	"fmt"
 	"log"
 	"os"
-	"path/filepath"
 
-	"github.com/sethvargo/go-githubactions"
+	"github.com/hashicorp/actions-go-build/pkg/crt"
+	"github.com/sethvargo/go-envconfig"
 )
 
-// BuildConfig contains the
-type BuildConfig struct {
-	BinPath string
-	ZipPath string
-}
-
-// Config is a complete configuration for this action.
+// Config represents the action configuration.
 type Config struct {
-	Inputs
-	ProductRevision     string
-	ProductRevisionTime string
-	PrimaryBuild        BuildConfig
-	VerificationBuild   BuildConfig
-	ProductCoreName     string
-	TargetDir           string
-	ZipDir              string
-	MetaDir             string
+	// Product contains the invariant product details, which don't
+	// vary between different builds of the same commit. (I.e. this
+	// doesn't contain platform- or build-specific info, like OS/ARCH,
+	// or build tags, etc.)
+	Product crt.Product
+
+	// BuildParameters are invariant build details, required alongside
+	// the Product definition to capture the full instructions needed to
+	// reproduce a build.
+	Parameters crt.BuildParameters
+
+	// Reproducible tells the action whether this build ought to be reproducible.
+	// It must be one of these three values:
+	//   - "assert" - this build must be reproducible, fail otherwise.
+	//   - "report" - run the verification build and report, but don't fail the build.
+	//   - "nope"   - don't run the verification build at all.
+	Reproducible string `env:"REPRODUCIBLE"`
+
+	// Optional inputs which do not affect the bytes produced.
+	// Mostly useful for testing.
+
+	// ZipName is the name of the zip file to be created.
+	ZipName string `env:"ZIP_NAME"`
+	// PrimaryBuildRoot is the absolute path where the instructions are run for the
+	// primary build. This path should already exist and contain the product repo
+	// checked out at the commit we want to build.
+	// Default: current working directory.
+	PrimaryBuildRoot string `env:"PRIMARY_BUILD_ROOT"`
+	// VerificationBuildRoot is the absolute path where the instructions are run
+	// for the verification build. This path should not already exist, it is created
+	// by making a recursive copy of the primary build root.
+	// Default: a newly minted temporary directory.
+	VerificationBuildRoot string `env:"VERIFICATION_BUILD_ROOT"`
 }
 
-type envSetter struct {
-	setEnvFunc func(name, value string)
-}
-
-func newEnvSetter() envSetter {
-	if os.Getenv("GITHUB_ENV") != "" {
-		return envSetter{githubactions.SetEnv}
+// FromEnvironment creates a new Config from environment variables
+// and repository context in the current working directory.
+func FromEnvironment() (Config, error) {
+	var c Config
+	ctx := context.Background()
+	if err := envconfig.Process(ctx, &c); err != nil {
+		return c, err
 	}
-	log.Printf("WARNING: GITHUB_ENV not set, just printing environment.")
-	return envSetter{nil}
+
+	wd, err := os.Getwd()
+	if err != nil {
+		return c, err
+	}
+
+	rc, err := crt.GetRepoContext(wd)
+	if err != nil {
+		return c, err
+	}
+
+	return c.init(rc)
 }
 
-// ExportToGitHubEnv writes GitHub Actions set env commands to the provided writer.
-// Use os.Stdout as the writer when you want GitHub to see the commands, use other
-// writers for testing.
-func (c Config) ExportToGitHubEnv() {
-	es := newEnvSetter()
-	es.setEnv("PRODUCT_NAME", c.ProductName)
-	es.setEnv("PRODUCT_VERSION", c.ProductVersion)
-	es.setEnv("PRODUCT_REVISION", c.ProductRevision)
-	es.setEnv("PRODUCT_REVISION_TIME", c.ProductRevisionTime)
-	es.setEnv("GO_VERSION", c.GoVersion)
-	es.setEnv("OS", c.OS)
-	es.setEnv("ARCH", c.Arch)
-	es.setEnv("REPRODUCIBLE", c.Reproducible)
-	es.setEnv("INSTRUCTIONS", c.Instructions)
-	es.setEnv("BIN_NAME", c.BinName)
-	es.setEnv("BIN_PATH", filepath.Join(c.TargetDir, c.BinName))
-	es.setEnv("ZIP_PATH", filepath.Join(c.ZipDir, c.ZipName))
-	es.setEnv("ZIP_NAME", c.ZipName)
-	es.setEnv("PRIMARY_BUILD_ROOT", c.PrimaryBuildRoot)
-	es.setEnv("VERIFICATION_BUILD_ROOT", c.VerificationBuildRoot)
-	es.setEnv("BIN_PATH_PRIMARY", c.PrimaryBuild.BinPath)
-	es.setEnv("ZIP_PATH_PRIMARY", c.PrimaryBuild.ZipPath)
-	es.setEnv("BIN_PATH_VERIFICATION", c.VerificationBuild.BinPath)
-	es.setEnv("ZIP_PATH_VERIFICATION", c.VerificationBuild.ZipPath)
-	es.setEnv("TARGET_DIR", c.TargetDir)
-	es.setEnv("ZIP_DIR", c.ZipDir)
-	es.setEnv("META_DIR", c.MetaDir)
-
-	// Extra vars set for the build environment.
-	es.setEnv("GOOS", c.OS)
-	es.setEnv("GOARCH", c.Arch)
+// buildConfig returns a BuildConfig based on this Config, rooted at root.
+// The root must be an absolute path.
+func (c Config) buildConfig(root string) (crt.BuildConfig, error) {
+	paths, err := crt.NewBuildPaths(root, c.Product.ExecutableName, c.ZipName)
+	if err != nil {
+		return crt.BuildConfig{}, err
+	}
+	return crt.NewBuildConfig(c.Product, c.Parameters, paths)
 }
 
-func (es envSetter) setEnv(name, value string) {
-	log.Printf("Setting %q to %q", name, value)
-	if os.Getenv("GITHUB_ENV") != "" {
-		es.setEnvFunc(name, value)
+// PrimaryBuildConfig returns the config for the primary build.
+func (c Config) PrimaryBuildConfig() (crt.BuildConfig, error) {
+	return c.buildConfig(c.PrimaryBuildRoot)
+}
+
+// VerificationBuildConfig returns the config for the verification build.
+func (c Config) VerificationBuildConfig() (crt.BuildConfig, error) {
+	return c.buildConfig(c.VerificationBuildRoot)
+}
+
+func defaultZipName(product crt.Product, params crt.BuildParameters) string {
+	return fmt.Sprintf("%s_%s_%s_%s.zip", product.Name, product.Version.Full, params.OS, params.Arch)
+}
+
+func (c Config) init(rc crt.RepoContext) (Config, error) {
+	var err error
+	if c.Product, err = c.Product.Init(rc); err != nil {
+		return c, err
+	}
+	if c.Parameters, err = c.Parameters.Init(c.Product); err != nil {
+		return c, err
+	}
+	if c.Reproducible, err = c.resolveReproducible(); err != nil {
+		return c, err
+	}
+	if c.ZipName == "" {
+		c.ZipName = defaultZipName(c.Product, c.Parameters)
+	}
+	if c.PrimaryBuildRoot == "" {
+		c.PrimaryBuildRoot = rc.Dir
+	}
+	if c.VerificationBuildRoot == "" {
+		dir, err := os.MkdirTemp("", "actions-go-build.verification-build.*")
+		if err != nil {
+			log.Panic(err)
+		}
+		c.VerificationBuildRoot = dir
+	}
+	return c, nil
+}
+
+func (c Config) resolveReproducible() (string, error) {
+	switch c.Reproducible {
+	default:
+		return "", fmt.Errorf("%q is not a valid value for 'reproducible', must be one of 'assert' (default), 'report', or 'nope')", c.Reproducible)
+	case "":
+		return "assert", nil
+	case "assert", "report", "nope":
+		return c.Reproducible, nil
 	}
 }

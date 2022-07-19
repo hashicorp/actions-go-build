@@ -1,6 +1,6 @@
 # GENERATED FILE, DO NOT MODIFY; INSTEAD EDIT .github/workflows/example-matrix.yml AND RUN 'make examples'
 name: Matrix Example (current branch)
-on: [push]
+on: push
 jobs:
   example:
     runs-on: ${{ matrix.runner }}
@@ -31,7 +31,7 @@ jobs:
                 -buildvcs=false \
                 -tags="${{ matrix.tags }}" \
                 -ldflags "
-                  -X 'main.Version=$PRODUCT_VERSION'
-                  -X 'main.Revision=$PRODUCT_REVISION'
-                  -X 'main.RevisionTime=$PRODUCT_REVISION_TIME'
+                  -X 'current branch.Version=$PRODUCT_VERSION'
+                  -X 'current branch.Revision=$PRODUCT_REVISION'
+                  -X 'current branch.RevisionTime=$PRODUCT_REVISION_TIME'
                 "
