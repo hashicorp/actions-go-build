@@ -32,7 +32,7 @@ func BuildEnvDefinitions() []EnvVar {
 		{
 			"TARGET_DIR",
 			"Absolute path to the zip contents directory.",
-			func(c crt.BuildConfig) string { return c.TargetDir },
+			func(c crt.BuildConfig) string { return c.Paths.TargetDir },
 		},
 		{
 			"PRODUCT_NAME",
@@ -42,7 +42,7 @@ func BuildEnvDefinitions() []EnvVar {
 		{
 			"PRODUCT_VERSION",
 			"Same as the `product_version` input.",
-			func(c crt.BuildConfig) string { return c.Product.Version },
+			func(c crt.BuildConfig) string { return c.Product.Version.Full },
 		},
 		{
 			"PRODUCT_REVISION",
@@ -57,27 +57,27 @@ func BuildEnvDefinitions() []EnvVar {
 		{
 			"BIN_PATH",
 			"Absolute path to where instructions must write Go executable.",
-			func(c crt.BuildConfig) string { return c.BinPath },
+			func(c crt.BuildConfig) string { return c.Paths.BinPath },
 		},
 		{
 			"OS",
 			"Same as the `os` input.",
-			func(c crt.BuildConfig) string { return c.TargetOS },
+			func(c crt.BuildConfig) string { return c.Parameters.OS },
 		},
 		{
 			"ARCH",
 			"Same as the `arch` input.",
-			func(c crt.BuildConfig) string { return c.TargetArch },
+			func(c crt.BuildConfig) string { return c.Parameters.Arch },
 		},
 		{
 			"GOOS",
 			"Same as `OS`.",
-			func(c crt.BuildConfig) string { return c.TargetOS },
+			func(c crt.BuildConfig) string { return c.Parameters.OS },
 		},
 		{
 			"GOARCH",
 			"Same as `ARCH`.",
-			func(c crt.BuildConfig) string { return c.TargetArch },
+			func(c crt.BuildConfig) string { return c.Parameters.Arch },
 		},
 	}
 }

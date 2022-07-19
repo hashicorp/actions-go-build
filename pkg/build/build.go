@@ -55,8 +55,8 @@ func (b *build) Run() error {
 		return err
 	}
 
-	log.Printf("Beginning build, rooted at %q", b.config.WorkDir)
-	if err := fs.Mkdirs(c.TargetDir, c.ZipDir, c.MetaDir); err != nil {
+	log.Printf("Beginning build, rooted at %q", b.config.Paths.WorkDir)
+	if err := fs.Mkdirs(c.Paths.TargetDir, c.Paths.ZipDir(), c.Paths.MetaDir); err != nil {
 		return err
 	}
 	instructionsPath, err := b.writeInstructions()
@@ -70,27 +70,27 @@ func (b *build) Run() error {
 		return err
 	}
 
-	binExists, err := fs.FileExists(c.BinPath)
+	binExists, err := fs.FileExists(c.Paths.BinPath)
 	if err != nil {
 		return err
 	}
 	if !binExists {
-		return fmt.Errorf("no file written to BIN_PATH %q", c.BinPath)
+		return fmt.Errorf("no file written to BIN_PATH %q", c.Paths.BinPath)
 	}
 
-	if err := b.writeDigest(c.BinPath, "bin_digest"); err != nil {
+	if err := b.writeDigest(c.Paths.BinPath, "bin_digest"); err != nil {
 		return err
 	}
 
-	if err := fs.SetMtimes(c.TargetDir, productRevisionTimestamp); err != nil {
+	if err := fs.SetMtimes(c.Paths.TargetDir, productRevisionTimestamp); err != nil {
 		return err
 	}
 
-	if err := zipper.ZipToFile(c.TargetDir, c.ZipPath); err != nil {
+	if err := zipper.ZipToFile(c.Paths.TargetDir, c.Paths.ZipPath); err != nil {
 		return err
 	}
 
-	if err := b.writeDigest(c.ZipPath, "zip_digest"); err != nil {
+	if err := b.writeDigest(c.Paths.ZipPath, "zip_digest"); err != nil {
 		return err
 	}
 
@@ -103,14 +103,14 @@ func (b *build) writeDigest(of, named string) error {
 		return err
 	}
 
-	digestPath := filepath.Join(b.config.MetaDir, named)
+	digestPath := filepath.Join(b.config.Paths.MetaDir, named)
 
 	return fs.WriteFile(digestPath, sha)
 }
 
 func (b *build) newCommand(name string, args ...string) *exec.Cmd {
 	cmd := exec.CommandContext(b.settings.context, name, args...)
-	cmd.Dir = b.config.WorkDir
+	cmd.Dir = b.config.Paths.WorkDir
 	cmd.Stdout = b.settings.stdout
 	cmd.Stderr = b.settings.stderr
 	return cmd
@@ -136,10 +136,10 @@ func (b *build) runInstructions(path string) error {
 // and returns its path, or an error if writing fails.
 func (b *build) writeInstructions() (path string, err error) {
 	log.Printf("Writing build instructions to temp file.")
-	return fs.WriteTempFile("actions-go-build.instructions", b.config.Instructions)
+	return fs.WriteTempFile("actions-go-build.instructions", b.config.Parameters.Instructions)
 }
 
 func (b *build) listInstructions() {
 	log.Printf("Listing build instructions...")
-	log.Println(b.config.Instructions)
+	log.Println(b.config.Parameters.Instructions)
 }

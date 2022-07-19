@@ -1,5 +1,5 @@
 PRODUCT_REPOSITORY<<_GitHubActionsFileCommandDelimeter_
-github.com/dadgarcorp/lockbox
+dadgarcorp/lockbox
 _GitHubActionsFileCommandDelimeter_
 PRODUCT_NAME<<_GitHubActionsFileCommandDelimeter_
 lockbox
@@ -26,16 +26,10 @@ REPRODUCIBLE<<_GitHubActionsFileCommandDelimeter_
 assert
 _GitHubActionsFileCommandDelimeter_
 INSTRUCTIONS<<_GitHubActionsFileCommandDelimeter_
-go build -o "$BIN_PATH"
+go build -o "$BIN_PATH" -trimpath -buildvcs=false
 _GitHubActionsFileCommandDelimeter_
 BIN_NAME<<_GitHubActionsFileCommandDelimeter_
 lockbox
-_GitHubActionsFileCommandDelimeter_
-BIN_PATH<<_GitHubActionsFileCommandDelimeter_
-dist/lockbox
-_GitHubActionsFileCommandDelimeter_
-ZIP_PATH<<_GitHubActionsFileCommandDelimeter_
-out/lockbox_1.2.3_linux_amd64.zip
 _GitHubActionsFileCommandDelimeter_
 ZIP_NAME<<_GitHubActionsFileCommandDelimeter_
 lockbox_1.2.3_linux_amd64.zip
@@ -57,13 +51,4 @@ BIN_PATH_VERIFICATION<<_GitHubActionsFileCommandDelimeter_
 _GitHubActionsFileCommandDelimeter_
 ZIP_PATH_VERIFICATION<<_GitHubActionsFileCommandDelimeter_
 /some/dir/verification/out/lockbox_1.2.3_linux_amd64.zip
-_GitHubActionsFileCommandDelimeter_
-TARGET_DIR<<_GitHubActionsFileCommandDelimeter_
-dist
-_GitHubActionsFileCommandDelimeter_
-ZIP_DIR<<_GitHubActionsFileCommandDelimeter_
-out
-_GitHubActionsFileCommandDelimeter_
-META_DIR<<_GitHubActionsFileCommandDelimeter_
-meta
 _GitHubActionsFileCommandDelimeter_

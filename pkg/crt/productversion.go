@@ -2,86 +2,55 @@ package crt
 
 import (
 	"fmt"
-	"io/ioutil"
-	"log"
-	"path/filepath"
 	"strings"
 
-	"github.com/hashicorp/composite-action-framework-go/pkg/fs"
 	"github.com/hashicorp/go-version"
 )
 
-const defaultVersionString = "0.0.0-version-file-missing"
-
-var defaultVersion = version.Must(version.NewVersion(defaultVersionString))
-
-// getCoreVersion exists so that we can add additional version strategies
-// in the future. Currently we're only adding a single strategy, which is
-// to read from a VERSION file.
-func getCoreVersion(dir string) (*version.Version, error) {
-	return getCoreVersionFromVersionFile(dir)
+type ProductVersion struct {
+	// Full is the full version string made up of Core + Meta.
+	// If this is set externally, then `Meta` must not also be set, if it is
+	// that's a validation error.
+	Full string `env:"PRODUCT_VERSION"`
+	// Core is the base version + prerelease, not including any metadata.
+	// It is used alongside Name to derive default names for the zip package,
+	// deb and rpm packages, and container image tags.
+	Core string
+	// Meta is the metadata portion of the version string.
+	Meta string `env:"PRODUCT_VERSION_META"`
 }
 
-var versionSearchPath = []string{".", ".release", "dev"}
+// trimSpace trims leading and trailing space from fields read from external inputs
+// only.
+func (pv ProductVersion) trimSpace() ProductVersion {
+	pv.Full = strings.TrimSpace(pv.Full)
+	pv.Meta = strings.TrimSpace(pv.Meta)
+	return pv
+}
 
-func versionSearchPaths(basedir string) []string {
-	out := make([]string, len(versionSearchPath))
-	for i, p := range versionSearchPath {
-		out[i] = filepath.Join(basedir, p)
+// resolve takes a ProductVersion formed by external inputs and ensures all fields
+// are consistently populated.
+func (pv ProductVersion) resolve(rc RepoContext) (ProductVersion, error) {
+	if pv.Full != "" && pv.Meta != "" {
+		return pv, fmt.Errorf("both version and version_meta are set")
 	}
-	return out
-}
-
-func searchPaths(filename string, paths ...string) (string, error) {
-	for _, p := range paths {
-		p := filepath.Join(p, filename)
-		exists, err := fs.FileExists(p)
+	if pv.Full == "" {
+		// rc.CoreVersion is the version from the version file.
+		vfmt := rc.CoreVersion.String()
+		if pv.Meta != "" {
+			vfmt += fmt.Sprintf("+%s", pv.Meta)
+		}
+		v, err := version.NewVersion(vfmt)
 		if err != nil {
-			return "", err
+			return pv, fmt.Errorf("parsing version %q: %w", vfmt, err)
 		}
-		if exists {
-			return p, nil
-		}
+		pv.Full = v.String()
 	}
-	return "", nil
-}
-
-func getVersionFile(dir string) (string, error) {
-	versionFile, err := searchPaths("VERSION", versionSearchPaths(dir)...)
+	v, err := version.NewVersion(pv.Full)
 	if err != nil {
-		return "", err
+		return pv, fmt.Errorf("parsing version %q: %w", pv.Full, err)
 	}
-	if len(versionFile) == 0 {
-		return "", ErrNoVersionFile
-	}
-	return versionFile, nil
-}
-
-func getCoreVersionFromVersionFile(dir string) (*version.Version, error) {
-	versionFile, err := getVersionFile(dir)
-	if err != nil {
-		// Just warn for now; we may make this a hard requirement in the future.
-		log.Printf("WARNING: No VERSION file found in  any of %s: %v; "+
-			"using %s as the default if the version input isn't set.",
-			strings.Join(versionSearchPath, ", "), err, defaultVersion)
-		return defaultVersion, nil
-	}
-	b, err := ioutil.ReadFile(versionFile)
-	if err != nil {
-		return nil, err
-	}
-	v, err := parseVersion(string(b))
-	return v, maybeErr(err, "parsing version file %q", strings.TrimPrefix(versionFile, dir+"/"))
-}
-
-func parseVersion(versionString string) (*version.Version, error) {
-	vs := strings.TrimSpace(versionString)
-	v, err := version.NewVersion(vs)
-	if err != nil {
-		return nil, fmt.Errorf("invalid version %q", versionString)
-	}
-	if m := v.Metadata(); m != "" {
-		return nil, fmt.Errorf("version %q contains metadata", vs)
-	}
-	return v, nil
+	pv.Core = v.Core().String()
+	pv.Meta = v.Metadata()
+	return pv, nil
 }

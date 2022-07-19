@@ -23,26 +23,35 @@ func TestProduct_Init(t *testing.T) {
 			testProduct(),
 		},
 		{
-			"version set",
+			"full version set",
 			Product{
-				Version: "2.0.0",
+				Version: ProductVersion{
+					Full: "2.0.0",
+				},
 			},
 			testRepoContext(),
 			testProduct(func(p *Product) {
-				p.Version = "2.0.0"
-				p.CoreVersion = "2.0.0"
+				p.Version = ProductVersion{
+					Full: "2.0.0",
+					Core: "2.0.0",
+					Meta: "",
+				}
 			}),
 		},
 		{
-			"version with meta set",
+			"full version with meta set",
 			Product{
-				Version: "2.0.0+meta.1",
+				Version: ProductVersion{
+					Full: "2.0.0+meta.1",
+				},
 			},
 			testRepoContext(),
 			testProduct(func(p *Product) {
-				p.Version = "2.0.0+meta.1"
-				p.CoreVersion = "2.0.0"
-				p.VersionMeta = "meta.1"
+				p.Version = ProductVersion{
+					Full: "2.0.0+meta.1",
+					Core: "2.0.0",
+					Meta: "meta.1",
+				}
 			}),
 		},
 		{
@@ -52,22 +61,27 @@ func TestProduct_Init(t *testing.T) {
 				rc.CoreVersion = *version.Must(version.NewVersion("2.0.0"))
 			}),
 			testProduct(func(p *Product) {
-				p.Version = "2.0.0"
-				p.CoreVersion = "2.0.0"
+				p.Version = ProductVersion{
+					Full: "2.0.0",
+					Core: "2.0.0",
+					Meta: "",
+				}
 			}),
 		},
 		{
 			"core version found - version meta set - version not set",
 			Product{
-				VersionMeta: "ent",
+				Version: ProductVersion{
+					Meta: "ent",
+				},
 			},
 			testRepoContext(func(rc *RepoContext) {
 				rc.CoreVersion = *version.Must(version.NewVersion("2.0.0"))
 			}),
 			testProduct(func(p *Product) {
-				p.Version = "2.0.0+ent"
-				p.CoreVersion = "2.0.0"
-				p.VersionMeta = "ent"
+				p.Version.Full = "2.0.0+ent"
+				p.Version.Core = "2.0.0"
+				p.Version.Meta = "ent"
 			}),
 		},
 		{
@@ -79,6 +93,7 @@ func TestProduct_Init(t *testing.T) {
 			testProduct(func(p *Product) {
 				p.Name = "blargle"
 				p.CoreName = "blargle"
+				p.ExecutableName = "blargle"
 			}),
 		},
 		{
@@ -91,6 +106,7 @@ func TestProduct_Init(t *testing.T) {
 				p.Repository = "othercorp/blargle"
 				p.Name = "blargle"
 				p.CoreName = "blargle"
+				p.ExecutableName = "blargle"
 			}),
 		},
 		{
@@ -104,6 +120,7 @@ func TestProduct_Init(t *testing.T) {
 				p.Repository = "othercorp/blargle"
 				p.Name = "fish"
 				p.CoreName = "fish"
+				p.ExecutableName = "fish"
 			}),
 		},
 		{
@@ -116,6 +133,7 @@ func TestProduct_Init(t *testing.T) {
 				p.Repository = "othercorp/blargle-enterprise"
 				p.Name = "blargle-enterprise"
 				p.CoreName = "blargle"
+				p.ExecutableName = "blargle"
 			}),
 		},
 		{
@@ -127,6 +145,7 @@ func TestProduct_Init(t *testing.T) {
 			testProduct(func(p *Product) {
 				p.Name = "shipit-enterprise"
 				p.CoreName = "shipit"
+				p.ExecutableName = "shipit"
 			}),
 		},
 		{
@@ -140,6 +159,7 @@ func TestProduct_Init(t *testing.T) {
 				p.Repository = "othercorp/blargle-enterprise"
 				p.Name = "fish-enterprise"
 				p.CoreName = "fish"
+				p.ExecutableName = "fish"
 			}),
 		},
 		{
@@ -152,6 +172,7 @@ func TestProduct_Init(t *testing.T) {
 			testProduct(func(p *Product) {
 				p.Name = "subdir"
 				p.CoreName = "subdir"
+				p.ExecutableName = "subdir"
 			}),
 		},
 		{
@@ -164,6 +185,22 @@ func TestProduct_Init(t *testing.T) {
 			testProduct(func(p *Product) {
 				p.Name = "subdir-enterprise"
 				p.CoreName = "subdir"
+				p.ExecutableName = "subdir"
+			}),
+		},
+		{
+			"executable name overridden",
+			Product{
+				ExecutableName: "overridden",
+			},
+			testRepoContext(func(rc *RepoContext) {
+				rc.RootDir = "/test"
+				rc.Dir = "/test/subdir-enterprise"
+			}),
+			testProduct(func(p *Product) {
+				p.Name = "subdir-enterprise"
+				p.CoreName = "subdir"
+				p.ExecutableName = "overridden"
 			}),
 		},
 	}
@@ -171,7 +208,10 @@ func TestProduct_Init(t *testing.T) {
 	for _, c := range cases {
 		desc, initial, rc, want := c.desc, c.initial, c.rc, c.want
 		t.Run(desc, func(t *testing.T) {
-			got := initial.Init(rc)
+			got, err := initial.Init(rc)
+			if err != nil {
+				t.Fatal(err)
+			}
 			assert.Equal(t, got, want)
 		})
 	}
@@ -208,12 +248,15 @@ func testProduct(modifiers ...func(*Product)) Product {
 
 func standardProduct() Product {
 	return Product{
-		Repository:   "dadgarcorp/lockbox",
-		Name:         "lockbox",
-		CoreName:     "lockbox",
-		Version:      "1.2.3",
-		CoreVersion:  "1.2.3",
-		VersionMeta:  "",
+		Repository:     "dadgarcorp/lockbox",
+		Name:           "lockbox",
+		CoreName:       "lockbox",
+		ExecutableName: "lockbox",
+		Version: ProductVersion{
+			Full: "1.2.3",
+			Core: "1.2.3",
+			Meta: "",
+		},
 		Revision:     "cabba9e",
 		RevisionTime: "2022-07-13T12:50:01Z",
 	}

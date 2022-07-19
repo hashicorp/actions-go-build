@@ -46,7 +46,7 @@ go 1.18
 func (b *build) createTestProductRepo(t *testing.T) {
 	b.writeTestFile(t, "main.go", mainDotGo)
 	b.writeTestFile(t, "go.mod", goDotMod)
-	repo, err := git.Init(b.config.WorkDir, git.WithAuthor("test", "test@test.com"))
+	repo, err := git.Init(b.config.Paths.WorkDir, git.WithAuthor("test", "test@test.com"))
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -70,7 +70,7 @@ func (b *build) runTestCommand(t *testing.T, name string, args ...string) {
 }
 
 func (b *build) writeTestFile(t *testing.T, name, contents string) {
-	name = filepath.Join(b.config.WorkDir, name)
+	name = filepath.Join(b.config.Paths.WorkDir, name)
 	must(t, fs.WriteFile(name, contents))
 }
 
@@ -84,21 +84,27 @@ func standardConfig(workDir string) crt.BuildConfig {
 	_, revisionTimestampRFC3339 := standardCommitTime()
 	return crt.BuildConfig{
 		Product: crt.Product{
-			Repository:   "dadgarcorp/lockbox",
-			Name:         "lockbox",
-			Version:      "1.2.3",
+			Repository: "dadgarcorp/lockbox",
+			Name:       "lockbox",
+			Version: crt.ProductVersion{
+				Full: "1.2.3",
+				Core: "1.2.3",
+				Meta: "1.2.3",
+			},
 			Revision:     "cabba9e",
 			RevisionTime: revisionTimestampRFC3339,
 		},
-		ProductVersionMeta: "",
-		WorkDir:            workDir,
-		TargetDir:          filepath.Join(workDir, "dist"),
-		BinPath:            filepath.Join(workDir, "dist", "lockbox"),
-		ZipDir:             filepath.Join(workDir, "out"),
-		ZipPath:            filepath.Join(workDir, "out", "lockbox_1.2.3_amd64.zip"),
-		MetaDir:            filepath.Join(workDir, "meta"),
-		Instructions:       `echo -n "Building '$BIN_PATH'..." && go build -o $BIN_PATH && echo "Done!"`,
-		TargetOS:           "linux",
-		TargetArch:         "amd64",
+		Parameters: crt.BuildParameters{
+			Instructions: `echo -n "Building '$BIN_PATH'..." && go build -o $BIN_PATH && echo "Done!"`,
+			OS:           "linux",
+			Arch:         "amd64",
+		},
+		Paths: crt.BuildPaths{
+			WorkDir:   workDir,
+			TargetDir: filepath.Join(workDir, "dist"),
+			BinPath:   filepath.Join(workDir, "dist", "lockbox"),
+			ZipPath:   filepath.Join(workDir, "out", "lockbox_1.2.3_amd64.zip"),
+			MetaDir:   filepath.Join(workDir, "meta"),
+		},
 	}
 }

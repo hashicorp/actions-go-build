@@ -2,72 +2,81 @@ package config
 
 import (
 	"context"
-	"errors"
 	"fmt"
 	"log"
 	"os"
-	"path/filepath"
 
 	"github.com/hashicorp/actions-go-build/pkg/crt"
 	"github.com/sethvargo/go-envconfig"
-	"github.com/sethvargo/go-githubactions"
 )
 
-// BuildConfig contains the
-type BuildConfig struct {
-	BinPath string
-	ZipPath string
-}
-
-// Config is a complete configuration for this action.
+// Config represents the action configuration.
 type Config struct {
-	Inputs
-	TargetDir string
-	ZipDir    string
-	MetaDir   string
+	// Product contains the invariant product details, which don't
+	// vary between different builds of the same commit. (I.e. this
+	// doesn't contain platform- or build-specific info, like OS/ARCH,
+	// or build tags, etc.)
+	Product crt.Product
+
+	// BuildParameters are invariant build details, required alongside
+	// the Product definition to capture the full instructions needed to
+	// reproduce a build.
+	Parameters crt.BuildParameters
+
+	// Reproducible tells the action whether this build ought to be reproducible.
+	// It must be one of these three values:
+	//   - "assert" - this build must be reproducible, fail otherwise.
+	//   - "report" - run the verification build and report, but don't fail the build.
+	//   - "nope"   - don't run the verification build at all.
+	Reproducible string `env:"REPRODUCIBLE"`
+
+	// Optional inputs which do not affect the bytes produced.
+	// Mostly useful for testing.
+
+	// ZipName is the name of the zip file to be created.
+	ZipName string `env:"ZIP_NAME"`
+	// PrimaryBuildRoot is the absolute path where the instructions are run for the
+	// primary build. This path should already exist and contain the product repo
+	// checked out at the commit we want to build.
+	// Default: current working directory.
+	PrimaryBuildRoot string `env:"PRIMARY_BUILD_ROOT"`
+	// VerificationBuildRoot is the absolute path where the instructions are run
+	// for the verification build. This path should not already exist, it is created
+	// by making a recursive copy of the primary build root.
+	// Default: a newly minted temporary directory.
+	VerificationBuildRoot string `env:"VERIFICATION_BUILD_ROOT"`
 }
 
 // FromEnvironment creates a new Config from environment variables
 // and repository context in the current working directory.
 func FromEnvironment() (Config, error) {
-	var inputs Inputs
+	var c Config
 	ctx := context.Background()
-	if err := envconfig.Process(ctx, &inputs); err != nil {
-		return Config{}, err
+	if err := envconfig.Process(ctx, &c); err != nil {
+		return c, err
 	}
 
 	wd, err := os.Getwd()
 	if err != nil {
-		return Config{}, err
+		return c, err
 	}
 
-	bc, err := crt.GetRepoContext(wd)
+	rc, err := crt.GetRepoContext(wd)
 	if err != nil {
-		return Config{}, err
+		return c, err
 	}
 
-	return inputs.Config(bc)
+	return c.init(rc)
 }
 
 // buildConfig returns a BuildConfig based on this Config, rooted at root.
 // The root must be an absolute path.
 func (c Config) buildConfig(root string) (crt.BuildConfig, error) {
-	if !filepath.IsAbs(root) {
-		return crt.BuildConfig{}, fmt.Errorf("root path %q is not absolute", root)
+	paths, err := crt.NewBuildPaths(root, c.Product.ExecutableName, c.ZipName)
+	if err != nil {
+		return crt.BuildConfig{}, err
 	}
-	return crt.BuildConfig{
-		Product:            c.Product,
-		ProductVersionMeta: "",
-		WorkDir:            root,
-		TargetDir:          filepath.Join(root, c.TargetDir),
-		BinPath:            filepath.Join(root, c.TargetDir, c.BinName),
-		ZipPath:            filepath.Join(root, c.ZipDir, c.ZipName),
-		Instructions:       c.Instructions,
-		TargetOS:           c.OS,
-		TargetArch:         c.Arch,
-		ZipDir:             filepath.Join(root, c.ZipDir),
-		MetaDir:            filepath.Join(root, c.MetaDir),
-	}, nil
+	return crt.NewBuildConfig(c.Product, c.Parameters, paths)
 }
 
 // PrimaryBuildConfig returns the config for the primary build.
@@ -80,92 +89,44 @@ func (c Config) VerificationBuildConfig() (crt.BuildConfig, error) {
 	return c.buildConfig(c.VerificationBuildRoot)
 }
 
-type envSetter struct {
-	setEnvFunc func(name, value string)
+func defaultZipName(product crt.Product, params crt.BuildParameters) string {
+	return fmt.Sprintf("%s_%s_%s_%s.zip", product.Name, product.Version.Full, params.OS, params.Arch)
 }
 
-func newEnvSetter() envSetter {
-	if os.Getenv("GITHUB_ENV") != "" {
-		return envSetter{githubactions.SetEnv}
+func (c Config) init(rc crt.RepoContext) (Config, error) {
+	var err error
+	if c.Product, err = c.Product.Init(rc); err != nil {
+		return c, err
 	}
-	log.Printf("WARNING: GITHUB_ENV not set, just printing environment.")
-	return envSetter{nil}
+	if c.Parameters, err = c.Parameters.Init(c.Product); err != nil {
+		return c, err
+	}
+	if c.Reproducible, err = c.resolveReproducible(); err != nil {
+		return c, err
+	}
+	if c.ZipName == "" {
+		c.ZipName = defaultZipName(c.Product, c.Parameters)
+	}
+	if c.PrimaryBuildRoot == "" {
+		c.PrimaryBuildRoot = rc.Dir
+	}
+	if c.VerificationBuildRoot == "" {
+		dir, err := os.MkdirTemp("", "actions-go-build.verification-build.*")
+		if err != nil {
+			log.Panic(err)
+		}
+		c.VerificationBuildRoot = dir
+	}
+	return c, nil
 }
 
-type EnvVar struct{ Name, Value string }
-
-func (c Config) EnvVars() ([]EnvVar, error) {
-	var kvs []EnvVar
-	addEnv := func(key, value string) {
-		kvs = append(kvs, EnvVar{key, value})
+func (c Config) resolveReproducible() (string, error) {
+	switch c.Reproducible {
+	default:
+		return "", fmt.Errorf("%q is not a valid value for 'reproducible', must be one of 'assert' (default), 'report', or 'nope')", c.Reproducible)
+	case "":
+		return "assert", nil
+	case "assert", "report", "nope":
+		return c.Reproducible, nil
 	}
-
-	// TODO don't serialise primary and verification build configs to env here.
-	// We can derive them from the rest of the config anyway so there's probably
-	// no point writing them to GITHUB_ENV.
-	//
-	// Keeping them here for now since the current bash implementation expects
-	// to see them.
-
-	primary, err := c.PrimaryBuildConfig()
-	if err != nil {
-		return nil, err
-	}
-	verification, err := c.VerificationBuildConfig()
-	if err != nil {
-		return nil, err
-	}
-
-	addEnv("PRODUCT_REPOSITORY", c.Product.Repository)
-	addEnv("PRODUCT_NAME", c.Product.Name)
-	addEnv("PRODUCT_VERSION", c.Product.Version)
-	addEnv("PRODUCT_REVISION", c.Product.Revision)
-	addEnv("PRODUCT_REVISION_TIME", c.Product.RevisionTime)
-	addEnv("GO_VERSION", c.GoVersion)
-	addEnv("OS", c.OS)
-	addEnv("ARCH", c.Arch)
-	addEnv("REPRODUCIBLE", c.Reproducible)
-	addEnv("INSTRUCTIONS", c.Instructions)
-	addEnv("BIN_NAME", c.BinName)
-	addEnv("BIN_PATH", filepath.Join(c.TargetDir, c.BinName))
-	addEnv("ZIP_PATH", filepath.Join(c.ZipDir, c.ZipName))
-	addEnv("ZIP_NAME", c.ZipName)
-	addEnv("PRIMARY_BUILD_ROOT", c.PrimaryBuildRoot)
-	addEnv("VERIFICATION_BUILD_ROOT", c.VerificationBuildRoot)
-	addEnv("BIN_PATH_PRIMARY", primary.BinPath)
-	addEnv("ZIP_PATH_PRIMARY", primary.ZipPath)
-	addEnv("BIN_PATH_VERIFICATION", verification.BinPath)
-	addEnv("ZIP_PATH_VERIFICATION", verification.ZipPath)
-	addEnv("TARGET_DIR", c.TargetDir)
-	addEnv("ZIP_DIR", c.ZipDir)
-	addEnv("META_DIR", c.MetaDir)
-
-	return kvs, nil
-}
-
-func (c Config) foreach(fn func(key, value string)) error {
-	vars, err := c.EnvVars()
-	if err != nil {
-		return err
-	}
-	for _, pair := range vars {
-		fn(pair.Name, pair.Value)
-	}
-	return nil
-}
-
-// ExportToGitHubEnv writes this config to GITHUB_ENV so it can be read by
-// future steps in this job. If GITHUB_ENV isn't set, it prints a warning
-// and just logs what would have been set.
-func (c Config) ExportToGitHubEnv() error {
-	if os.Getenv("GITHUB_ENV") == "" {
-		return errors.New("GITHUB_ENV not set")
-	}
-	es := newEnvSetter()
-	return c.foreach(es.setEnv)
-}
-
-func (es envSetter) setEnv(name, value string) {
-	log.Printf("Setting %q to %q", name, value)
-	es.setEnvFunc(name, value)
 }
