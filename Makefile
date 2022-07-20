@@ -71,6 +71,9 @@ run/cli/primary: cli
 run/cli/verification: cli
 	$(RUNCLI) verification
 
+run/cli/compare: cli
+	$(RUNCLI) compare
+
 test/bats:
 	# Running bats tests in scripts/
 	@$(BATS) scripts/

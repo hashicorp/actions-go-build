@@ -11,6 +11,9 @@ import (
 )
 
 var Compare = cli.LeafCommand("compare", "compare digests", func(configs *opts.AllBuildConfigs) error {
+	log.Printf("Comparing SHA256 digests between primary and local verification builds.")
+	log.Printf("Primary build root:      %s", configs.Primary.Paths.WorkDir)
+	log.Printf("Verification build root: %s", configs.Verification.Paths.WorkDir)
 	bin, zip := "executable", "zip"
 	if err := comp(bin, configs, func(bc crt.BuildConfig) string { return bc.Paths.BinPath }); err != nil {
 		return err
@@ -26,7 +29,7 @@ func comp(name string, bcs *opts.AllBuildConfigs, getPath func(crt.BuildConfig) 
 	if p != v {
 		return fmt.Errorf("%s mismatch", name)
 	}
-	log.Println("OK: %s file reproduced correctly")
+	log.Printf("OK: %s file reproduced correctly", name)
 	return nil
 }
 
