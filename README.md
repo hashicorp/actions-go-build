@@ -155,18 +155,20 @@ already exported that you can make use of
 #### Environment Variables
 
 <!-- insert:dev/docs/environment_doc -->
-|  Name                     |  Description                                                         |
-|  -----                    |  -----                                                               |
-|  `TARGET_DIR`             |  Absolute path to the zip contents directory.                        |
-|  `PRODUCT_NAME`           |  Same as the `product_name` input.                                   |
-|  `PRODUCT_VERSION`        |  Same as the `product_version` input.                                |
-|  `PRODUCT_REVISION`       |  The git commit SHA of the product repo being built.                 |
-|  `PRODUCT_REVISION_TIME`  |  UTC timestamp of the `PRODUCT_REVISION` commit in iso-8601 format.  |
-|  `BIN_PATH`               |  Absolute path to where instructions must write Go executable.       |
-|  `OS`                     |  Same as the `os` input.                                             |
-|  `ARCH`                   |  Same as the `arch` input.                                           |
-|  `GOOS`                   |  Same as `OS`.                                                       |
-|  `GOARCH`                 |  Same as `ARCH`.                                                     |
+|  Name                     |  Description                                                                    |
+|  -----                    |  -----                                                                          |
+|  `TARGET_DIR`             |  Absolute path to the zip contents directory.                                   |
+|  `PRODUCT_NAME`           |  Same as the `product_name` input.                                              |
+|  `PRODUCT_VERSION`        |  Same as the `product_version` input.                                           |
+|  `PRODUCT_REVISION`       |  The git commit SHA of the product repo being built.                            |
+|  `PRODUCT_REVISION_TIME`  |  UTC timestamp of the `PRODUCT_REVISION` commit in iso-8601 format.             |
+|  `BIN_PATH`               |  Absolute path to where instructions must write Go executable.                  |
+|  `OS`                     |  Same as the `os` input.                                                        |
+|  `ARCH`                   |  Same as the `arch` input.                                                      |
+|  `GOOS`                   |  Same as `OS`.                                                                  |
+|  `GOARCH`                 |  Same as `ARCH`.                                                                |
+|  `WORKTREE_DIRTY`         |  Whether the workrtree is dirty (`true` or `false`).                            |
+|  `WORKTREE_HASH`          |  Unique hash of the work tree. Same as PRODUCT_REVISION unless WORKTREE_DIRTY.  |
 <!-- end:insert:dev/docs/environment_doc -->
 
 #### Reproducibility Assertions
