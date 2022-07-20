@@ -44,6 +44,14 @@ type Product struct {
 	// keeping the binary reproducible. (It can be used as a sort of "build
 	// time").
 	RevisionTime string
+	// SourceHash is either the same as the Revision if the worktree is not
+	// dirty, or else it's a SHA1 hash of the HEAD commit plus all the contents
+	// of all dirty files.
+	SourceHash string
+}
+
+func (p Product) IsDirty() bool {
+	return p.Revision != p.SourceHash
 }
 
 func (p Product) Init(rc RepoContext) (Product, error) {
@@ -87,6 +95,7 @@ func (p Product) setDefaults(rc RepoContext) (Product, error) {
 
 	p.Revision = rc.CommitSHA
 	p.RevisionTime = rc.CommitTime.UTC().Format(time.RFC3339)
+	p.SourceHash = rc.SourceHash
 	return p, nil
 }
 

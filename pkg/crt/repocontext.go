@@ -23,6 +23,8 @@ type RepoContext struct {
 	SourceHash  string
 }
 
+// IsDirty returns true if the worktree is dirty, ignoring
+// the dist, out, and meta directories.
 func (rc RepoContext) IsDirty() bool {
 	return rc.SourceHash == rc.CommitSHA
 }

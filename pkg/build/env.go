@@ -79,5 +79,15 @@ func BuildEnvDefinitions() []EnvVar {
 			"Same as `ARCH`.",
 			func(c crt.BuildConfig) string { return c.Parameters.Arch },
 		},
+		{
+			"WORKTREE_DIRTY",
+			"Whether the workrtree is dirty (`true` or `false`).",
+			func(c crt.BuildConfig) string { return fmt.Sprint(c.Product.IsDirty()) },
+		},
+		{
+			"WORKTREE_HASH",
+			"Unique hash of the work tree. Same as PRODUCT_REVISION unless WORKTREE_DIRTY.",
+			func(c crt.BuildConfig) string { return fmt.Sprint(c.Product.SourceHash) },
+		},
 	}
 }
