@@ -3,8 +3,8 @@ package config
 import (
 	"context"
 	"fmt"
-	"log"
 	"os"
+	"path/filepath"
 
 	"github.com/hashicorp/actions-go-build/pkg/crt"
 	"github.com/sethvargo/go-envconfig"
@@ -111,13 +111,13 @@ func (c Config) init(rc crt.RepoContext) (Config, error) {
 		c.PrimaryBuildRoot = rc.Dir
 	}
 	if c.VerificationBuildRoot == "" {
-		dir, err := os.MkdirTemp("", "actions-go-build.verification-build.*")
-		if err != nil {
-			log.Panic(err)
-		}
-		c.VerificationBuildRoot = dir
+		c.VerificationBuildRoot = defaultVerificationBuildRoot(rc)
 	}
 	return c, nil
+}
+
+func defaultVerificationBuildRoot(rc crt.RepoContext) string {
+	return filepath.Join(os.TempDir(), "actions-go-build", rc.RepoName, rc.SourceHash, "verification")
 }
 
 func (c Config) resolveReproducible() (string, error) {

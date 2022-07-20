@@ -7,7 +7,7 @@ type EnvDumpOpts struct {
 	build.Build
 }
 
-func (edo *EnvDumpOpts) ReadEnv() error {
+func (edo *EnvDumpOpts) Init() error {
 	if edo.Verification {
 		c := &VerificationBuild{}
 		if err := c.ReadEnv(); err != nil {

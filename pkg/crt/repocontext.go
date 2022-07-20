@@ -20,6 +20,11 @@ type RepoContext struct {
 	CommitSHA   string
 	CommitTime  time.Time
 	CoreVersion version.Version
+	SourceHash  string
+}
+
+func (rc RepoContext) IsDirty() bool {
+	return rc.SourceHash == rc.CommitSHA
 }
 
 // GetRepoContext reads the repository context from the directory specified.
@@ -47,6 +52,11 @@ func GetRepoContext(dir string) (RepoContext, error) {
 		return RepoContext{}, err
 	}
 
+	sourceHash, err := getSourceHash(dir)
+	if err != nil {
+		return RepoContext{}, err // blah
+	}
+
 	return RepoContext{
 		RepoName:    repoName,
 		Dir:         dir,
@@ -54,6 +64,7 @@ func GetRepoContext(dir string) (RepoContext, error) {
 		CommitSHA:   sha,
 		CommitTime:  ts,
 		CoreVersion: *v,
+		SourceHash:  sourceHash,
 	}, nil
 }
 
@@ -61,6 +72,27 @@ var (
 	ErrNoVersionFile        = errors.New("no VERSION file found")
 	ErrMultipleVersionFiles = errors.New("multiple VERSION files found")
 )
+
+func getSourceHash(dir string) (string, error) {
+	repo, err := git.Open(dir)
+	if err != nil {
+		return "", err
+	}
+	ignore := makeIgnorePatterns()
+	s, err := repo.WorktreeState(git.WorktreeStateIgnorePatterns(ignore...))
+	if err != nil {
+		return "", err
+	}
+	return s.SourceHash, nil
+}
+
+func makeIgnorePatterns() []string {
+	dirNames := []string{dirs.target, dirs.zip, dirs.meta}
+	for i, d := range dirNames {
+		dirNames[i] = fmt.Sprintf("^%s\\/", d)
+	}
+	return dirNames
+}
 
 func getRepoName(dir string) (string, error) {
 	repoName := os.Getenv("PRODUCT_REPOSITORY")
