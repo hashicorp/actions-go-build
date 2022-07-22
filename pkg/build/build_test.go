@@ -22,8 +22,34 @@ func TestBuild_Run_ok(t *testing.T) {
 
 	b := testBuild.(*build)
 	b.createTestProductRepo(t)
-	if err := b.Run(); err != nil {
+	result := b.Run()
+	if err := result.Error(); err != nil {
 		t.Fatal(err)
+	}
+}
+
+func TestBuild_Run_err(t *testing.T) {
+	dir := tmp.Dir(t)
+	t.Logf("Test dir: %q", dir)
+
+	c := standardConfig(dir)
+	c.Parameters.Instructions = "echo 'oh no!'; exit 1"
+	testBuild, err := New(c)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	b := testBuild.(*build)
+	b.createTestProductRepo(t)
+	result := b.Run()
+	gotErr := result.Error()
+	want := "running build instructions failed: exit status 1"
+	if gotErr == nil {
+		t.Fatalf("got nil error; want %q", want)
+	}
+	got := gotErr.Error()
+	if want != got {
+		t.Fatalf("got error %q; want %q", got, want)
 	}
 }
 

@@ -6,6 +6,7 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
+	"time"
 
 	"github.com/hashicorp/actions-go-build/internal/zipper"
 	"github.com/hashicorp/actions-go-build/pkg/crt"
@@ -17,7 +18,7 @@ import (
 // It could be a primary build or a verification build, this Build doesn't
 // need to know.
 type Build interface {
-	Run() error
+	Run() crt.BuildResult
 	Env() []string
 }
 
@@ -44,59 +45,54 @@ type build struct {
 	config   crt.BuildConfig
 }
 
-type dirs struct {
-	source, target, zip, meta string
-}
-
-func (b *build) Run() error {
+func (b *build) Run() crt.BuildResult {
 	c := b.config
+	r := crt.NewBuildRecorder(c)
 	log.Printf("Starting build process.")
 
-	// A quick bit of validation before running the build.
-	productRevisionTimestamp, err := c.Product.RevisionTimestamp()
-	if err != nil {
-		return err
-	}
-
 	log.Printf("Beginning build, rooted at %q", b.config.Paths.WorkDir)
-	if err := fs.Mkdirs(c.Paths.TargetDir, c.Paths.ZipDir(), c.Paths.MetaDir); err != nil {
-		return err
-	}
-	instructionsPath, err := b.writeInstructions()
-	if err != nil {
-		return err
-	}
 
-	b.listInstructions()
-
-	if err := b.runInstructions(instructionsPath); err != nil {
+	var productRevisionTimestamp time.Time
+	r.AddStep("validating inputs", func() error {
+		var err error
+		productRevisionTimestamp, err = c.Product.RevisionTimestamp()
 		return err
-	}
+	})
 
-	binExists, err := fs.FileExists(c.Paths.BinPath)
+	r.AddStep("creating output directories", b.createDirectories)
+
+	r.AddStep("running build instructions", b.runInstructions)
+	r.AddStep("asserting executable written", b.assertExecutableWritten)
+	r.AddStep("writing executable digest", func() error {
+		return b.writeDigest(c.Paths.BinPath, "bin_digest")
+	})
+	r.AddStep("setting mtimes", func() error {
+		return fs.SetMtimes(c.Paths.TargetDir, productRevisionTimestamp)
+	})
+	r.AddStep("creating zip file", func() error {
+		return zipper.ZipToFile(c.Paths.TargetDir, c.Paths.ZipPath)
+	})
+	r.AddStep("writing zip digest", func() error {
+		return b.writeDigest(c.Paths.ZipPath, "zip_digest")
+	})
+
+	return r.Run()
+}
+
+func (b *build) createDirectories() error {
+	c := b.config
+	log.Printf("Creating output directories.")
+	return fs.Mkdirs(c.Paths.TargetDir, c.Paths.ZipDir(), c.Paths.MetaDir)
+}
+
+func (b *build) assertExecutableWritten() error {
+	binExists, err := fs.FileExists(b.config.Paths.BinPath)
 	if err != nil {
 		return err
 	}
 	if !binExists {
-		return fmt.Errorf("no file written to BIN_PATH %q", c.Paths.BinPath)
+		return fmt.Errorf("no file written to BIN_PATH %q", b.config.Paths.BinPath)
 	}
-
-	if err := b.writeDigest(c.Paths.BinPath, "bin_digest"); err != nil {
-		return err
-	}
-
-	if err := fs.SetMtimes(c.Paths.TargetDir, productRevisionTimestamp); err != nil {
-		return err
-	}
-
-	if err := zipper.ZipToFile(c.Paths.TargetDir, c.Paths.ZipPath); err != nil {
-		return err
-	}
-
-	if err := b.writeDigest(c.Paths.ZipPath, "zip_digest"); err != nil {
-		return err
-	}
-
 	return nil
 }
 
@@ -123,7 +119,14 @@ func (b *build) runCommand(name string, args ...string) error {
 	return b.newCommand(name, args...).Run()
 }
 
-func (b *build) runInstructions(path string) error {
+func (b *build) runInstructions() error {
+	path, err := b.writeInstructions()
+	if err != nil {
+		return err
+	}
+
+	b.listInstructions()
+
 	log.Printf("Running build instructions with environment:")
 	env := b.Env()
 	for _, e := range b.Env() {

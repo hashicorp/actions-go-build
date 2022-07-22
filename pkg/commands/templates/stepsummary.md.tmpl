@@ -1,0 +1,9 @@
+{{- define "singleFile" -}}
+|         {{.Name}}        |          SHA256         |
+|--------------------------|-------------------------|
+| Primary build            | {{.PrimarySHA256     }} |
+| Local verification build | {{.VerificationSHA256}} |
+-----
+{{- end -}}
+{{ template "singleFile" .Bin }}
+{{ template "singleFile" .Zip }}

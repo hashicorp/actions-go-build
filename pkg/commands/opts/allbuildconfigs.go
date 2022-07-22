@@ -9,7 +9,7 @@ type AllBuildConfigs struct {
 	Primary, Verification crt.BuildConfig
 }
 
-func (abc *AllBuildConfigs) ReadEnv() error {
+func (abc *AllBuildConfigs) Init() error {
 	cfg, err := config.FromEnvironment()
 	if err != nil {
 		return err
