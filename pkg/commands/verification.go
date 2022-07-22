@@ -1,7 +1,6 @@
 package commands
 
 import (
-	"fmt"
 	"log"
 
 	"github.com/hashicorp/actions-go-build/pkg/commands/opts"
@@ -18,7 +17,7 @@ var Verification = cli.LeafCommand("verification", "run the verification build",
 	}
 	log.Printf("Running verification build")
 	result := c.Build.Run()
-	if _, err := fmt.Fprint(stdout, result); err != nil {
+	if err := writeJSON(stdout, result); err != nil {
 		return err
 	}
 	return result.Error()
