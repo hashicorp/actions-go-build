@@ -64,6 +64,9 @@ func (b *build) Run() crt.BuildResult {
 	r.AddStep("running build instructions", b.runInstructions)
 	r.AddStep("asserting executable written", b.assertExecutableWritten)
 	r.AddStep("writing executable digest", func() error {
+		if err := r.RecordBin(c.Paths.BinPath); err != nil {
+			return err
+		}
 		return b.writeDigest(c.Paths.BinPath, "bin_digest")
 	})
 	r.AddStep("setting mtimes", func() error {
@@ -73,6 +76,9 @@ func (b *build) Run() crt.BuildResult {
 		return zipper.ZipToFile(c.Paths.TargetDir, c.Paths.ZipPath)
 	})
 	r.AddStep("writing zip digest", func() error {
+		if err := r.RecordZip(c.Paths.ZipPath); err != nil {
+			return err
+		}
 		return b.writeDigest(c.Paths.ZipPath, "zip_digest")
 	})
 
