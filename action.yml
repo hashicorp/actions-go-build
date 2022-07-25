@@ -161,7 +161,7 @@ runs:
     - name: Assert Build Outputs Identical
       if: inputs.reproducible == 'assert'
       shell: bash
-      run: ${{ github.action_path }}/scripts/compare_digests
+      run: actions-go-build compare
 
     # Report Reproducibility
     - name: Report Reproducibility Results
