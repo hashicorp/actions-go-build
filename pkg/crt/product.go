@@ -15,11 +15,6 @@ type Product struct {
 	// Repository is the product repository URL minus the scheme.
 	// E.g. github.com/hashicorp/lockbox
 	Repository string `env:"PRODUCT_REPOSITORY"`
-	// Directory is the path to the directory housing this product, inside Repository,
-	// relative to the repository root. Defaults to the current working directory.
-	// Note that this is optional, you can have multiple products sharing the same
-	// directory if wanted. If set, the Instructions should be run inside this directory.
-	Directory string `env:"PRODUCT_DIRECTORY"`
 	// Name is the product name. This is used to derive the default names
 	// for the executable binary, the zip package, deb and rpm packages,
 	// container image tags, and other artifacts in the future.
@@ -66,7 +61,6 @@ func (p Product) RevisionTimestamp() (time.Time, error) {
 // trimSpace trims space from the user-provided input fields only.
 func (p Product) trimSpace() Product {
 	p.Repository = strings.TrimSpace(p.Repository)
-	p.Directory = strings.TrimSpace(p.Directory)
 	p.Name = strings.TrimSpace(p.Name)
 	p.Version = p.Version.trimSpace()
 	p.ExecutableName = strings.TrimSpace(p.ExecutableName)

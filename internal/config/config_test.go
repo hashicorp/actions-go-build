@@ -178,7 +178,6 @@ func standardUnintializedConfig() Config {
 	return Config{
 		Product: crt.Product{
 			Repository:     "",
-			Directory:      "",
 			Name:           "",
 			CoreName:       "",
 			ExecutableName: "",
