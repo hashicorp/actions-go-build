@@ -20,6 +20,7 @@ import (
 type Build interface {
 	Run() crt.BuildResult
 	Env() []string
+	Config() crt.BuildConfig
 }
 
 func resolveBashPath(path string) (string, error) {
@@ -43,6 +44,10 @@ func New(cfg crt.BuildConfig, options ...Option) (Build, error) {
 type build struct {
 	settings Settings
 	config   crt.BuildConfig
+}
+
+func (b *build) Config() crt.BuildConfig {
+	return b.config
 }
 
 func (b *build) Run() crt.BuildResult {

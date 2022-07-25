@@ -4,7 +4,7 @@ go 1.18
 
 require (
 	github.com/go-git/go-git/v5 v5.4.2
-	github.com/hashicorp/composite-action-framework-go v0.0.3-0.20220722112300-cfce790b4af1
+	github.com/hashicorp/composite-action-framework-go v0.0.3-0.20220725135637-f4953c9a62a4
 	github.com/hashicorp/go-version v1.6.0
 	github.com/otiai10/copy v1.7.0
 	github.com/sethvargo/go-envconfig v0.7.0

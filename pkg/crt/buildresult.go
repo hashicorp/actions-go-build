@@ -10,14 +10,6 @@ import (
 	"github.com/hashicorp/actions-go-build/pkg/digest"
 )
 
-// DoubleBuildResult captures the result of a local primary and
-// verification build together.
-type DoubleBuildResult struct {
-	Inputs       BuildInputs
-	Primary      *BuildResult
-	Verification *BuildResult
-}
-
 // BuildInputs represents the fixed inuputs to the build.
 // These are identical for both the primary and verification
 // build.
@@ -37,6 +29,7 @@ type BuildResult struct {
 	Executable   File
 	err          error
 	ErrorMessage string
+	Successful   bool
 }
 
 func (br BuildResult) Error() error {
@@ -130,6 +123,7 @@ func (br *BuildRecorder) Run() BuildResult {
 
 func (br *BuildRecorder) Result() BuildResult {
 	br.result.Meta.Finish = br.nowFunc()
+	br.result.Successful = br.result.err == nil
 	return br.result
 }
 
