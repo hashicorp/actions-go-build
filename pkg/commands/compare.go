@@ -4,6 +4,7 @@ import (
 	_ "embed"
 	"flag"
 	"log"
+	"os"
 	"text/template"
 
 	"github.com/hashicorp/actions-go-build/pkg/commands/opts"
@@ -54,6 +55,9 @@ func writeStepSummary(s github.StepSummary, fsh crt.FileSetHashes) error {
 	w, err := s.Open()
 	if err != nil {
 		return err
+	}
+	if w == nil {
+		w = os.Stdout
 	}
 	var closeErr error
 	defer func() { closeErr = s.Close() }()

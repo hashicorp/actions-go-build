@@ -1,8 +1,8 @@
 {{- define "singleFile" -}}
-|         {{.Name}}        |          SHA256         |
-|--------------------------|-------------------------|
-| Primary build            | {{.PrimarySHA256     }} |
-| Local verification build | {{.VerificationSHA256}} |
+| {{.Description}} - {{.Name}} |           SHA256         |
+|------------------------------|--------------------------|
+| Primary build                | {{.SHA256.Primary     }} |
+| Local verification build     | {{.SHA256.Verification}} |
 -----
 {{- end -}}
 {{ template "singleFile" .Bin }}

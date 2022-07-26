@@ -167,4 +167,4 @@ runs:
     - name: Report Reproducibility Results
       if: inputs.reproducible == 'report'
       shell: bash
-      run: ${{ github.action_path }}/scripts/compare_digests || true
+      run: actions-go-build compare || true
