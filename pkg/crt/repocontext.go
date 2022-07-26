@@ -30,7 +30,7 @@ func (rc RepoContext) IsDirty() bool {
 }
 
 // GetRepoContext reads the repository context from the directory specified.
-func GetRepoContext(dir string) (RepoContext, error) {
+func GetRepoContext(dir string, ignoreDirs []string) (RepoContext, error) {
 	repoName, err := getRepoName(dir)
 	if err != nil {
 		return RepoContext{}, err
@@ -54,7 +54,7 @@ func GetRepoContext(dir string) (RepoContext, error) {
 		return RepoContext{}, err
 	}
 
-	sourceHash, err := getSourceHash(dir)
+	sourceHash, err := getSourceHash(dir, ignoreDirs)
 	if err != nil {
 		return RepoContext{}, err // blah
 	}
@@ -75,12 +75,12 @@ var (
 	ErrMultipleVersionFiles = errors.New("multiple VERSION files found")
 )
 
-func getSourceHash(dir string) (string, error) {
+func getSourceHash(dir string, ignoreDirs []string) (string, error) {
 	repo, err := git.Open(dir)
 	if err != nil {
 		return "", err
 	}
-	ignore := makeIgnorePatterns()
+	ignore := makeIgnorePatterns(ignoreDirs)
 	s, err := repo.WorktreeState(git.WorktreeStateIgnorePatterns(ignore...))
 	if err != nil {
 		return "", err
@@ -88,8 +88,7 @@ func getSourceHash(dir string) (string, error) {
 	return s.SourceHash, nil
 }
 
-func makeIgnorePatterns() []string {
-	dirNames := []string{dirs.target, dirs.zip, dirs.meta}
+func makeIgnorePatterns(dirNames []string) []string {
 	for i, d := range dirNames {
 		dirNames[i] = fmt.Sprintf("^%s\\/", d)
 	}
@@ -97,16 +96,15 @@ func makeIgnorePatterns() []string {
 }
 
 func getRepoName(dir string) (string, error) {
-	repoName := os.Getenv("PRODUCT_REPOSITORY")
-	if repoName != "" {
+	var repoName string
+	if repoName = os.Getenv("PRODUCT_REPOSITORY"); repoName != "" {
 		return filepath.Base(repoName), nil
 	}
-	repoName = os.Getenv("GITHUB_REPOSITORY")
-	if repoName != "" {
+	if repoName = os.Getenv("GITHUB_REPOSITORY"); repoName != "" {
 		return filepath.Base(repoName), nil
 	}
-	// For the sake of running this locally, we'll guess
-	// the repo name by inspecting Git config.
+	// For the sake of running this locally with zero config,
+	// we'll guess the repo name by inspecting Git a remote.
 	repo, err := git.Open(dir)
 	if err != nil {
 		return "", err

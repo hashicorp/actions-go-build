@@ -2,13 +2,13 @@ package opts
 
 import (
 	"github.com/hashicorp/actions-go-build/internal/config"
-	"github.com/hashicorp/actions-go-build/pkg/crt"
+	"github.com/hashicorp/actions-go-build/pkg/build"
 )
 
 // BuildConfig wraps a crt.BuildConfig to implement the Flags and Env interfaces.
 type BuildConfig struct {
 	BuildFlags
-	crt.BuildConfig
+	build.BuildConfig
 }
 
 func (bc *BuildConfig) ReadEnv() error {

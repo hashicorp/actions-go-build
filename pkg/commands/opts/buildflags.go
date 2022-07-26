@@ -4,7 +4,7 @@ import (
 	"flag"
 
 	"github.com/hashicorp/actions-go-build/internal/config"
-	"github.com/hashicorp/actions-go-build/pkg/crt"
+	"github.com/hashicorp/actions-go-build/pkg/build"
 )
 
 type BuildFlags struct {
@@ -15,7 +15,7 @@ func (bf *BuildFlags) Flags(fs *flag.FlagSet) {
 	fs.BoolVar(&bf.Verification, "verification", false, "verification build")
 }
 
-func (bf *BuildFlags) BuildConfig(c config.Config) (crt.BuildConfig, error) {
+func (bf *BuildFlags) BuildConfig(c config.Config) (build.BuildConfig, error) {
 	if bf.Verification {
 		return c.VerificationBuildConfig()
 	}

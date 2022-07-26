@@ -1,15 +1,19 @@
-package crt
+package build
 
 import (
 	"fmt"
 	"path/filepath"
 )
 
-type dirNames struct {
-	target, zip, meta string
+type DirNames struct {
+	Target, Zip, Meta string
 }
 
-var dirs = dirNames{"dist", "out", "meta"}
+var Dirs = DirNames{"dist", "out", "meta"}
+
+func (ds DirNames) List() []string {
+	return []string{ds.Target, ds.Zip, ds.Meta}
+}
 
 // BuildPaths are host-specific absolute paths to various things. We need to
 // be aware of these paths in order to be able to do comparisons between
@@ -48,9 +52,9 @@ func (bp BuildPaths) trimSpace() BuildPaths {
 
 func (bp BuildPaths) setDefaults(root, executableName, zipName string) BuildPaths {
 	bp.WorkDir = root
-	bp.TargetDir = filepath.Join(root, dirs.target)
-	bp.BinPath = filepath.Join(root, dirs.target, executableName)
-	bp.ZipPath = filepath.Join(root, dirs.zip, zipName)
-	bp.MetaDir = filepath.Join(root, dirs.meta)
+	bp.TargetDir = filepath.Join(root, Dirs.Target)
+	bp.BinPath = filepath.Join(root, Dirs.Target, executableName)
+	bp.ZipPath = filepath.Join(root, Dirs.Zip, zipName)
+	bp.MetaDir = filepath.Join(root, Dirs.Meta)
 	return bp
 }

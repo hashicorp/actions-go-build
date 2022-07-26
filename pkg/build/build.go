@@ -9,7 +9,6 @@ import (
 	"time"
 
 	"github.com/hashicorp/actions-go-build/internal/zipper"
-	"github.com/hashicorp/actions-go-build/pkg/crt"
 	"github.com/hashicorp/actions-go-build/pkg/digest"
 	"github.com/hashicorp/composite-action-framework-go/pkg/fs"
 )
@@ -18,9 +17,9 @@ import (
 // It could be a primary build or a verification build, this Build doesn't
 // need to know.
 type Build interface {
-	Run() crt.BuildResult
+	Run() Result
 	Env() []string
-	Config() crt.BuildConfig
+	Config() BuildConfig
 }
 
 func resolveBashPath(path string) (string, error) {
@@ -30,7 +29,7 @@ func resolveBashPath(path string) (string, error) {
 	return exec.LookPath(path)
 }
 
-func New(cfg crt.BuildConfig, options ...Option) (Build, error) {
+func New(cfg BuildConfig, options ...Option) (Build, error) {
 	s, err := newSettings(options)
 	if err != nil {
 		return &build{}, err
@@ -43,16 +42,16 @@ func New(cfg crt.BuildConfig, options ...Option) (Build, error) {
 
 type build struct {
 	settings Settings
-	config   crt.BuildConfig
+	config   BuildConfig
 }
 
-func (b *build) Config() crt.BuildConfig {
+func (b *build) Config() BuildConfig {
 	return b.config
 }
 
-func (b *build) Run() crt.BuildResult {
+func (b *build) Run() Result {
 	c := b.config
-	r := crt.NewBuildRecorder(c)
+	r := NewRecorder(c)
 	log.Printf("Starting build process.")
 
 	log.Printf("Beginning build, rooted at %q", b.config.Paths.WorkDir)

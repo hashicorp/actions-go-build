@@ -8,7 +8,7 @@ import (
 	"os"
 	"path/filepath"
 
-	"github.com/hashicorp/actions-go-build/pkg/crt"
+	"github.com/hashicorp/actions-go-build/pkg/build"
 	"github.com/hashicorp/composite-action-framework-go/pkg/cli"
 )
 
@@ -20,11 +20,11 @@ type ResultWriter struct {
 func (brw *ResultWriter) ReadEnv() error         { return cli.ReadEnvAll(&brw.github) }
 func (brw *ResultWriter) Flags(fs *flag.FlagSet) { cli.FlagsAll(fs, &brw.github) }
 
-func buildResultFilename(br *crt.BuildResult) string {
+func buildResultFilename(br *build.Result) string {
 	return fmt.Sprintf("%s.buildresult.json", filepath.Base(br.Config.Paths.ZipPath))
 }
 
-func (brw *ResultWriter) buildResultWriter(br *crt.BuildResult) (io.Writer, string, error) {
+func (brw *ResultWriter) buildResultWriter(br *build.Result) (io.Writer, string, error) {
 	var filename string
 	if !brw.github.GitHubMode {
 		return os.Stdout, filename, nil
@@ -35,7 +35,7 @@ func (brw *ResultWriter) buildResultWriter(br *crt.BuildResult) (io.Writer, stri
 }
 
 // WriteBuildResult returns the path written.
-func (brw *ResultWriter) WriteBuildResult(br *crt.BuildResult) (string, error) {
+func (brw *ResultWriter) WriteBuildResult(br *build.Result) (string, error) {
 	writer, filename, err := brw.buildResultWriter(br)
 	if err != nil {
 		return filename, err
@@ -48,11 +48,11 @@ func (brw *ResultWriter) WriteBuildResult(br *crt.BuildResult) (string, error) {
 	return filename, closeErr
 }
 
-func doubleBuildResultFilename(br *crt.DoubleBuildResult) string {
+func doubleBuildResultFilename(br *build.DoubleBuildResult) string {
 	return fmt.Sprintf("%s.doubleresult.json", filepath.Base(br.Primary.Config.Paths.ZipPath))
 }
 
-func (brw *ResultWriter) doubleBuildResultWriter(br *crt.DoubleBuildResult) (io.Writer, string, error) {
+func (brw *ResultWriter) doubleBuildResultWriter(br *build.DoubleBuildResult) (io.Writer, string, error) {
 	var filename string
 	if !brw.github.GitHubMode {
 		return os.Stdout, filename, nil
@@ -63,7 +63,7 @@ func (brw *ResultWriter) doubleBuildResultWriter(br *crt.DoubleBuildResult) (io.
 }
 
 // WriteDoubleBuildResult returns the path written.
-func (brw *ResultWriter) WriteDoubleBuildResult(br *crt.DoubleBuildResult) (string, error) {
+func (brw *ResultWriter) WriteDoubleBuildResult(br *build.DoubleBuildResult) (string, error) {
 	writer, filename, err := brw.doubleBuildResultWriter(br)
 	if err != nil {
 		return filename, err

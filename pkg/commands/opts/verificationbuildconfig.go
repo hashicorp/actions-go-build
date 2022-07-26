@@ -2,11 +2,11 @@ package opts
 
 import (
 	"github.com/hashicorp/actions-go-build/internal/config"
-	"github.com/hashicorp/actions-go-build/pkg/crt"
+	"github.com/hashicorp/actions-go-build/pkg/build"
 )
 
 type VerificationBuildConfig struct {
-	crt.BuildConfig
+	build.BuildConfig
 }
 
 func (vbc *VerificationBuildConfig) ReadEnv() error {

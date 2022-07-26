@@ -4,6 +4,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/hashicorp/actions-go-build/pkg/build"
 	"github.com/hashicorp/actions-go-build/pkg/crt"
 	"github.com/hashicorp/composite-action-framework-go/pkg/testhelpers/assert"
 	"github.com/hashicorp/go-version"
@@ -189,7 +190,7 @@ func standardUnintializedConfig() Config {
 			Revision:     "",
 			RevisionTime: "",
 		},
-		Parameters: crt.BuildParameters{
+		Parameters: build.Parameters{
 			GoVersion:    "1.18",
 			Instructions: "",
 			OS:           "linux",
@@ -202,8 +203,8 @@ func standardUnintializedConfig() Config {
 	}
 }
 
-func standardParameters() crt.BuildParameters {
-	return crt.BuildParameters{
+func standardParameters() build.Parameters {
+	return build.Parameters{
 		GoVersion:    "1.18",
 		OS:           "linux",
 		Arch:         "amd64",

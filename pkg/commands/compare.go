@@ -7,6 +7,7 @@ import (
 	"os"
 	"text/template"
 
+	"github.com/hashicorp/actions-go-build/pkg/build"
 	"github.com/hashicorp/actions-go-build/pkg/commands/opts"
 	"github.com/hashicorp/actions-go-build/pkg/crt"
 	"github.com/hashicorp/composite-action-framework-go/pkg/cli"
@@ -33,11 +34,11 @@ func (co *compareOpts) Init() error {
 	return co.AllBuildConfigs.Init()
 }
 
-func doComparison(primary, verification crt.BuildConfig) (crt.FileSetHashes, error) {
+func doComparison(primary, verification build.BuildConfig) (crt.FileSetHashes, error) {
 	log.Printf("Comparing SHA256 digests between primary and local verification builds.")
 	log.Printf("Primary build root:      %s", primary.Paths.WorkDir)
 	log.Printf("Verification build root: %s", verification.Paths.WorkDir)
-	return crt.GetAllHashes(primary, verification)
+	return build.GetAllHashes(primary, verification)
 }
 
 var Compare = cli.LeafCommand("compare", "compare digests", func(opts *compareOpts) error {

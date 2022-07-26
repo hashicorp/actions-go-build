@@ -6,8 +6,8 @@ import (
 	"log"
 	"time"
 
+	"github.com/hashicorp/actions-go-build/pkg/build"
 	"github.com/hashicorp/actions-go-build/pkg/commands/opts"
-	"github.com/hashicorp/actions-go-build/pkg/crt"
 	"github.com/hashicorp/composite-action-framework-go/pkg/cli"
 )
 
@@ -39,7 +39,7 @@ var Build = cli.LeafCommand("build", "run primary and local verification build",
 		return err
 	}
 
-	result, err := crt.NewDoubleBuildResult(primaryResult, verificationResult)
+	result, err := build.NewDoubleBuildResult(primaryResult, verificationResult)
 	if err != nil {
 		return err
 	}
@@ -56,7 +56,7 @@ var Build = cli.LeafCommand("build", "run primary and local verification build",
 	return result.Hashes.Error()
 })
 
-func runPrimaryBuild(opts *buildOpts) (crt.BuildResult, error) {
+func runPrimaryBuild(opts *buildOpts) (build.Result, error) {
 	primaryResult := opts.Builds.Primary.Run()
 	if primaryResult.Error() != nil {
 		if _, err := opts.ResultWriter.WriteBuildResult(&primaryResult); err != nil {
@@ -67,7 +67,7 @@ func runPrimaryBuild(opts *buildOpts) (crt.BuildResult, error) {
 	return primaryResult, nil
 }
 
-func doVerificationBuild(opts *buildOpts) (crt.BuildResult, error) {
+func doVerificationBuild(opts *buildOpts) (build.Result, error) {
 	verificationResult, err := runVerificationBuild(
 		opts.ActionConfig.PrimaryBuildRoot,
 		opts.ActionConfig.VerificationBuildRoot,

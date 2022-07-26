@@ -5,7 +5,6 @@ import (
 
 	"github.com/hashicorp/actions-go-build/pkg/build"
 	"github.com/hashicorp/actions-go-build/pkg/commands/opts"
-	"github.com/hashicorp/actions-go-build/pkg/crt"
 	"github.com/hashicorp/composite-action-framework-go/pkg/cli"
 	cp "github.com/otiai10/copy"
 )
@@ -24,11 +23,11 @@ var Verification = cli.LeafCommand("verification", "run the verification build",
 	return result.Error()
 })
 
-func runVerificationBuild(primaryBuildRoot, verificationBuildRoot string, verificationBuild build.Build) (crt.BuildResult, error) {
+func runVerificationBuild(primaryBuildRoot, verificationBuildRoot string, verificationBuild build.Build) (build.Result, error) {
 	log.Printf("Running verification build")
 	log.Printf("Copying %s to %s", primaryBuildRoot, verificationBuildRoot)
 	if err := cp.Copy(primaryBuildRoot, verificationBuildRoot); err != nil {
-		return crt.BuildResult{}, err
+		return build.Result{}, err
 	}
 	return verificationBuild.Run(), nil
 }

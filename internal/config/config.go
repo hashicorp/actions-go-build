@@ -6,6 +6,7 @@ import (
 	"os"
 	"path/filepath"
 
+	"github.com/hashicorp/actions-go-build/pkg/build"
 	"github.com/hashicorp/actions-go-build/pkg/crt"
 	"github.com/sethvargo/go-envconfig"
 )
@@ -21,7 +22,7 @@ type Config struct {
 	// BuildParameters are invariant build details, required alongside
 	// the Product definition to capture the full instructions needed to
 	// reproduce a build.
-	Parameters crt.BuildParameters
+	Parameters build.Parameters
 
 	// Reproducible tells the action whether this build ought to be reproducible.
 	// It must be one of these three values:
@@ -61,7 +62,7 @@ func FromEnvironment() (Config, error) {
 		return c, err
 	}
 
-	rc, err := crt.GetRepoContext(wd)
+	rc, err := crt.GetRepoContext(wd, build.Dirs.List())
 	if err != nil {
 		return c, err
 	}
@@ -71,25 +72,25 @@ func FromEnvironment() (Config, error) {
 
 // buildConfig returns a BuildConfig based on this Config, rooted at root.
 // The root must be an absolute path.
-func (c Config) buildConfig(root string) (crt.BuildConfig, error) {
-	paths, err := crt.NewBuildPaths(root, c.Product.ExecutableName, c.ZipName)
+func (c Config) buildConfig(root string) (build.BuildConfig, error) {
+	paths, err := build.NewBuildPaths(root, c.Product.ExecutableName, c.ZipName)
 	if err != nil {
-		return crt.BuildConfig{}, err
+		return build.BuildConfig{}, err
 	}
-	return crt.NewBuildConfig(c.Product, c.Parameters, paths)
+	return build.NewBuildConfig(c.Product, c.Parameters, paths)
 }
 
 // PrimaryBuildConfig returns the config for the primary build.
-func (c Config) PrimaryBuildConfig() (crt.BuildConfig, error) {
+func (c Config) PrimaryBuildConfig() (build.BuildConfig, error) {
 	return c.buildConfig(c.PrimaryBuildRoot)
 }
 
 // VerificationBuildConfig returns the config for the verification build.
-func (c Config) VerificationBuildConfig() (crt.BuildConfig, error) {
+func (c Config) VerificationBuildConfig() (build.BuildConfig, error) {
 	return c.buildConfig(c.VerificationBuildRoot)
 }
 
-func defaultZipName(product crt.Product, params crt.BuildParameters) string {
+func defaultZipName(product crt.Product, params build.Parameters) string {
 	return fmt.Sprintf("%s_%s_%s_%s.zip", product.Name, product.Version.Full, params.OS, params.Arch)
 }
 

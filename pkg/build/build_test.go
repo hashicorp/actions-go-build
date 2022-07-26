@@ -106,9 +106,9 @@ func standardCommitTime() (ts time.Time, rfc3339 string) {
 	return
 }
 
-func standardConfig(workDir string) crt.BuildConfig {
+func standardConfig(workDir string) BuildConfig {
 	_, revisionTimestampRFC3339 := standardCommitTime()
-	return crt.BuildConfig{
+	return BuildConfig{
 		Product: crt.Product{
 			Repository: "dadgarcorp/lockbox",
 			Name:       "lockbox",
@@ -120,12 +120,12 @@ func standardConfig(workDir string) crt.BuildConfig {
 			Revision:     "cabba9e",
 			RevisionTime: revisionTimestampRFC3339,
 		},
-		Parameters: crt.BuildParameters{
+		Parameters: Parameters{
 			Instructions: `echo -n "Building '$BIN_PATH'..." && go build -o $BIN_PATH && echo "Done!"`,
 			OS:           "linux",
 			Arch:         "amd64",
 		},
-		Paths: crt.BuildPaths{
+		Paths: BuildPaths{
 			WorkDir:   workDir,
 			TargetDir: filepath.Join(workDir, "dist"),
 			BinPath:   filepath.Join(workDir, "dist", "lockbox"),

@@ -4,7 +4,7 @@ import (
 	"os"
 	"testing"
 
-	"github.com/hashicorp/actions-go-build/pkg/crt"
+	"github.com/hashicorp/actions-go-build/pkg/build"
 	"github.com/hashicorp/composite-action-framework-go/pkg/testhelpers/assert"
 	"github.com/hashicorp/composite-action-framework-go/pkg/testhelpers/goldenfile"
 )
@@ -22,7 +22,7 @@ func TestConfig_BuildConfig_ok(t *testing.T) {
 		desc   string
 		config Config
 		root   string
-		want   crt.BuildConfig
+		want   build.BuildConfig
 	}{
 		{
 			"root",
@@ -34,7 +34,7 @@ func TestConfig_BuildConfig_ok(t *testing.T) {
 			"root/blah",
 			testConfig(),
 			"/blah",
-			testBuildConfig(func(bc *crt.BuildConfig) {
+			testBuildConfig(func(bc *build.BuildConfig) {
 				bc.Paths.WorkDir = "/blah"
 				bc.Paths.TargetDir = "/blah/dist"
 				bc.Paths.BinPath = "/blah/dist/lockbox"
@@ -48,7 +48,7 @@ func TestConfig_BuildConfig_ok(t *testing.T) {
 				c.ZipName = "blargle.zip"
 			}),
 			"/blah",
-			testBuildConfig(func(bc *crt.BuildConfig) {
+			testBuildConfig(func(bc *build.BuildConfig) {
 				bc.Paths.WorkDir = "/blah"
 				bc.Paths.TargetDir = "/blah/dist"
 				bc.Paths.BinPath = "/blah/dist/lockbox"
@@ -70,11 +70,11 @@ func TestConfig_BuildConfig_ok(t *testing.T) {
 	}
 }
 
-func standardBuildconfig() crt.BuildConfig {
-	return crt.BuildConfig{
+func standardBuildconfig() build.BuildConfig {
+	return build.BuildConfig{
 		Product:    standardProduct(),
 		Parameters: standardParameters(),
-		Paths: crt.BuildPaths{
+		Paths: build.BuildPaths{
 			WorkDir:   "/",
 			TargetDir: "/dist",
 			BinPath:   "/dist/lockbox",
@@ -84,6 +84,6 @@ func standardBuildconfig() crt.BuildConfig {
 	}
 }
 
-func testBuildConfig(modifiers ...func(*crt.BuildConfig)) crt.BuildConfig {
+func testBuildConfig(modifiers ...func(*build.BuildConfig)) build.BuildConfig {
 	return applyModifiers(standardBuildconfig(), modifiers...)
 }

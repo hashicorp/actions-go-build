@@ -1,17 +1,18 @@
-package crt
+package build
 
 import (
 	"fmt"
 	"runtime"
 	"strings"
 
+	"github.com/hashicorp/actions-go-build/pkg/crt"
 	"github.com/hashicorp/go-version"
 )
 
-// BuildParameters are the set of build inputs that should be enough (along with
+// Parameters are the set of build inputs that should be enough (along with
 // the Product) to reproduce a build. Changes to these should result in different
 // build outputs.
-type BuildParameters struct {
+type Parameters struct {
 	// GoVersion is the version of the Go toolchain to run thid build with.
 	GoVersion string `env:"GO_VERSION"`
 	// Instructions are the build instructions (a bash script).
@@ -22,16 +23,16 @@ type BuildParameters struct {
 	Arch string `env:"ARCH"`
 }
 
-func (bp BuildParameters) Init(p Product) (BuildParameters, error) {
+func (bp Parameters) Init(p crt.Product) (Parameters, error) {
 	return bp.trimSpace().setDefaults(p)
 }
 
-func (bp BuildParameters) trimSpace() BuildParameters {
+func (bp Parameters) trimSpace() Parameters {
 	trim(&bp.GoVersion, &bp.Instructions, &bp.OS, &bp.Arch)
 	return bp
 }
 
-func (bp BuildParameters) setDefaults(p Product) (BuildParameters, error) {
+func (bp Parameters) setDefaults(p crt.Product) (Parameters, error) {
 	if bp.GoVersion == "" {
 		bp.GoVersion = strings.TrimPrefix(runtime.Version(), "go")
 	}
@@ -51,7 +52,7 @@ func (bp BuildParameters) setDefaults(p Product) (BuildParameters, error) {
 	return bp, nil
 }
 
-func (bp BuildParameters) defaultInstructions(p Product) (string, error) {
+func (bp Parameters) defaultInstructions(p crt.Product) (string, error) {
 	var flags []string
 	flags = append(flags, "go", "build")
 	flags = append(flags, "-o", `"$BIN_PATH"`)

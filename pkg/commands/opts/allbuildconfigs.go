@@ -2,11 +2,11 @@ package opts
 
 import (
 	"github.com/hashicorp/actions-go-build/internal/config"
-	"github.com/hashicorp/actions-go-build/pkg/crt"
+	"github.com/hashicorp/actions-go-build/pkg/build"
 )
 
 type AllBuildConfigs struct {
-	Primary, Verification crt.BuildConfig
+	Primary, Verification build.BuildConfig
 }
 
 func (abc *AllBuildConfigs) Init() error {
