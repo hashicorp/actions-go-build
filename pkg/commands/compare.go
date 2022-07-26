@@ -3,8 +3,9 @@ package commands
 import (
 	_ "embed"
 	"flag"
+	"fmt"
+	"io"
 	"log"
-	"os"
 	"text/template"
 
 	"github.com/hashicorp/actions-go-build/pkg/build"
@@ -49,8 +50,39 @@ var Compare = cli.LeafCommand("compare", "compare digests", func(opts *compareOp
 	if err := writeStepSummary(opts.StepSummary, fsh); err != nil {
 		return err
 	}
-	return fsh.Error()
+	if err := writeLogSummary(stderr, fsh); err != nil {
+		return err
+	}
+	if err := fsh.Error(); err != nil {
+		return err
+	}
+	_, err = fmt.Fprintln(stderr, "OK: Build reproduced correctly.")
+	return err
 })
+
+type line struct {
+	what, sha string
+}
+
+func writeLogSummary(w io.Writer, fsh crt.FileSetHashes) error {
+	lines := fileHashLogLines(fsh.Bin, fsh.Zip)
+	return cli.TabWrite(w, lines, func(l line) string {
+		return fmt.Sprintf("%s\t%s", l.what, l.sha)
+	})
+}
+
+func fileHashLogLines(fhs ...crt.FileHashes) []line {
+	var lines []line
+	for _, fh := range fhs {
+		lines = append(lines,
+			line{fmt.Sprintf("%s - %s", fh.Description, fh.Name), "SHA256"},
+			line{"Primary", fh.SHA256.Primary},
+			line{"Verification", fh.SHA256.Verification},
+			line{},
+		)
+	}
+	return lines
+}
 
 func writeStepSummary(s github.StepSummary, fsh crt.FileSetHashes) error {
 	w, err := s.Open()
@@ -58,7 +90,7 @@ func writeStepSummary(s github.StepSummary, fsh crt.FileSetHashes) error {
 		return err
 	}
 	if w == nil {
-		w = os.Stdout
+		return nil
 	}
 	var closeErr error
 	defer func() { closeErr = s.Close() }()
