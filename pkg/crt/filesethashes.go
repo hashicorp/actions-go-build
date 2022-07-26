@@ -4,27 +4,18 @@ import (
 	"fmt"
 )
 
-type FileHashes struct {
-	Name, Description string
-	SHA256            HashPair
-}
-
-type HashPair struct {
-	Primary, Verification string
-}
-
-func (fh FileHashes) mismatch() bool {
-	return fh.SHA256.mismatch()
-}
-
-// mismatch returns true if the hashes are different, or if they are both empty.
-func (hp HashPair) mismatch() bool {
-	return hp.Primary != hp.Verification && hp.Primary != ""
-}
-
 type FileSetHashes struct {
-	Bin FileHashes
-	Zip FileHashes
+	Bin      FileHashes
+	Zip      FileHashes
+	AllMatch bool
+}
+
+func NewFileSetHashes(bin, zip FileHashes) FileSetHashes {
+	return FileSetHashes{
+		Bin:      bin,
+		Zip:      zip,
+		AllMatch: !bin.mismatch() && !zip.mismatch(),
+	}
 }
 
 func (fsh FileSetHashes) Error() error {
