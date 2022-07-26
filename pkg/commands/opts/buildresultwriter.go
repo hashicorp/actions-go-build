@@ -48,11 +48,11 @@ func (brw *ResultWriter) WriteBuildResult(br *build.Result) (string, error) {
 	return filename, closeErr
 }
 
-func doubleBuildResultFilename(br *build.DoubleBuildResult) string {
+func doubleBuildResultFilename(br *build.VerificationResult) string {
 	return fmt.Sprintf("%s.doubleresult.json", filepath.Base(br.Primary.Config.Paths.ZipPath))
 }
 
-func (brw *ResultWriter) doubleBuildResultWriter(br *build.DoubleBuildResult) (io.Writer, string, error) {
+func (brw *ResultWriter) doubleBuildResultWriter(br *build.VerificationResult) (io.Writer, string, error) {
 	var filename string
 	if !brw.github.GitHubMode {
 		return os.Stdout, filename, nil
@@ -63,7 +63,7 @@ func (brw *ResultWriter) doubleBuildResultWriter(br *build.DoubleBuildResult) (i
 }
 
 // WriteDoubleBuildResult returns the path written.
-func (brw *ResultWriter) WriteDoubleBuildResult(br *build.DoubleBuildResult) (string, error) {
+func (brw *ResultWriter) WriteDoubleBuildResult(br *build.VerificationResult) (string, error) {
 	writer, filename, err := brw.doubleBuildResultWriter(br)
 	if err != nil {
 		return filename, err

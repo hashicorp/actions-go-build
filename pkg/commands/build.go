@@ -39,7 +39,7 @@ var Build = cli.LeafCommand("build", "run primary and local verification build",
 		return err
 	}
 
-	result, err := build.NewDoubleBuildResult(primaryResult, verificationResult)
+	result, err := build.NewVerificationResult(primaryResult, verificationResult)
 	if err != nil {
 		return err
 	}
