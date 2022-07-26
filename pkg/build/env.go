@@ -22,16 +22,11 @@ func (b *build) Env() []string {
 	return env
 }
 
-// BuildEnvDefinitions returns the set of env vars guaranteed
-// to be available to the build instructions, alongside a description
-// of each one.
-func BuildEnvDefinitions() []EnvVar {
+// InvariantBuildEnvDefinitions are environment variables that should be
+// set exactly the same for both primary build and all verification builds.
+// Changes to these variables could change the artifacts produced.
+func InvariantBuildEnvDefinitions() []EnvVar {
 	return []EnvVar{
-		{
-			"TARGET_DIR",
-			"Absolute path to the zip contents directory.",
-			func(c Config) string { return c.Paths.TargetDir },
-		},
 		{
 			"PRODUCT_NAME",
 			"Same as the `product_name` input.",
@@ -51,11 +46,6 @@ func BuildEnvDefinitions() []EnvVar {
 			"PRODUCT_REVISION_TIME",
 			"UTC timestamp of the `PRODUCT_REVISION` commit in iso-8601 format.",
 			func(c Config) string { return c.Product.RevisionTime },
-		},
-		{
-			"BIN_PATH",
-			"Absolute path to where instructions must write Go executable.",
-			func(c Config) string { return c.Paths.BinPath },
 		},
 		{
 			"OS",
@@ -88,4 +78,28 @@ func BuildEnvDefinitions() []EnvVar {
 			func(c Config) string { return fmt.Sprint(c.Product.SourceHash) },
 		},
 	}
+}
+
+// BuildSpecificBuildEnvDefinitions are environment variables that are expected to be
+// different between different runs without affecting the built artifacts.
+func BuildSpecificBuildEnvDefinitions() []EnvVar {
+	return []EnvVar{
+		{
+			"TARGET_DIR",
+			"Absolute path to the zip contents directory.",
+			func(c Config) string { return c.Paths.TargetDir },
+		},
+		{
+			"BIN_PATH",
+			"Absolute path to where instructions must write Go executable.",
+			func(c Config) string { return c.Paths.BinPath },
+		},
+	}
+}
+
+// BuildEnvDefinitions returns the set of env vars guaranteed
+// to be available to the build instructions, alongside a description
+// of each one.
+func BuildEnvDefinitions() []EnvVar {
+	return append(InvariantBuildEnvDefinitions(), BuildSpecificBuildEnvDefinitions()...)
 }

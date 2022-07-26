@@ -11,6 +11,8 @@ import (
 	"github.com/hashicorp/actions-go-build/pkg/digest"
 )
 
+// Recorder is responsible for executing and logging build steps and
+// constructing the build Result.
 type Recorder struct {
 	steps  []step
 	result Result
@@ -19,10 +21,11 @@ type Recorder struct {
 	nowFunc func() time.Time
 }
 
-func NewRecorder(c Config) *Recorder {
+func NewRecorder(b Build) *Recorder {
 	return &Recorder{
 		result: Result{
-			Config: c,
+			Config: b.Config(),
+			Env:    b.Env(),
 		},
 		nowFunc: time.Now,
 	}

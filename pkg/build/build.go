@@ -51,7 +51,7 @@ func (b *build) Config() Config {
 
 func (b *build) Run() Result {
 	c := b.config
-	r := NewRecorder(c)
+	r := NewRecorder(b)
 	log.Printf("Starting build process.")
 
 	log.Printf("Beginning build, rooted at %q", b.config.Paths.WorkDir)
