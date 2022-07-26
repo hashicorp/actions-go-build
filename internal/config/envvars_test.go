@@ -22,7 +22,7 @@ func TestConfig_BuildConfig_ok(t *testing.T) {
 		desc   string
 		config Config
 		root   string
-		want   build.BuildConfig
+		want   build.Config
 	}{
 		{
 			"root",
@@ -34,7 +34,7 @@ func TestConfig_BuildConfig_ok(t *testing.T) {
 			"root/blah",
 			testConfig(),
 			"/blah",
-			testBuildConfig(func(bc *build.BuildConfig) {
+			testBuildConfig(func(bc *build.Config) {
 				bc.Paths.WorkDir = "/blah"
 				bc.Paths.TargetDir = "/blah/dist"
 				bc.Paths.BinPath = "/blah/dist/lockbox"
@@ -48,7 +48,7 @@ func TestConfig_BuildConfig_ok(t *testing.T) {
 				c.ZipName = "blargle.zip"
 			}),
 			"/blah",
-			testBuildConfig(func(bc *build.BuildConfig) {
+			testBuildConfig(func(bc *build.Config) {
 				bc.Paths.WorkDir = "/blah"
 				bc.Paths.TargetDir = "/blah/dist"
 				bc.Paths.BinPath = "/blah/dist/lockbox"
@@ -70,11 +70,11 @@ func TestConfig_BuildConfig_ok(t *testing.T) {
 	}
 }
 
-func standardBuildconfig() build.BuildConfig {
-	return build.BuildConfig{
+func standardBuildconfig() build.Config {
+	return build.Config{
 		Product:    standardProduct(),
 		Parameters: standardParameters(),
-		Paths: build.BuildPaths{
+		Paths: build.Paths{
 			WorkDir:   "/",
 			TargetDir: "/dist",
 			BinPath:   "/dist/lockbox",
@@ -84,6 +84,6 @@ func standardBuildconfig() build.BuildConfig {
 	}
 }
 
-func testBuildConfig(modifiers ...func(*build.BuildConfig)) build.BuildConfig {
+func testBuildConfig(modifiers ...func(*build.Config)) build.Config {
 	return applyModifiers(standardBuildconfig(), modifiers...)
 }

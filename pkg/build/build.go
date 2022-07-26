@@ -19,7 +19,7 @@ import (
 type Build interface {
 	Run() Result
 	Env() []string
-	Config() BuildConfig
+	Config() Config
 }
 
 func resolveBashPath(path string) (string, error) {
@@ -29,7 +29,7 @@ func resolveBashPath(path string) (string, error) {
 	return exec.LookPath(path)
 }
 
-func New(cfg BuildConfig, options ...Option) (Build, error) {
+func New(cfg Config, options ...Option) (Build, error) {
 	s, err := newSettings(options)
 	if err != nil {
 		return &build{}, err
@@ -42,10 +42,10 @@ func New(cfg BuildConfig, options ...Option) (Build, error) {
 
 type build struct {
 	settings Settings
-	config   BuildConfig
+	config   Config
 }
 
-func (b *build) Config() BuildConfig {
+func (b *build) Config() Config {
 	return b.config
 }
 

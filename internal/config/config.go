@@ -72,21 +72,21 @@ func FromEnvironment() (Config, error) {
 
 // buildConfig returns a BuildConfig based on this Config, rooted at root.
 // The root must be an absolute path.
-func (c Config) buildConfig(root string) (build.BuildConfig, error) {
+func (c Config) buildConfig(root string) (build.Config, error) {
 	paths, err := build.NewBuildPaths(root, c.Product.ExecutableName, c.ZipName)
 	if err != nil {
-		return build.BuildConfig{}, err
+		return build.Config{}, err
 	}
-	return build.NewBuildConfig(c.Product, c.Parameters, paths)
+	return build.NewConfig(c.Product, c.Parameters, paths)
 }
 
 // PrimaryBuildConfig returns the config for the primary build.
-func (c Config) PrimaryBuildConfig() (build.BuildConfig, error) {
+func (c Config) PrimaryBuildConfig() (build.Config, error) {
 	return c.buildConfig(c.PrimaryBuildRoot)
 }
 
 // VerificationBuildConfig returns the config for the verification build.
-func (c Config) VerificationBuildConfig() (build.BuildConfig, error) {
+func (c Config) VerificationBuildConfig() (build.Config, error) {
 	return c.buildConfig(c.VerificationBuildRoot)
 }
 

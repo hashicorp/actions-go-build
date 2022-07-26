@@ -6,7 +6,7 @@ import (
 )
 
 type PrimaryBuildConfig struct {
-	build.BuildConfig
+	build.Config
 }
 
 func (pbc *PrimaryBuildConfig) ReadEnv() error {
@@ -14,6 +14,6 @@ func (pbc *PrimaryBuildConfig) ReadEnv() error {
 	if err != nil {
 		return err
 	}
-	pbc.BuildConfig, err = cfg.PrimaryBuildConfig()
+	pbc.Config, err = cfg.PrimaryBuildConfig()
 	return err
 }

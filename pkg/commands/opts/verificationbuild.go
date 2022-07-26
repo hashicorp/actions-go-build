@@ -14,6 +14,6 @@ func (vb *VerificationBuild) ReadEnv() error {
 		return err
 	}
 	var err error
-	vb.Build, err = build.New(cfg.BuildConfig)
+	vb.Build, err = build.New(cfg.Config)
 	return err
 }

@@ -8,7 +8,7 @@ import (
 // BuildConfig wraps a crt.BuildConfig to implement the Flags and Env interfaces.
 type BuildConfig struct {
 	BuildFlags
-	build.BuildConfig
+	build.Config
 }
 
 func (bc *BuildConfig) ReadEnv() error {
@@ -20,6 +20,6 @@ func (bc *BuildConfig) ReadEnv() error {
 	if bc.BuildFlags.Verification {
 		cfgFn = cfg.VerificationBuildConfig
 	}
-	bc.BuildConfig, err = cfgFn()
+	bc.Config, err = cfgFn()
 	return err
 }

@@ -6,7 +6,7 @@ import (
 )
 
 type VerificationBuildConfig struct {
-	build.BuildConfig
+	build.Config
 }
 
 func (vbc *VerificationBuildConfig) ReadEnv() error {
@@ -14,6 +14,6 @@ func (vbc *VerificationBuildConfig) ReadEnv() error {
 	if err != nil {
 		return err
 	}
-	vbc.BuildConfig, err = cfg.VerificationBuildConfig()
+	vbc.Config, err = cfg.VerificationBuildConfig()
 	return err
 }

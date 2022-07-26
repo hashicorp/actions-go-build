@@ -15,10 +15,10 @@ func (ds DirNames) List() []string {
 	return []string{ds.Target, ds.Zip, ds.Meta}
 }
 
-// BuildPaths are host-specific absolute paths to various things. We need to
+// Paths are host-specific absolute paths to various things. We need to
 // be aware of these paths in order to be able to do comparisons between
 // primary and verification builds. They must not affect the bytes produced.
-type BuildPaths struct {
+type Paths struct {
 	// WorkDir is the absolute directory to run the build instructions in.
 	WorkDir string
 	// TargetDir is the absolute path to the dir where any other files
@@ -33,24 +33,24 @@ type BuildPaths struct {
 	MetaDir string
 }
 
-func NewBuildPaths(root, executableName, zipName string) (BuildPaths, error) {
-	var bp BuildPaths
+func NewBuildPaths(root, executableName, zipName string) (Paths, error) {
+	var bp Paths
 	if !filepath.IsAbs(root) {
 		return bp, fmt.Errorf("root path %q is not absolute", root)
 	}
 	return bp.setDefaults(root, executableName, zipName), nil
 }
 
-func (bp BuildPaths) ZipDir() string {
+func (bp Paths) ZipDir() string {
 	return filepath.Dir(bp.ZipPath)
 }
 
-func (bp BuildPaths) trimSpace() BuildPaths {
+func (bp Paths) trimSpace() Paths {
 	// Placeholder func for consistency.
 	return bp
 }
 
-func (bp BuildPaths) setDefaults(root, executableName, zipName string) BuildPaths {
+func (bp Paths) setDefaults(root, executableName, zipName string) Paths {
 	bp.WorkDir = root
 	bp.TargetDir = filepath.Join(root, Dirs.Target)
 	bp.BinPath = filepath.Join(root, Dirs.Target, executableName)

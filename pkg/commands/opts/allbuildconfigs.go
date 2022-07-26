@@ -6,7 +6,7 @@ import (
 )
 
 type AllBuildConfigs struct {
-	Primary, Verification build.BuildConfig
+	Primary, Verification build.Config
 }
 
 func (abc *AllBuildConfigs) Init() error {

@@ -45,7 +45,7 @@ type Inputs struct {
 // Note that the Config will be different for each of
 // them because it contains build-host-specific paths.
 type Result struct {
-	Config       BuildConfig
+	Config       Config
 	Env          []string
 	Meta         Meta
 	Zip          crt.File
@@ -78,7 +78,7 @@ type Recorder struct {
 	nowFunc func() time.Time
 }
 
-func NewRecorder(c BuildConfig) *Recorder {
+func NewRecorder(c Config) *Recorder {
 	return &Recorder{
 		result: Result{
 			Config: c,

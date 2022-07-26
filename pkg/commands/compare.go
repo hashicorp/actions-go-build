@@ -34,7 +34,7 @@ func (co *compareOpts) Init() error {
 	return co.AllBuildConfigs.Init()
 }
 
-func doComparison(primary, verification build.BuildConfig) (crt.FileSetHashes, error) {
+func doComparison(primary, verification build.Config) (crt.FileSetHashes, error) {
 	log.Printf("Comparing SHA256 digests between primary and local verification builds.")
 	log.Printf("Primary build root:      %s", primary.Paths.WorkDir)
 	log.Printf("Verification build root: %s", verification.Paths.WorkDir)

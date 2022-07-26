@@ -21,6 +21,6 @@ func (pb *PrimaryBuild) ReadEnv() error {
 		return err
 	}
 	var err error
-	pb.Build, err = build.New(cfg.BuildConfig)
+	pb.Build, err = build.New(cfg.Config)
 	return err
 }

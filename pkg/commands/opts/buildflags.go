@@ -15,7 +15,7 @@ func (bf *BuildFlags) Flags(fs *flag.FlagSet) {
 	fs.BoolVar(&bf.Verification, "verification", false, "verification build")
 }
 
-func (bf *BuildFlags) BuildConfig(c config.Config) (build.BuildConfig, error) {
+func (bf *BuildFlags) BuildConfig(c config.Config) (build.Config, error) {
 	if bf.Verification {
 		return c.VerificationBuildConfig()
 	}

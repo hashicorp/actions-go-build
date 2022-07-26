@@ -8,9 +8,9 @@ import (
 	"github.com/hashicorp/actions-go-build/pkg/digest"
 )
 
-func GetAllHashes(primary, verification BuildConfig) (crt.FileSetHashes, error) {
-	getBinPath := func(bc BuildConfig) string { return bc.Paths.BinPath }
-	getZipPath := func(bc BuildConfig) string { return bc.Paths.ZipPath }
+func GetAllHashes(primary, verification Config) (crt.FileSetHashes, error) {
+	getBinPath := func(bc Config) string { return bc.Paths.BinPath }
+	getZipPath := func(bc Config) string { return bc.Paths.ZipPath }
 
 	var fsh crt.FileSetHashes
 	var err error
@@ -27,9 +27,9 @@ func GetAllHashes(primary, verification BuildConfig) (crt.FileSetHashes, error) 
 
 }
 
-type getPathFunc func(BuildConfig) string
+type getPathFunc func(Config) string
 
-func getHashes(desc string, primary, verification BuildConfig, getPath func(BuildConfig) string) (crt.FileHashes, error) {
+func getHashes(desc string, primary, verification Config, getPath func(Config) string) (crt.FileHashes, error) {
 	fh := crt.FileHashes{Description: desc}
 	pPath, vPath := getPath(primary), getPath(verification)
 	pName, vName := filepath.Base(pPath), filepath.Base(vPath)
