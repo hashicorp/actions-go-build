@@ -75,34 +75,33 @@ var Verify = cli.LeafCommand("verify", "run primary and verification builds; ass
 
 func primaryBuildResult(opts *verifyOpts) (build.Result, error) {
 	// See if this build has already been run.
-	result, cached, err := opts.Builds.Primary.CachedResult()
+	primaryResult, cached, err := opts.Builds.Primary.CachedResult()
 	if cached || err != nil {
 		log.Printf("Primary build has already been run; skipping.")
-		return result, err
+		return primaryResult, err
 	}
 
 	log.Printf("Running primary build.")
-	primaryResult := opts.Builds.Primary.Run()
-	if primaryResult.Error() != nil {
+	if primaryResult = opts.Builds.Primary.Run(); primaryResult.Error() != nil {
 		if _, err := opts.ResultWriter.WriteBuildResult(primaryResult); err != nil {
 			return primaryResult, err
 		}
 		return primaryResult, fmt.Errorf("primary build failed: %w", primaryResult.Error())
 	}
 
-	return primaryResult, cacheResult("Primary", result)
+	return primaryResult, cacheResult("Primary", primaryResult)
 }
 
 func verificationBuildResult(opts *verifyOpts) (build.Result, error) {
 	// See if this build has already been run.
-	result, cached, err := opts.Builds.Verification.CachedResult()
+	verificationResult, cached, err := opts.Builds.Verification.CachedResult()
 	if cached || err != nil {
 		log.Printf("Verification build has already been run; skipping.")
-		return result, err
+		return verificationResult, err
 	}
 
 	log.Printf("Running verification build.")
-	verificationResult, err := runVerificationBuild(
+	verificationResult, err = runVerificationBuild(
 		opts.ActionConfig.PrimaryBuildRoot,
 		opts.ActionConfig.VerificationBuildRoot,
 		opts.Builds.Verification,
@@ -116,5 +115,5 @@ func verificationBuildResult(opts *verifyOpts) (build.Result, error) {
 		}
 		return verificationResult, fmt.Errorf("verification build failed: %w", verificationResult.Error())
 	}
-	return verificationResult, cacheResult("Verification", result)
+	return verificationResult, cacheResult("Verification", verificationResult)
 }
