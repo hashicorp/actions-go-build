@@ -9,21 +9,25 @@ import (
 	"github.com/hashicorp/actions-go-build/pkg/build"
 	"github.com/hashicorp/actions-go-build/pkg/commands/opts"
 	"github.com/hashicorp/composite-action-framework-go/pkg/cli"
+	"github.com/hashicorp/composite-action-framework-go/pkg/github"
 )
 
-type buildOpts struct {
+type verifyOpts struct {
 	Builds       opts.AllBuilds
 	Configs      opts.AllBuildConfigs
 	ActionConfig opts.ActionConfig
 	GitHub       opts.GitHubOpts
+	StepSummary  github.StepSummary
 	ResultWriter opts.ResultWriter
 }
 
-func (bo *buildOpts) ReadEnv() error         { return cli.ReadEnvAll(&bo.Builds, &bo.ActionConfig, &bo.GitHub) }
-func (bo *buildOpts) Flags(fs *flag.FlagSet) { cli.FlagsAll(fs, &bo.GitHub) }
-func (bo *buildOpts) Init() error            { return cli.InitAll(&bo.Configs) }
+func (bo *verifyOpts) ReadEnv() error {
+	return cli.ReadEnvAll(&bo.Builds, &bo.ActionConfig, &bo.GitHub, &bo.StepSummary)
+}
+func (bo *verifyOpts) Flags(fs *flag.FlagSet) { cli.FlagsAll(fs, &bo.GitHub, &bo.StepSummary) }
+func (bo *verifyOpts) Init() error            { return cli.InitAll(&bo.Configs) }
 
-var Build = cli.LeafCommand("build", "run primary and local verification build", func(opts *buildOpts) error {
+var Verify = cli.LeafCommand("verify", "run primary and verification builds; assert match", func(opts *verifyOpts) error {
 
 	primaryResult, err := primaryBuildResult(opts)
 	if err != nil {
@@ -51,6 +55,13 @@ var Build = cli.LeafCommand("build", "run primary and local verification build",
 		return err
 	}
 
+	if err := writeStepSummary(opts.StepSummary, result.Hashes); err != nil {
+		return err
+	}
+	if err := writeLogSummary(stderr, result.Hashes); err != nil {
+		return err
+	}
+
 	path, err := opts.ResultWriter.WriteVerificationResult(result)
 	if err != nil {
 		return err
@@ -63,7 +74,7 @@ var Build = cli.LeafCommand("build", "run primary and local verification build",
 	return result.Hashes.Error()
 })
 
-func primaryBuildResult(opts *buildOpts) (build.Result, error) {
+func primaryBuildResult(opts *verifyOpts) (build.Result, error) {
 	// See if this build has already been run.
 	result, cached, err := opts.Builds.Primary.CachedResult()
 	if cached || err != nil {
@@ -82,7 +93,7 @@ func primaryBuildResult(opts *buildOpts) (build.Result, error) {
 	return primaryResult, nil
 }
 
-func verificationBuildResult(opts *buildOpts) (build.Result, error) {
+func verificationBuildResult(opts *verifyOpts) (build.Result, error) {
 	// See if this build has already been run.
 	result, cached, err := opts.Builds.Verification.CachedResult()
 	if cached || err != nil {

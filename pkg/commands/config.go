@@ -16,7 +16,7 @@ func (c *configOpts) Flags(fs *flag.FlagSet) {
 	fs.BoolVar(&c.github, "github", false, "export config to github env")
 }
 
-var Config = cli.LeafCommand("config", "read config", func(opts *configOpts) error {
+var Config = cli.LeafCommand("config", "print config and export to GITHUB_ENV if set", func(opts *configOpts) error {
 	cfg, err := config.FromEnvironment()
 	if err != nil {
 		return err

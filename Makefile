@@ -8,9 +8,7 @@ _ := $(shell cd .git/hooks && ln -fs ../../dev/git_hooks/* .)
 CURR_VERSION := $(shell cat dev/VERSION)
 CURR_VERSION_CL := dev/changes/v$(CURR_VERSION).md
 
-BATS := bats -j 10 -T
-
-test: test/bats test/go
+test: test/go
 
 cover: GO_TEST_FLAGS := -coverprofile=coverage.profile
 cover: test/go
@@ -73,10 +71,6 @@ run/cli/verification: cli
 
 run/cli/compare: cli
 	$(RUNCLI) compare
-
-test/bats:
-	# Running bats tests in scripts/
-	@$(BATS) scripts/
 
 test/go/update: export UPDATE_TESTDATA := true
 test/go/update: test/go

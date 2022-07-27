@@ -70,27 +70,6 @@ runs:
   using: composite
   steps:
 
-    # We need the GNU date program installed that comes with coreutils.
-    - name: Ensure Coreutils Installed On Mac
-      if: runner.os == 'macOS'
-      shell: bash
-      run: |
-        set -euo pipefail
-        if (date --help | grep GNU) > /dev/null 2>&1; then
-          echo "GNU date already installed as 'date'"
-          exit 0
-        fi
-        if (gdate --help | grep GNU) > /dev/null 2>&1; then
-          echo "GNU date already installed as 'gdate'"
-          exit 0
-        fi
-        command -v brew > /dev/null 2>&1 || {
-          echo "Homebrew not installed, unable to proceed."
-          exit 1
-        }
-        brew update
-        brew install coreutils
-
     # Setup Go for CLI compilation.
     - uses: actions/setup-go@v2
       with:
@@ -124,15 +103,10 @@ runs:
       with:
         go-version: ${{ inputs.go_version }}
 
-    # Print
-    - name: "Print Build Environment Info"
-      shell: bash
-      run: ${{ github.action_path}}/scripts/build_env_info
-
     # Primary Build
     - name: Run Primary Build
       shell: bash
-      run: cd ${{ inputs.work_dir }} && actions-go-build primary
+      run: cd ${{ inputs.work_dir }} && actions-go-build steps primary
 
     # Upload Primary Build
     - name: Upload primary build zip file.
@@ -146,7 +120,7 @@ runs:
     - name: Run Local Verification Build
       if: inputs.reproducible == 'assert' || inputs.reproducible == 'report'
       shell: bash
-      run: cd ${{ inputs.work_dir }} && actions-go-build verification
+      run: cd ${{ inputs.work_dir }} && actions-go-build steps verification
 
     # Upload Local Verification Build
     - name: Upload local verification build zip file.
@@ -161,10 +135,10 @@ runs:
     - name: Assert Build Outputs Identical
       if: inputs.reproducible == 'assert'
       shell: bash
-      run: actions-go-build compare
+      run: actions-go-build verify
 
     # Report Reproducibility
     - name: Report Reproducibility Results
       if: inputs.reproducible == 'report'
       shell: bash
-      run: actions-go-build compare || true
+      run: actions-go-build steps verify || true

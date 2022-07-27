@@ -129,11 +129,7 @@ func (b *build) assertExecutableWritten() error {
 }
 
 func (b *build) executableWasWritten() (bool, error) {
-	return fs.FileExists(b.config.Paths.ZipPath)
-}
-
-func (b *build) zipWasWritten() (bool, error) {
-	return fs.FileExists(b.config.Paths.ZipPath)
+	return fs.FileExists(b.config.Paths.BinPath)
 }
 
 func (b *build) writeDigest(of, named string) error {

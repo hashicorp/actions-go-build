@@ -9,7 +9,7 @@ import (
 	"github.com/hashicorp/composite-action-framework-go/pkg/cli"
 )
 
-var Env = cli.RootCommand("env", "build environment info", EnvDescribe, EnvDump)
+var Env = cli.RootCommand("env", "print build environment info", EnvDescribe, EnvDump)
 
 var EnvDescribe = cli.LeafCommand("describe", "describe the build environment", func(cli.None) error {
 	return writeEnvDescriptions()
