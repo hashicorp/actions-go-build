@@ -90,7 +90,8 @@ func primaryBuildResult(opts *verifyOpts) (build.Result, error) {
 		}
 		return primaryResult, fmt.Errorf("primary build failed: %w", primaryResult.Error())
 	}
-	return primaryResult, nil
+
+	return primaryResult, cacheResult("Primary", result)
 }
 
 func verificationBuildResult(opts *verifyOpts) (build.Result, error) {
@@ -116,5 +117,5 @@ func verificationBuildResult(opts *verifyOpts) (build.Result, error) {
 		}
 		return verificationResult, fmt.Errorf("verification build failed: %w", verificationResult.Error())
 	}
-	return verificationResult, nil
+	return verificationResult, cacheResult("Verification", result)
 }

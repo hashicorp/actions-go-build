@@ -26,11 +26,9 @@ var Verification = cli.LeafCommand("verification", "run the verification build",
 		log.Printf("Verification build results written to %q", resultFile)
 	}
 
-	path, err := result.Save()
-	if err != nil {
-		return fmt.Errorf("Failed to cache build results: %s", err)
+	if err := cacheResult("Verification", result); err != nil {
+		return err
 	}
-	log.Printf("Verification build results cached to %s", path)
 
 	return result.Error()
 })
@@ -42,4 +40,13 @@ func runVerificationBuild(primaryBuildRoot, verificationBuildRoot string, verifi
 		return build.Result{}, err
 	}
 	return verificationBuild.Run(), nil
+}
+
+func cacheResult(name string, result build.Result) error {
+	path, err := result.Save()
+	if err != nil {
+		return fmt.Errorf("Failed to cache build results: %s", err)
+	}
+	log.Printf("%s build results cached to %s", name, path)
+	return nil
 }
