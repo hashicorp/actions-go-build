@@ -19,5 +19,9 @@ var Primary = cli.LeafCommand("primary", "run the primary build", func(b *opts.P
 		log.Printf("Primary build results written to %q", resultFile)
 	}
 
+	if err := result.Save(); err != nil {
+		log.Printf("Failed to cache build results: %s", err)
+	}
+
 	return result.Error()
 })

@@ -1,6 +1,7 @@
 package build
 
 import (
+	"encoding/json"
 	"fmt"
 	"log"
 	"os"
@@ -20,6 +21,7 @@ type Build interface {
 	Run() Result
 	Env() []string
 	Config() Config
+	CachedResult() (Result, bool, error)
 }
 
 func resolveBashPath(path string) (string, error) {
@@ -47,6 +49,26 @@ type build struct {
 
 func (b *build) Config() Config {
 	return b.config
+}
+
+func (b *build) CachedResult() (Result, bool, error) {
+	var r Result
+	path := buildResultSavePath(b.config)
+	exists, err := fs.FileExists(path)
+	if err != nil {
+		return r, false, err
+	}
+	if !exists {
+		return r, false, nil
+	}
+	file, err := os.Open(path)
+	if err != nil {
+		return r, false, err
+	}
+	if err := json.NewDecoder(file).Decode(&r); err != nil {
+		return r, false, err
+	}
+	return r, true, nil
 }
 
 func (b *build) Run() Result {
@@ -96,7 +118,7 @@ func (b *build) createDirectories() error {
 }
 
 func (b *build) assertExecutableWritten() error {
-	binExists, err := fs.FileExists(b.config.Paths.BinPath)
+	binExists, err := b.executableWasWritten()
 	if err != nil {
 		return err
 	}
@@ -104,6 +126,14 @@ func (b *build) assertExecutableWritten() error {
 		return fmt.Errorf("no file written to BIN_PATH %q", b.config.Paths.BinPath)
 	}
 	return nil
+}
+
+func (b *build) executableWasWritten() (bool, error) {
+	return fs.FileExists(b.config.Paths.ZipPath)
+}
+
+func (b *build) zipWasWritten() (bool, error) {
+	return fs.FileExists(b.config.Paths.ZipPath)
 }
 
 func (b *build) writeDigest(of, named string) error {

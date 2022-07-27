@@ -45,10 +45,20 @@ func (br *Recorder) Run() Result {
 	return br.Result()
 }
 
+func (br *Recorder) isFinished() bool {
+	return br.result.Meta.Finish != (time.Time{})
+}
+
+func (br *Recorder) finish() {
+	if !br.isFinished() {
+		br.result.Meta.Finish = br.nowFunc()
+		br.result.Meta.Duration = br.result.Meta.Finish.Sub(br.result.Meta.Start).String()
+		br.result.Successful = br.result.err == nil
+	}
+}
+
 func (br *Recorder) Result() Result {
-	br.result.Meta.Finish = br.nowFunc()
-	br.result.Meta.Duration = br.result.Meta.Finish.Sub(br.result.Meta.Start).String()
-	br.result.Successful = br.result.err == nil
+	br.finish()
 	return br.result
 }
 

@@ -25,6 +25,10 @@ var Verification = cli.LeafCommand("verification", "run the verification build",
 		log.Printf("Verification build results written to %q", resultFile)
 	}
 
+	if err := result.Save(); err != nil {
+		log.Printf("Failed to cache build results: %s", err)
+	}
+
 	return result.Error()
 })
 

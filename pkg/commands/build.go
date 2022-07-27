@@ -25,16 +25,23 @@ func (bo *buildOpts) Init() error            { return cli.InitAll(&bo.Configs) }
 
 var Build = cli.LeafCommand("build", "run primary and local verification build", func(opts *buildOpts) error {
 
-	primaryResult, err := runPrimaryBuild(opts)
+	primaryResult, err := primaryBuildResult(opts)
 	if err != nil {
 		return err
 	}
 
-	sleepTime := 5 * time.Second
-	log.Printf("Sleeping for %s to try to trigger temporal nondeterminism.", sleepTime)
-	time.Sleep(sleepTime)
+	staggerTime := 5 * time.Second
 
-	verificationResult, err := doVerificationBuild(opts)
+	earliestVerificationBuildTime := primaryResult.Meta.Start.Add(staggerTime)
+	now := time.Now().UTC()
+	if earliestVerificationBuildTime.After(now) {
+		sleepTime := earliestVerificationBuildTime.Sub(now)
+		log.Printf("Sleeping for %s (%s after initial build start time) to try to trigger temporal nondeterminism.",
+			staggerTime, sleepTime)
+		time.Sleep(sleepTime)
+	}
+
+	verificationResult, err := verificationBuildResult(opts)
 	if err != nil {
 		return err
 	}
@@ -56,7 +63,15 @@ var Build = cli.LeafCommand("build", "run primary and local verification build",
 	return result.Hashes.Error()
 })
 
-func runPrimaryBuild(opts *buildOpts) (build.Result, error) {
+func primaryBuildResult(opts *buildOpts) (build.Result, error) {
+	// See if this build has already been run.
+	result, cached, err := opts.Builds.Primary.CachedResult()
+	if cached || err != nil {
+		log.Printf("Primary build has already been run; skipping.")
+		return result, err
+	}
+
+	log.Printf("Running primary build.")
 	primaryResult := opts.Builds.Primary.Run()
 	if primaryResult.Error() != nil {
 		if _, err := opts.ResultWriter.WriteBuildResult(primaryResult); err != nil {
@@ -67,7 +82,15 @@ func runPrimaryBuild(opts *buildOpts) (build.Result, error) {
 	return primaryResult, nil
 }
 
-func doVerificationBuild(opts *buildOpts) (build.Result, error) {
+func verificationBuildResult(opts *buildOpts) (build.Result, error) {
+	// See if this build has already been run.
+	result, cached, err := opts.Builds.Verification.CachedResult()
+	if cached || err != nil {
+		log.Printf("Verification build has already been run; skipping.")
+		return result, err
+	}
+
+	log.Printf("Running verification build.")
 	verificationResult, err := runVerificationBuild(
 		opts.ActionConfig.PrimaryBuildRoot,
 		opts.ActionConfig.VerificationBuildRoot,
