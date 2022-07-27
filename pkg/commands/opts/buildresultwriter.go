@@ -13,64 +13,64 @@ import (
 )
 
 type ResultWriter struct {
-	github GitHubOpts
-	file   *os.File
+	github   GitHubOpts
+	filename string
+	file     *os.File
 }
 
-func (brw *ResultWriter) ReadEnv() error         { return cli.ReadEnvAll(&brw.github) }
-func (brw *ResultWriter) Flags(fs *flag.FlagSet) { cli.FlagsAll(fs, &brw.github) }
-
-func buildResultFilename(br *build.Result) string {
-	return fmt.Sprintf("%s.buildresult.json", filepath.Base(br.Config.Paths.ZipPath))
+func (brw *ResultWriter) ReadEnv() error {
+	return cli.ReadEnvAll(&brw.github)
 }
 
-func (brw *ResultWriter) buildResultWriter(br *build.Result) (io.Writer, string, error) {
-	var filename string
-	if !brw.github.GitHubMode {
-		return os.Stdout, filename, nil
-	}
-	filename = buildResultFilename(br)
-	w, err := brw.multiWriter(filename)
-	return w, filename, err
+func (brw *ResultWriter) Flags(fs *flag.FlagSet) {
+	cli.FlagsAll(fs, &brw.github)
+	fs.StringVar(&brw.filename, "output", "", "overwrite file path to write JSON results")
 }
 
 // WriteBuildResult returns the path written.
-func (brw *ResultWriter) WriteBuildResult(br *build.Result) (string, error) {
-	writer, filename, err := brw.buildResultWriter(br)
-	if err != nil {
-		return filename, err
+func (brw *ResultWriter) WriteBuildResult(br build.Result) (string, error) {
+	return writeResult(brw, br, buildResultFilename)
+}
+
+func (brw *ResultWriter) WriteVerificationResult(vr *build.VerificationResult) (string, error) {
+	return writeResult(brw, vr, doubleBuildResultFilename)
+}
+func (brw *ResultWriter) closeFile() error {
+	if brw.file == nil {
+		return nil
 	}
-	var closeErr error
-	defer func() { closeErr = brw.Close() }()
-	if err := writeJSON(writer, br); err != nil {
-		return filename, err
+	return brw.file.Close()
+}
+
+func buildResultFilename(br build.Result) string {
+	return fmt.Sprintf("%s.buildresult.json", filepath.Base(br.Config.Paths.ZipPath))
+}
+
+func (brw *ResultWriter) makeWriter(defaultFilename string) (io.Writer, string, error) {
+	var w io.Writer
+	if !brw.github.GitHubMode && brw.filename == "" {
+		return os.Stdout, "", nil
 	}
-	return filename, closeErr
+	filename := brw.filename
+	if filename == "" {
+		filename = defaultFilename
+	}
+	w, err := brw.multiWriter(filename)
+	return w, filename, err
 }
 
 func doubleBuildResultFilename(br *build.VerificationResult) string {
 	return fmt.Sprintf("%s.doubleresult.json", filepath.Base(br.Primary.Config.Paths.ZipPath))
 }
 
-func (brw *ResultWriter) doubleBuildResultWriter(br *build.VerificationResult) (io.Writer, string, error) {
-	var filename string
-	if !brw.github.GitHubMode {
-		return os.Stdout, filename, nil
-	}
-	filename = doubleBuildResultFilename(br)
-	w, err := brw.multiWriter(filename)
-	return w, filename, err
-}
-
-// WriteDoubleBuildResult returns the path written.
-func (brw *ResultWriter) WriteDoubleBuildResult(br *build.VerificationResult) (string, error) {
-	writer, filename, err := brw.doubleBuildResultWriter(br)
+func writeResult[T any](brw *ResultWriter, a T, nameFunc func(T) string) (string, error) {
+	writer, filename, err := brw.makeWriter(nameFunc(a))
 	if err != nil {
 		return filename, err
 	}
 	var closeErr error
-	defer func() { closeErr = brw.Close() }()
-	if err := writeJSON(writer, br); err != nil {
+	defer func() { closeErr = brw.closeFile() }()
+	if err := writeJSON(writer, a); err != nil {
 		return filename, err
 	}
 	return filename, closeErr
@@ -88,11 +88,4 @@ func (brw *ResultWriter) multiWriter(filename string) (io.Writer, error) {
 		return nil, err
 	}
 	return io.MultiWriter(os.Stdout, brw.file), nil
-}
-
-func (brw *ResultWriter) Close() error {
-	if brw.file == nil {
-		return nil
-	}
-	return brw.file.Close()
 }

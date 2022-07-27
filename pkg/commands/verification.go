@@ -17,9 +17,14 @@ var Verification = cli.LeafCommand("verification", "run the verification build",
 		return err
 	}
 
-	if err := writeJSON(stdout, result); err != nil {
+	resultFile, err := c.ResultWriter.WriteBuildResult(result)
+	if err != nil {
 		return err
 	}
+	if resultFile != "" {
+		log.Printf("Verification build results written to %q", resultFile)
+	}
+
 	return result.Error()
 })
 

@@ -44,7 +44,7 @@ var Build = cli.LeafCommand("build", "run primary and local verification build",
 		return err
 	}
 
-	path, err := opts.ResultWriter.WriteDoubleBuildResult(result)
+	path, err := opts.ResultWriter.WriteVerificationResult(result)
 	if err != nil {
 		return err
 	}
@@ -59,7 +59,7 @@ var Build = cli.LeafCommand("build", "run primary and local verification build",
 func runPrimaryBuild(opts *buildOpts) (build.Result, error) {
 	primaryResult := opts.Builds.Primary.Run()
 	if primaryResult.Error() != nil {
-		if _, err := opts.ResultWriter.WriteBuildResult(&primaryResult); err != nil {
+		if _, err := opts.ResultWriter.WriteBuildResult(primaryResult); err != nil {
 			return primaryResult, err
 		}
 		return primaryResult, fmt.Errorf("primary build failed: %w", primaryResult.Error())
@@ -77,7 +77,7 @@ func doVerificationBuild(opts *buildOpts) (build.Result, error) {
 		return verificationResult, fmt.Errorf("setting up for verification build failed: %w", err)
 	}
 	if verificationResult.Error() != nil {
-		if _, err := opts.ResultWriter.WriteBuildResult(&verificationResult); err != nil {
+		if _, err := opts.ResultWriter.WriteBuildResult(verificationResult); err != nil {
 			return verificationResult, err
 		}
 		return verificationResult, fmt.Errorf("verification build failed: %w", verificationResult.Error())

@@ -24,11 +24,11 @@ type compareOpts struct {
 }
 
 func (co *compareOpts) ReadEnv() error {
-	return co.StepSummary.ReadEnv()
+	return cli.ReadEnvAll(&co.StepSummary)
 }
 
 func (co *compareOpts) Flags(fs *flag.FlagSet) {
-	co.StepSummary.Flags(fs)
+	cli.FlagsAll(fs, &co.StepSummary)
 }
 
 func (co *compareOpts) Init() error {

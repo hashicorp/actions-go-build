@@ -15,5 +15,5 @@ func (gho *GitHubOpts) ReadEnv() error {
 }
 
 func (gho *GitHubOpts) Flags(fs *flag.FlagSet) {
-	fs.BoolVar(&gho.GitHubMode, "github", gho.GitHubMode, "enable GitHub mode")
+	fs.BoolVar(&gho.GitHubMode, "github", gho.GitHubMode, "run as though on GitHub Actions")
 }

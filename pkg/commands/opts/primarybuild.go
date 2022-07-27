@@ -4,18 +4,22 @@ import (
 	"flag"
 
 	"github.com/hashicorp/actions-go-build/pkg/build"
+	"github.com/hashicorp/composite-action-framework-go/pkg/cli"
 )
 
 type PrimaryBuild struct {
 	build.Build
-	OutputFile string
+	ResultWriter
 }
 
 func (pb *PrimaryBuild) Flags(fs *flag.FlagSet) {
-	fs.StringVar(&pb.OutputFile, "output", "", "write build results to the named file")
+	cli.FlagsAll(fs, &pb.ResultWriter)
 }
 
 func (pb *PrimaryBuild) ReadEnv() error {
+	if err := cli.ReadEnvAll(&pb.ResultWriter); err != nil {
+		return err
+	}
 	cfg := &PrimaryBuildConfig{}
 	if err := cfg.ReadEnv(); err != nil {
 		return err
