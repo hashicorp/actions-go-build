@@ -24,15 +24,11 @@ type compareOpts struct {
 }
 
 func (co *compareOpts) ReadEnv() error {
-	return cli.ReadEnvAll(&co.StepSummary)
+	return cli.ReadEnvAll(&co.StepSummary, &co.AllBuildConfigs)
 }
 
 func (co *compareOpts) Flags(fs *flag.FlagSet) {
 	cli.FlagsAll(fs, &co.StepSummary)
-}
-
-func (co *compareOpts) Init() error {
-	return co.AllBuildConfigs.Init()
 }
 
 func doComparison(primary, verification build.Config) (crt.FileSetHashes, error) {

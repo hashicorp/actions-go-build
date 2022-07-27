@@ -2,6 +2,7 @@ package build
 
 import (
 	"fmt"
+	"log"
 	"path/filepath"
 
 	"github.com/hashicorp/actions-go-build/pkg/crt"
@@ -29,6 +30,9 @@ func NewConfig(product crt.Product, params Parameters, paths Paths) (Config, err
 }
 
 func (c Config) buildResultCachePath() string {
+	if c.Product.SourceHash == "" {
+		log.Panicf("SourceHash is empty; Config looks like this: % #v", c)
+	}
 	filename := fmt.Sprintf("buildresult-%s.json", c.Product.SourceHash)
 	return filepath.Join(c.Paths.MetaDir, filename)
 }

@@ -14,7 +14,6 @@ import (
 
 type verifyOpts struct {
 	Builds       opts.AllBuilds
-	Configs      opts.AllBuildConfigs
 	ActionConfig opts.ActionConfig
 	GitHub       opts.GitHubOpts
 	StepSummary  github.StepSummary
@@ -24,8 +23,8 @@ type verifyOpts struct {
 func (bo *verifyOpts) ReadEnv() error {
 	return cli.ReadEnvAll(&bo.Builds, &bo.ActionConfig, &bo.GitHub, &bo.StepSummary)
 }
+
 func (bo *verifyOpts) Flags(fs *flag.FlagSet) { cli.FlagsAll(fs, &bo.GitHub, &bo.StepSummary) }
-func (bo *verifyOpts) Init() error            { return cli.InitAll(&bo.Configs) }
 
 var Verify = cli.LeafCommand("verify", "run primary and verification builds; assert match", func(opts *verifyOpts) error {
 

@@ -10,6 +10,8 @@ import (
 type PrimaryBuild struct {
 	build.Build
 	ResultWriter
+
+	primary PrimaryBuildConfig
 }
 
 func (pb *PrimaryBuild) Flags(fs *flag.FlagSet) {
@@ -17,14 +19,10 @@ func (pb *PrimaryBuild) Flags(fs *flag.FlagSet) {
 }
 
 func (pb *PrimaryBuild) ReadEnv() error {
-	if err := cli.ReadEnvAll(&pb.ResultWriter); err != nil {
-		return err
-	}
-	cfg := &PrimaryBuildConfig{}
-	if err := cfg.ReadEnv(); err != nil {
+	if err := cli.ReadEnvAll(&pb.ResultWriter, &pb.primary); err != nil {
 		return err
 	}
 	var err error
-	pb.Build, err = build.New(cfg.Config)
+	pb.Build, err = build.New(pb.primary.Config)
 	return err
 }
