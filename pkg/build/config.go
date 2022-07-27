@@ -1,6 +1,11 @@
 package build
 
-import "github.com/hashicorp/actions-go-build/pkg/crt"
+import (
+	"fmt"
+	"path/filepath"
+
+	"github.com/hashicorp/actions-go-build/pkg/crt"
+)
 
 // Config contains the complete configuration to build a single binary
 // on a specific host.
@@ -21,4 +26,9 @@ func NewConfig(product crt.Product, params Parameters, paths Paths) (Config, err
 		Parameters: params,
 		Paths:      paths,
 	}, nil
+}
+
+func (c Config) buildResultCachePath() string {
+	filename := fmt.Sprintf("buildresult-%s.json", c.Product.SourceHash)
+	return filepath.Join(c.Paths.MetaDir, filename)
 }

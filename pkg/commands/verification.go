@@ -1,6 +1,7 @@
 package commands
 
 import (
+	"fmt"
 	"log"
 
 	"github.com/hashicorp/actions-go-build/pkg/build"
@@ -25,9 +26,11 @@ var Verification = cli.LeafCommand("verification", "run the verification build",
 		log.Printf("Verification build results written to %q", resultFile)
 	}
 
-	if err := result.Save(); err != nil {
-		log.Printf("Failed to cache build results: %s", err)
+	path, err := result.Save()
+	if err != nil {
+		return fmt.Errorf("Failed to cache build results: %s", err)
 	}
+	log.Printf("Verification build results cached to %s", path)
 
 	return result.Error()
 })

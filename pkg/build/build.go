@@ -53,7 +53,7 @@ func (b *build) Config() Config {
 
 func (b *build) CachedResult() (Result, bool, error) {
 	var r Result
-	path := buildResultSavePath(b.config)
+	path := b.config.buildResultCachePath()
 	exists, err := fs.FileExists(path)
 	if err != nil {
 		return r, false, err

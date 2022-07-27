@@ -41,7 +41,7 @@ var Verify = cli.LeafCommand("verify", "run primary and verification builds; ass
 	if earliestVerificationBuildTime.After(now) {
 		sleepTime := earliestVerificationBuildTime.Sub(now)
 		log.Printf("Sleeping for %s (%s after initial build start time) to try to trigger temporal nondeterminism.",
-			staggerTime, sleepTime)
+			sleepTime, staggerTime)
 		time.Sleep(sleepTime)
 	}
 

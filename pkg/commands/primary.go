@@ -1,6 +1,7 @@
 package commands
 
 import (
+	"fmt"
 	"log"
 
 	"github.com/hashicorp/actions-go-build/pkg/commands/opts"
@@ -19,9 +20,11 @@ var Primary = cli.LeafCommand("primary", "run the primary build", func(b *opts.P
 		log.Printf("Primary build results written to %q", resultFile)
 	}
 
-	if err := result.Save(); err != nil {
-		log.Printf("Failed to cache build results: %s", err)
+	path, err := result.Save()
+	if err != nil {
+		return fmt.Errorf("Failed to cache build results: %s", err)
 	}
+	log.Printf("Build results cached to %s", path)
 
 	return result.Error()
 })

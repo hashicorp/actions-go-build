@@ -2,9 +2,7 @@ package build
 
 import (
 	"encoding/json"
-	"fmt"
 	"os"
-	"path/filepath"
 	"time"
 
 	"github.com/hashicorp/actions-go-build/pkg/crt"
@@ -37,24 +35,19 @@ func (br Result) Error() error {
 	return br.err
 }
 
-func buildResultSavePath(c Config) string {
-	filename := fmt.Sprintf("buildresult-%s.json", c.Product.SourceHash)
-	return filepath.Join(c.Paths.MetaDir, filename)
-}
-
-func (br Result) Save() error {
+func (br Result) Save() (string, error) {
 	// Write the result to meta to cache it.
-	path := buildResultSavePath(br.Config)
+	path := br.Config.buildResultCachePath()
 	outFile, err := os.Create(path)
 	if err != nil {
-		return err
+		return "", err
 	}
 	var closeErr error
 	defer func() { closeErr = outFile.Close() }()
 	if err := json.NewEncoder(outFile).Encode(br); err != nil {
-		return err
+		return "", err
 	}
-	return closeErr
+	return outFile.Name(), closeErr
 }
 
 // Meta captures after-the-fact information about the build.
