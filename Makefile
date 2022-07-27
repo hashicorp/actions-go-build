@@ -58,7 +58,7 @@ run/cli/env: cli
 
 # run/cli/env/describe is called by dev/docs/environment_doc
 run/cli/env/describe: cli
-	$(RUNCLI) env describe
+	$(RUNCLI) config env describe
 
 run/cli/env/dump: cli
 	$(RUNCLI) env dump
