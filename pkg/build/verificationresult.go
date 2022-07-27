@@ -13,6 +13,8 @@ type VerificationResult struct {
 	ReproducedCorrectly bool
 }
 
+// NewVerificationResult constructs a new VerificationResult ready for
+// serialisation.
 func NewVerificationResult(primary, verification Result) (*VerificationResult, error) {
 	hashes, err := GetAllHashes(primary.Config, verification.Config)
 	if err != nil {

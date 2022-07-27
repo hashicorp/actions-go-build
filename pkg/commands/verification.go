@@ -31,7 +31,11 @@ var Verification = cli.LeafCommand("verification", "run the verification build",
 	}
 
 	return result.Error()
-})
+}).WithHelp(`
+Run the verification build by making a copy of the current directory in a temporary
+path and executing the build instructions there.
+` +
+	buildInstructionsHelp)
 
 func runVerificationBuild(primaryBuildRoot, verificationBuildRoot string, verificationBuild build.Build) (build.Result, error) {
 	log.Printf("Running verification build")

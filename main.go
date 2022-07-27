@@ -4,11 +4,13 @@ import (
 	"log"
 	"os"
 
-	"github.com/hashicorp/actions-go-build/pkg/commands"
+	"github.com/hashicorp/actions-go-build/pkg/commands2"
 )
 
 func main() {
-	if err := commands.Main.Execute(os.Args); err != nil {
-		log.Fatal(err)
+	status, err := commands2.MakeCLI(os.Args[1:]).Run()
+	if err != nil {
+		log.Println(err)
 	}
+	os.Exit(status)
 }

@@ -25,7 +25,13 @@ var Config = cli.LeafCommand("config", "print config and export to GITHUB_ENV if
 		return cfg.ExportToGitHubEnv()
 	}
 	return dumpConfig(cfg)
-})
+}).WithHelp(`
+Print the current configuration, determined by the environment and repository context.
+
+Use the -github flag to export the full configuration to GITHUB_ENV. This is used by the
+action to gather configuration from all the inputs as well as the repository context, and
+to store that config so that subsequent steps can use it.
+`)
 
 func dumpConfig(c config.Config) error {
 	vars, err := c.EnvVars()
