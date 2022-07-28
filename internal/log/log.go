@@ -3,6 +3,7 @@ package log
 import (
 	"log"
 	"os"
+	"strings"
 
 	"golang.org/x/term"
 )
@@ -18,11 +19,41 @@ func IsTerm() bool {
 	return term.IsTerminal(int(os.Stdout.Fd()))
 }
 
-var Info, Verbose = func() (info, verbose logFunc) {
+func IsDebug() bool {
+	switch strings.ToLower(os.Getenv("DEBUG")) {
+	default:
+		return false
+	case "true", "1", "y", "yes":
+		return true
+	}
+}
+
+func IsVerbose() bool {
+	return IsTerm() || IsDebug()
+}
+
+func IsInfo() bool {
+	return true
+}
+
+var nothing = func(string, ...any) {}
+
+var Info, Verbose, Debug = func() (info, verbose, debug logFunc) {
+	info, verbose, debug = nothing, nothing, nothing
 	l := log.New(os.Stderr, "", 0)
 	if !IsTerm() {
 		l.SetFlags(log.LstdFlags)
-		return l.Printf, l.Printf
 	}
-	return l.Printf, func(string, ...any) {}
+	if IsInfo() {
+		info = l.Printf
+	}
+	if IsVerbose() {
+		verbose = l.Printf
+	}
+	if IsDebug() {
+		debug = func(f string, a ...any) {
+			l.Printf("DEBUG: "+f, a...)
+		}
+	}
+	return
 }()

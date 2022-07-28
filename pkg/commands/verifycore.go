@@ -207,24 +207,28 @@ func buildResult(c buildResultConfig) (build.Result, error) {
 
 func primaryBuildResult(opts *verifyOpts) (build.Result, error) {
 	return buildResult(buildResultConfig{
-		name:                       "primary",
-		build:                      opts.Builds.Primary,
-		rw:                         opts.ResultWriter,
-		loadFromFile:               opts.primaryResultFile,
-		readFromVerificationResult: func(vr build.VerificationResult) *build.Result { return vr.Primary },
-		requireExistingBuild:       opts.noRunPrimaryBuild,
-		preBuild:                   nil,
+		name:         "primary",
+		build:        opts.Builds.Primary,
+		rw:           opts.ResultWriter,
+		loadFromFile: opts.primaryResultFile,
+		readFromVerificationResult: func(vr build.VerificationResult) *build.Result {
+			return vr.Primary
+		},
+		requireExistingBuild: opts.noRunPrimaryBuild,
+		preBuild:             nil,
 	})
 }
 
 func verificationBuildResult(opts *verifyOpts) (build.Result, error) {
 	return buildResult(buildResultConfig{
-		name:                       "verification",
-		build:                      opts.Builds.Verification,
-		rw:                         opts.ResultWriter,
-		loadFromFile:               "",
-		readFromVerificationResult: func(vr build.VerificationResult) *build.Result { return vr.Verification },
-		requireExistingBuild:       opts.noRunVerificationBuild,
+		name:         "verification",
+		build:        opts.Builds.Verification,
+		rw:           opts.ResultWriter,
+		loadFromFile: "",
+		readFromVerificationResult: func(vr build.VerificationResult) *build.Result {
+			return vr.Verification
+		},
+		requireExistingBuild: opts.noRunVerificationBuild,
 		preBuild: func() error {
 			pPath := opts.Builds.Primary.Config().Paths.WorkDir
 			vPath := opts.Builds.Verification.Config().Paths.WorkDir

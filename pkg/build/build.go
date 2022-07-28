@@ -7,6 +7,7 @@ import (
 	"path/filepath"
 	"time"
 
+	"github.com/hashicorp/actions-go-build/internal/log"
 	"github.com/hashicorp/actions-go-build/internal/zipper"
 	"github.com/hashicorp/actions-go-build/pkg/digest"
 	"github.com/hashicorp/composite-action-framework-go/pkg/fs"
@@ -59,11 +60,14 @@ func (b *build) CachedResult() (Result, bool, error) {
 	path := b.config.buildResultCachePath()
 	exists, err := fs.FileExists(path)
 	if err != nil {
+		log.Debug("Cache read error: %s", err)
 		return r, false, err
 	}
 	if !exists {
+		log.Debug("Cache miss: %s", path)
 		return r, false, nil
 	}
+	log.Debug("Cache hit: %s", path)
 	r, err = json.ReadFile[Result](path)
 	return r, err == nil, err
 }
