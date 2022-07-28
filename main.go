@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"strings"
 
 	_ "embed"
 
@@ -18,32 +19,49 @@ var (
 	FullVersion, Revision, RevisionTime string
 )
 
-func init() {
+func version() string {
 	if FullVersion != "" {
-		return
+		return FullVersion
 	}
+	versionCore = strings.TrimSpace(versionCore)
 	if versionCore == "" {
-		versionCore = "0.0.0"
+		versionCore = "0.0.0-unversioned"
 	}
-	FullVersion = fmt.Sprintf("%s-local", versionCore)
+	return fmt.Sprintf("%s-local", versionCore)
+}
+
+func revision() string {
+	if Revision == "" {
+		return "(unknown revision)"
+	}
+	revisionString := fmt.Sprintf("(%s)", Revision[:8])
+	if RevisionTime != "" {
+		revisionString += fmt.Sprintf(" %s", RevisionTime)
+	}
+	return revisionString
+}
+
+func versionOutput() string {
+	return fmt.Sprintf("v%s %s", version(), revision())
 }
 
 func main() {
-	status, err := makeCLI(os.Args[1:]).Run()
+	status, err := makeCLI(os.Args[1:], versionOutput()).Run()
 	if err != nil {
 		log.Println(err)
 	}
 	os.Exit(status)
 }
 
-func makeCLI(args []string) *cli.CLI {
+func makeCLI(args []string, version string) *cli.CLI {
 
-	c := cli.NewCLI("actions-go-build", FullVersion)
+	c := cli.NewCLI("actions-go-build", version)
 
 	c.Args = args
 
 	c.Commands = map[string]cli.CommandFactory{
 		"":                    makeCommand(commands.Verify),
+		"build":               makeCommand(commands.Primary),
 		"build-and-verify":    makeCommand(commands.Verify),
 		"run primary":         makeCommand(commands.Primary),
 		"run verification":    makeCommand(commands.Verification),

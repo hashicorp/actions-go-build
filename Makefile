@@ -5,8 +5,33 @@ default: test
 # Always just install the git hooks.
 _ := $(shell cd .git/hooks && ln -fs ../../dev/git_hooks/* .)
 
+ifneq ($(PRODUCT_VERSION),)
+CURR_VERSION := $(PRODUCT_VERSION)
+else
 CURR_VERSION := $(shell cat dev/VERSION)
+endif
+
+PRODUCT_VERSION ?= $(CURR_VERSION)
+export PRODUCT_VERSION
+
 CURR_VERSION_CL := dev/changes/v$(CURR_VERSION).md
+
+DIRTY := $(shell git diff --exit-code > /dev/null 2>&1 || echo -n "dirty-")
+
+ifneq ($(PRODUCT_REVISION),)
+CURR_REVISION := $(PRODUCT_REVISION)
+else
+CURR_REVISION := $(shell git rev-parse HEAD)
+PRODUCT_REVISION := $(CURR_REVISION)
+endif
+
+PRODUCT_REVISION_TIME := $(shell git show -s --format=%ci "$(CURR_REVISION)" || echo "")
+
+export PRODUCT_REVISION
+export PRODUCT_REVISION_TIME
+
+CURR_REVISION    := $(DIRTY)$(CURR_REVISION)
+PRODUCT_REVISION ?= $(CURR_REVISION)
 
 test: test/go
 
@@ -20,17 +45,56 @@ CLINAME := $(notdir $(CURDIR))
 CLI     := bin/$(CLINAME)
 RUNCLI  := @./$(CLI)
 
-cli: test
-	@go build -trimpath -o "$(CLI)"
+BIN_PATH ?= $(CLI)
+export BIN_PATH
+
+LDFLAGS      := -X 'main.FullVersion=$$PRODUCT_VERSION'
+LDFLAGS      += -X 'main.Revision=$$PRODUCT_REVISION'
+LDFLAGS      += -X 'main.RevisionTime=$$PRODUCT_REVISION_TIME'
+BUILD_FLAGS  := -v -trimpath -buildvcs=false -ldflags="$(LDFLAGS)"
+INSTRUCTIONS := go build -o "$$BIN_PATH" $(BUILD_FLAGS)
+INSTALL      := go install $(BUILD_FLAGS)
+
+export INSTRUCTIONS
+
+FORMAT_INSTRUCTIONS := sed -E -e 's/-([^-]+)/\n  -\1/g' -e 's/-X/  -X/g' -e 's/\n/\\\n/g' -e 's/  \\/ \\/g'
+
+instructions:
+	@printf "%s\n" "$$INSTRUCTIONS" | $(FORMAT_INSTRUCTIONS)
+
+dogfood:
+	actions-go-build
+
+.PHONY: dev
+dev:
+	@$(MAKE) instructions
+	@$(MAKE) env
+	@$(MAKE) cli
+
+env:
+	@echo "ENV:"
+	@echo "  PRODUCT_VERSION=$$PRODUCT_VERSION"
+	@echo "  PRODUCT_REVISION=$$PRODUCT_REVISION"
+	@echo "  PRODUCT_REVISION_TIME=$$PRODUCT_REVISION_TIME"
+
+.PHONY: $(BIN_PATH)
+$(BIN_PATH):
+	@$(INSTRUCTIONS)
+
+cli: $(BIN_PATH)
+	@echo "Build successful."
+	$(BIN_PATH) --version
 
 ifneq ($(GITHUB_PATH),)
-install: cli
+install: $(BIN_PATH)
 	@echo "$(dir $(CURDIR)/$(CLI))" >> "$$GITHUB_PATH"
 	@echo "Command '$(CLINAME)' installed to GITHUB_PATH"
+	$(CLINAME) --version
 else
-install: test
-	@go install "$(CLIPKG)"
+install:
+	@$(INSTALL)
 	@echo "Command '$(CLINAME)' installed to GOBIN"
+	$(CLINAME) --version
 endif
 
 mod/framework/update:
@@ -111,9 +175,9 @@ changelog/add:
 debug/docs: export DEBUG := 1
 debug/docs: docs
 
-LDFLAGS += -X 'main.Version=1.2.3'
-LDFLAGS += -X 'main.Revision=cabba9e'
-LDFLAGS += -X 'main.RevisionTime=2022-05-30T14:45:00+00:00'
+#LDFLAGS += -X 'main.Version=1.2.3'
+#LDFLAGS += -X 'main.Revision=cabba9e'
+#LDFLAGS += -X 'main.RevisionTime=2022-05-30T14:45:00+00:00'
 
 .PHONY: example-app
 example-app:
