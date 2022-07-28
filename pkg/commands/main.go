@@ -17,4 +17,4 @@ var Main = cli.RootCommand("go-build", "go build and related functions",
 	BuildAndVerify, Config, Env, Steps)
 
 var Steps = cli.RootCommand("steps", "run individual build steps",
-	Primary, Verification, Compare)
+	Primary, Verification, Verify)
