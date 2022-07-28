@@ -1,5 +1,7 @@
 SHELL := /usr/bin/env bash -euo pipefail -c
 
+PRODUCT_NAME := actions-go-build
+
 default: test
 
 # Always just install the git hooks.
@@ -41,7 +43,7 @@ cover: test/go
 
 test/update: test/go/update
 
-CLINAME := $(notdir $(CURDIR))
+CLINAME := $(PRODUCT_NAME)
 CLI     := bin/$(CLINAME)
 RUNCLI  := @./$(CLI)
 
