@@ -1,7 +1,6 @@
 package build
 
 import (
-	"encoding/json"
 	"fmt"
 	"log"
 	"os"
@@ -12,6 +11,7 @@ import (
 	"github.com/hashicorp/actions-go-build/internal/zipper"
 	"github.com/hashicorp/actions-go-build/pkg/digest"
 	"github.com/hashicorp/composite-action-framework-go/pkg/fs"
+	"github.com/hashicorp/composite-action-framework-go/pkg/json"
 )
 
 // Build represents the build of a single binary.
@@ -61,14 +61,8 @@ func (b *build) CachedResult() (Result, bool, error) {
 	if !exists {
 		return r, false, nil
 	}
-	file, err := os.Open(path)
-	if err != nil {
-		return r, false, err
-	}
-	if err := json.NewDecoder(file).Decode(&r); err != nil {
-		return r, false, err
-	}
-	return r, true, nil
+	r, err = json.ReadFile[Result](path)
+	return r, err == nil, err
 }
 
 func (b *build) Run() Result {

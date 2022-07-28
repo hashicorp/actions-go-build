@@ -1,29 +1,8 @@
 package commands
 
 import (
-	"flag"
-
-	"github.com/hashicorp/actions-go-build/pkg/commands/opts"
 	"github.com/hashicorp/composite-action-framework-go/pkg/cli"
-	"github.com/hashicorp/composite-action-framework-go/pkg/github"
 )
-
-type verifyOpts struct {
-	Builds       opts.AllBuilds
-	ActionConfig opts.ActionConfig
-	GitHub       opts.GitHubOpts
-	StepSummary  github.StepSummary
-	ResultWriter opts.ResultWriter
-
-	// internal opts used for different flavours of verification.
-	noRunPrimaryBuild, noRunVerificationBuild bool
-}
-
-func (bo *verifyOpts) ReadEnv() error {
-	return cli.ReadEnvAll(&bo.Builds, &bo.ActionConfig, &bo.GitHub, &bo.StepSummary)
-}
-
-func (bo *verifyOpts) Flags(fs *flag.FlagSet) { cli.FlagsAll(fs, &bo.GitHub, &bo.StepSummary) }
 
 var BuildAndVerify = cli.LeafCommand("build-and-verify", "run primary and verification builds; assert match", func(opts *verifyOpts) error {
 	return verifyCore(opts)

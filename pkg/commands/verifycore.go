@@ -2,6 +2,7 @@ package commands
 
 import (
 	_ "embed"
+	"flag"
 
 	"fmt"
 	"io"
@@ -10,13 +11,37 @@ import (
 	"time"
 
 	"github.com/hashicorp/actions-go-build/pkg/build"
+	"github.com/hashicorp/actions-go-build/pkg/commands/opts"
 	"github.com/hashicorp/actions-go-build/pkg/crt"
 	"github.com/hashicorp/composite-action-framework-go/pkg/cli"
 	"github.com/hashicorp/composite-action-framework-go/pkg/github"
+	"github.com/hashicorp/composite-action-framework-go/pkg/json"
 )
 
 //go:embed templates/stepsummary.md.tmpl
 var stepSummaryTemplate string
+
+type verifyOpts struct {
+	Builds       opts.AllBuilds
+	ActionConfig opts.ActionConfig
+	GitHub       opts.GitHubOpts
+	StepSummary  github.StepSummary
+	ResultWriter opts.ResultWriter
+
+	primaryResultFile string
+
+	// internal opts used for different flavours of verification.
+	noRunPrimaryBuild, noRunVerificationBuild bool
+}
+
+func (bo *verifyOpts) ReadEnv() error {
+	return cli.ReadEnvAll(&bo.Builds, &bo.ActionConfig, &bo.GitHub, &bo.StepSummary)
+}
+
+func (bo *verifyOpts) Flags(fs *flag.FlagSet) {
+	cli.FlagsAll(fs, &bo.GitHub, &bo.StepSummary)
+	fs.StringVar(&bo.primaryResultFile, "resultfile", "", "result JSON file to validate (defaults to local cache)")
+}
 
 func verifyCore(opts *verifyOpts) error {
 	primaryResult, err := primaryBuildResult(opts)
@@ -108,6 +133,22 @@ func writeStepSummary(s github.StepSummary, fsh crt.FileSetHashes) error {
 }
 
 func primaryBuildResult(opts *verifyOpts) (build.Result, error) {
+
+	if opts.primaryResultFile != "" {
+		r, err := json.ReadFile[build.Result](opts.primaryResultFile)
+		if err != nil {
+			// Try loading a full verification result instead.
+			vr, err := json.ReadFile[build.VerificationResult](opts.primaryResultFile)
+			if err != nil {
+				return r, err
+			}
+			if vr.Primary == nil {
+				return r, fmt.Errorf("Primary result is nil: %s", opts.primaryResultFile)
+			}
+			return *vr.Primary, nil
+		}
+	}
+
 	// See if this build has already been run.
 	primaryResult, cached, err := opts.Builds.Primary.CachedResult()
 	if cached || err != nil {

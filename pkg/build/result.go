@@ -1,11 +1,10 @@
 package build
 
 import (
-	"encoding/json"
-	"os"
 	"time"
 
 	"github.com/hashicorp/actions-go-build/pkg/crt"
+	"github.com/hashicorp/composite-action-framework-go/pkg/json"
 )
 
 // Inputs represents the fixed inuputs to the build.
@@ -38,16 +37,7 @@ func (br Result) Error() error {
 func (br Result) Save() (string, error) {
 	// Write the result to meta to cache it.
 	path := br.Config.buildResultCachePath()
-	outFile, err := os.Create(path)
-	if err != nil {
-		return "", err
-	}
-	var closeErr error
-	defer func() { closeErr = outFile.Close() }()
-	if err := json.NewEncoder(outFile).Encode(br); err != nil {
-		return "", err
-	}
-	return outFile.Name(), closeErr
+	return path, json.WriteFile(path, br)
 }
 
 // Meta captures after-the-fact information about the build.

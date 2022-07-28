@@ -11,8 +11,7 @@ var Verify = cli.LeafCommand("verify", "verify a build", func(opts *verifyOpts) 
 Compares the primary and verification build results, and reports an error
 if the build did not reproduce correctly.
 
-This command assumes you have already run the 'run primary' and 'run verification'
-subcommands to produce the two builds. If you are running this locally, you may
-prefer to use the 'build-and-verify' subcommand which ensures those two builds
-have been done, and then performs this comparison.
+This command will attempt to use a cached primary build result if no result file is
+provideds. It will also use a cached verification build result if available, otherwise
+it will run the verification build before doing the comparison.
 `)
