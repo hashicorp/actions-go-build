@@ -73,8 +73,10 @@ func verifyCore(opts *verifyOpts) error {
 	if err := writeStepSummary(opts.StepSummary, result.Hashes); err != nil {
 		return err
 	}
-	if err := writeLogSummary(stderr, result.Hashes); err != nil {
-		return err
+	if opts.GitHub.GitHubMode {
+		if err := writeLogSummary(stderr, result.Hashes); err != nil {
+			return err
+		}
 	}
 
 	path, err := opts.ResultWriter.WriteVerificationResult(result)
@@ -83,7 +85,7 @@ func verifyCore(opts *verifyOpts) error {
 	}
 
 	if path != "" {
-		log.Printf("results written to %s", path)
+		log.Printf("verification result written to %s", path)
 	}
 
 	return result.Hashes.Error()

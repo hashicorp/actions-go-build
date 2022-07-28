@@ -1,0 +1,150 @@
+{
+  "Primary": {
+    "Config": {
+      "Product": {
+        "Repository": "hashicorp/actions-go-build",
+        "Name": "actions-go-build",
+        "CoreName": "actions-go-build",
+        "ExecutableName": "actions-go-build",
+        "Version": {
+          "Full": "0.1.4",
+          "Core": "0.1.4",
+          "Meta": ""
+        },
+        "Revision": "d2f2d5373c1bf67ce15a02b5e25b8d0e59841e7b",
+        "RevisionTime": "2022-07-28T13:12:35Z",
+        "SourceHash": "b6774ce290226eac299868f32f9ce3cc9cbf2384"
+      },
+      "Parameters": {
+        "GoVersion": "1.18.2",
+        "Instructions": "go build -o \"$BIN_PATH\" -v -trimpath -buildvcs=false -ldflags=\"-X 'main.FullVersion=$PRODUCT_VERSION' -X 'main.Revision=$PRODUCT_REVISION' -X 'main.RevisionTime=$PRODUCT_REVISION_TIME'\"",
+        "OS": "darwin",
+        "Arch": "arm64"
+      },
+      "Paths": {
+        "WorkDir": "/Users/sam/src/github.com/hashicorp/actions-go-build",
+        "TargetDir": "/Users/sam/src/github.com/hashicorp/actions-go-build/dist",
+        "BinPath": "/Users/sam/src/github.com/hashicorp/actions-go-build/dist/actions-go-build",
+        "ZipPath": "/Users/sam/src/github.com/hashicorp/actions-go-build/out/actions-go-build_0.1.4_darwin_arm64.zip",
+        "MetaDir": "/Users/sam/src/github.com/hashicorp/actions-go-build/meta"
+      }
+    },
+    "Env": [
+      "PRODUCT_NAME=actions-go-build",
+      "PRODUCT_VERSION=0.1.4",
+      "PRODUCT_REVISION=d2f2d5373c1bf67ce15a02b5e25b8d0e59841e7b",
+      "PRODUCT_REVISION_TIME=2022-07-28T13:12:35Z",
+      "OS=darwin",
+      "ARCH=arm64",
+      "GOOS=darwin",
+      "GOARCH=arm64",
+      "WORKTREE_DIRTY=true",
+      "WORKTREE_HASH=b6774ce290226eac299868f32f9ce3cc9cbf2384",
+      "TARGET_DIR=/Users/sam/src/github.com/hashicorp/actions-go-build/dist",
+      "BIN_PATH=/Users/sam/src/github.com/hashicorp/actions-go-build/dist/actions-go-build"
+    ],
+    "Meta": {
+      "Start": "2022-07-28T14:35:39.872763+01:00",
+      "Finish": "2022-07-28T14:35:40.651316+01:00",
+      "Duration": "778.556333ms"
+    },
+    "Zip": {
+      "Name": "actions-go-build_0.1.4_darwin_arm64.zip",
+      "OriginalPath": "/Users/sam/src/github.com/hashicorp/actions-go-build/out/actions-go-build_0.1.4_darwin_arm64.zip",
+      "Size": 7528455,
+      "SHA256Sum": "4abddd8fc9ae3f54f115ef10f792a1d3b64871710dc06f0fa5608f6e37ff6948"
+    },
+    "Executable": {
+      "Name": "actions-go-build",
+      "OriginalPath": "/Users/sam/src/github.com/hashicorp/actions-go-build/dist/actions-go-build",
+      "Size": 14068514,
+      "SHA256Sum": "a9c3bf494b88d6dc6bd267c59ee9bd25ae8eb29b4d1bca95e006c66c63235835"
+    },
+    "Successful": true
+  },
+  "Verification": {
+    "Config": {
+      "Product": {
+        "Repository": "hashicorp/actions-go-build",
+        "Name": "actions-go-build",
+        "CoreName": "actions-go-build",
+        "ExecutableName": "actions-go-build",
+        "Version": {
+          "Full": "0.1.4",
+          "Core": "0.1.4",
+          "Meta": ""
+        },
+        "Revision": "d2f2d5373c1bf67ce15a02b5e25b8d0e59841e7b",
+        "RevisionTime": "2022-07-28T13:12:35Z",
+        "SourceHash": "b6774ce290226eac299868f32f9ce3cc9cbf2384"
+      },
+      "Parameters": {
+        "GoVersion": "1.18.2",
+        "Instructions": "go build -o \"$BIN_PATH\" -v -trimpath -buildvcs=false -ldflags=\"-X 'main.FullVersion=$PRODUCT_VERSION' -X 'main.Revision=$PRODUCT_REVISION' -X 'main.RevisionTime=$PRODUCT_REVISION_TIME'\"",
+        "OS": "darwin",
+        "Arch": "arm64"
+      },
+      "Paths": {
+        "WorkDir": "/var/folders/4w/vnc5zpq10yg0_wx7968v98340000gq/T/actions-go-build/hashicorp/actions-go-build/b6774ce290226eac299868f32f9ce3cc9cbf2384/verification",
+        "TargetDir": "/var/folders/4w/vnc5zpq10yg0_wx7968v98340000gq/T/actions-go-build/hashicorp/actions-go-build/b6774ce290226eac299868f32f9ce3cc9cbf2384/verification/dist",
+        "BinPath": "/var/folders/4w/vnc5zpq10yg0_wx7968v98340000gq/T/actions-go-build/hashicorp/actions-go-build/b6774ce290226eac299868f32f9ce3cc9cbf2384/verification/dist/actions-go-build",
+        "ZipPath": "/var/folders/4w/vnc5zpq10yg0_wx7968v98340000gq/T/actions-go-build/hashicorp/actions-go-build/b6774ce290226eac299868f32f9ce3cc9cbf2384/verification/out/actions-go-build_0.1.4_darwin_arm64.zip",
+        "MetaDir": "/var/folders/4w/vnc5zpq10yg0_wx7968v98340000gq/T/actions-go-build/hashicorp/actions-go-build/b6774ce290226eac299868f32f9ce3cc9cbf2384/verification/meta"
+      }
+    },
+    "Env": [
+      "PRODUCT_NAME=actions-go-build",
+      "PRODUCT_VERSION=0.1.4",
+      "PRODUCT_REVISION=d2f2d5373c1bf67ce15a02b5e25b8d0e59841e7b",
+      "PRODUCT_REVISION_TIME=2022-07-28T13:12:35Z",
+      "OS=darwin",
+      "ARCH=arm64",
+      "GOOS=darwin",
+      "GOARCH=arm64",
+      "WORKTREE_DIRTY=true",
+      "WORKTREE_HASH=b6774ce290226eac299868f32f9ce3cc9cbf2384",
+      "TARGET_DIR=/var/folders/4w/vnc5zpq10yg0_wx7968v98340000gq/T/actions-go-build/hashicorp/actions-go-build/b6774ce290226eac299868f32f9ce3cc9cbf2384/verification/dist",
+      "BIN_PATH=/var/folders/4w/vnc5zpq10yg0_wx7968v98340000gq/T/actions-go-build/hashicorp/actions-go-build/b6774ce290226eac299868f32f9ce3cc9cbf2384/verification/dist/actions-go-build"
+    ],
+    "Meta": {
+      "Start": "2022-07-28T14:35:45.635079+01:00",
+      "Finish": "2022-07-28T14:35:46.09489+01:00",
+      "Duration": "459.813792ms"
+    },
+    "Zip": {
+      "Name": "actions-go-build_0.1.4_darwin_arm64.zip",
+      "OriginalPath": "/var/folders/4w/vnc5zpq10yg0_wx7968v98340000gq/T/actions-go-build/hashicorp/actions-go-build/b6774ce290226eac299868f32f9ce3cc9cbf2384/verification/out/actions-go-build_0.1.4_darwin_arm64.zip",
+      "Size": 7528455,
+      "SHA256Sum": "4abddd8fc9ae3f54f115ef10f792a1d3b64871710dc06f0fa5608f6e37ff6948"
+    },
+    "Executable": {
+      "Name": "actions-go-build",
+      "OriginalPath": "/var/folders/4w/vnc5zpq10yg0_wx7968v98340000gq/T/actions-go-build/hashicorp/actions-go-build/b6774ce290226eac299868f32f9ce3cc9cbf2384/verification/dist/actions-go-build",
+      "Size": 14068514,
+      "SHA256Sum": "a9c3bf494b88d6dc6bd267c59ee9bd25ae8eb29b4d1bca95e006c66c63235835"
+    },
+    "Successful": true
+  },
+  "Hashes": {
+    "Bin": {
+      "Name": "actions-go-build",
+      "Description": "executable",
+      "SHA256": {
+        "Primary": "a9c3bf494b88d6dc6bd267c59ee9bd25ae8eb29b4d1bca95e006c66c63235835",
+        "Verification": "a9c3bf494b88d6dc6bd267c59ee9bd25ae8eb29b4d1bca95e006c66c63235835",
+        "Match": true
+      }
+    },
+    "Zip": {
+      "Name": "actions-go-build_0.1.4_darwin_arm64.zip",
+      "Description": "zip",
+      "SHA256": {
+        "Primary": "4abddd8fc9ae3f54f115ef10f792a1d3b64871710dc06f0fa5608f6e37ff6948",
+        "Verification": "4abddd8fc9ae3f54f115ef10f792a1d3b64871710dc06f0fa5608f6e37ff6948",
+        "Match": true
+      }
+    },
+    "AllMatch": true
+  },
+  "ReproducedCorrectly": true
+}

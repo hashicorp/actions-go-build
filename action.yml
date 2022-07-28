@@ -86,7 +86,7 @@ runs:
     # Read config and
     - name: Read config from inputs; export to GITHUB_ENV
       shell: bash
-      run: actions-go-build config action -github
+      run: actions-go-build config -github
       env:
         PRODUCT_NAME: ${{ inputs.product_name }}
         PRODUCT_VERSION: ${{ inputs.product_version }}
@@ -106,7 +106,7 @@ runs:
     # Primary Build
     - name: Run Primary Build
       shell: bash
-      run: cd ${{ inputs.work_dir }} && actions-go-build run primary
+      run: cd ${{ inputs.work_dir }} && actions-go-build build primary
 
     # Upload Primary Build
     - name: Upload primary build zip file.
@@ -120,7 +120,7 @@ runs:
     - name: Run Local Verification Build
       if: inputs.reproducible == 'assert' || inputs.reproducible == 'report'
       shell: bash
-      run: cd ${{ inputs.work_dir }} && actions-go-build run verification
+      run: cd ${{ inputs.work_dir }} && actions-go-build build verification
 
     # Upload Local Verification Build
     - name: Upload local verification build zip file.
@@ -135,11 +135,11 @@ runs:
     - name: Assert Build Outputs Identical
       if: inputs.reproducible == 'assert'
       shell: bash
-      run: actions-go-build build-and-verify
+      run: actions-go-build verify
 
     # Report Reproducibility
     - name: Report Reproducibility Results
       if: inputs.reproducible == 'report'
       shell: bash
-      run: actions-go-build build-and-verify || true
+      run: actions-go-build verify || true
 

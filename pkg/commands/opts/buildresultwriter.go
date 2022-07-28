@@ -47,16 +47,18 @@ func buildResultFilename(br build.Result) string {
 }
 
 func (brw *ResultWriter) makeWriter(defaultFilename string) (io.Writer, string, error) {
-	var w io.Writer
-	if !brw.github.GitHubMode && brw.filename == "" {
-		return os.Stdout, "", nil
-	}
 	filename := brw.filename
 	if filename == "" {
 		filename = defaultFilename
 	}
-	w, err := brw.multiWriter(filename)
-	return w, filename, err
+	var err error
+	if brw.file, err = os.Create(filename); err != nil {
+		return nil, "", err
+	}
+	if !brw.github.GitHubMode {
+		return brw.file, filename, nil
+	}
+	return io.MultiWriter(os.Stdout, brw.file), filename, nil
 }
 
 func doubleBuildResultFilename(br *build.VerificationResult) string {
@@ -80,12 +82,4 @@ func writeJSON(w io.Writer, thing any) error {
 	e := json.NewEncoder(w)
 	e.SetIndent("", "  ")
 	return e.Encode(thing)
-}
-
-func (brw *ResultWriter) multiWriter(filename string) (io.Writer, error) {
-	var err error
-	if brw.file, err = os.Create(filename); err != nil {
-		return nil, err
-	}
-	return io.MultiWriter(os.Stdout, brw.file), nil
 }
