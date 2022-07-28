@@ -110,30 +110,31 @@ run/cli/%: export OS                 := $(shell go env GOOS)
 run/cli/%: export ARCH               := $(shell go env GOARCH)
 run/cli/%: export REPRODUCIBLE       := assert
 run/cli/%: export INSTRUCTIONS       := echo "Running build in bash"; go build -o "$$BIN_PATH"
+run/cli/%: $(CLI)
 
-run/cli/config: cli
+run/cli/config:
 	$(RUNCLI) config
 
-run/cli/config/github: cli
+run/cli/config/github:
 	$(RUNCLI) config -github
 
-run/cli/env: cli
+run/cli/env:
 	$(RUNCLI) env
 
 # run/cli/env/describe is called by dev/docs/environment_doc
-run/cli/env/describe: cli
+run/cli/env/describe:
 	$(RUNCLI) config env describe
 
-run/cli/env/dump: cli
+run/cli/env/dump:
 	$(RUNCLI) env dump
 
-run/cli/primary: cli
+run/cli/primary:
 	$(RUNCLI) primary
 
-run/cli/verification: cli
+run/cli/verification:
 	$(RUNCLI) verification
 
-run/cli/compare: cli
+run/cli/compare:
 	$(RUNCLI) compare
 
 test/go/update: export UPDATE_TESTDATA := true
