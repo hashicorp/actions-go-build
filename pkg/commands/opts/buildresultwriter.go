@@ -10,6 +10,7 @@ import (
 
 	"github.com/hashicorp/actions-go-build/pkg/build"
 	"github.com/hashicorp/composite-action-framework-go/pkg/cli"
+	"github.com/hashicorp/composite-action-framework-go/pkg/fs"
 )
 
 type ResultWriter struct {
@@ -51,6 +52,9 @@ func (brw *ResultWriter) makeWriter(defaultFilename string) (io.Writer, string, 
 	if filename == "" {
 		filename = defaultFilename
 	}
+	if err := fs.Mkdir(filepath.Dir(filename)); err != nil {
+		return nil, "", err
+	}
 	var err error
 	if brw.file, err = os.Create(filename); err != nil {
 		return nil, "", err
@@ -62,7 +66,7 @@ func (brw *ResultWriter) makeWriter(defaultFilename string) (io.Writer, string, 
 }
 
 func doubleBuildResultFilename(br *build.VerificationResult) string {
-	return fmt.Sprintf("%s.doubleresult.json", filepath.Base(br.Primary.Config.Paths.ZipPath))
+	return fmt.Sprintf("meta/test-results/%s/%s.local-verification-result.json", br.Primary.Config.Product.SourceHash, filepath.Base(br.Primary.Config.Paths.ZipPath))
 }
 
 func writeResult[T any](brw *ResultWriter, a T, nameFunc func(T) string) (string, error) {
