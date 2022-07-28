@@ -34,7 +34,7 @@ func (brw *ResultWriter) WriteBuildResult(br build.Result) (string, error) {
 }
 
 func (brw *ResultWriter) WriteVerificationResult(vr *build.VerificationResult) (string, error) {
-	return writeResult(brw, vr, doubleBuildResultFilename)
+	return writeResult(brw, vr, verificationResultFilename)
 }
 func (brw *ResultWriter) closeFile() error {
 	if brw.file == nil {
@@ -65,8 +65,8 @@ func (brw *ResultWriter) makeWriter(defaultFilename string) (io.Writer, string, 
 	return io.MultiWriter(os.Stdout, brw.file), filename, nil
 }
 
-func doubleBuildResultFilename(br *build.VerificationResult) string {
-	return fmt.Sprintf("meta/test-results/%s/%s.local-verification-result.json", br.Primary.Config.Product.SourceHash, filepath.Base(br.Primary.Config.Paths.ZipPath))
+func verificationResultFilename(br *build.VerificationResult) string {
+	return fmt.Sprintf("meta/%s.local-verification-result.json", filepath.Base(br.Primary.Config.Paths.ZipPath))
 }
 
 func writeResult[T any](brw *ResultWriter, a T, nameFunc func(T) string) (string, error) {

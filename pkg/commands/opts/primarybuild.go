@@ -3,6 +3,7 @@ package opts
 import (
 	"flag"
 
+	"github.com/hashicorp/actions-go-build/internal/log"
 	"github.com/hashicorp/actions-go-build/pkg/build"
 	"github.com/hashicorp/composite-action-framework-go/pkg/cli"
 )
@@ -23,6 +24,10 @@ func (pb *PrimaryBuild) ReadEnv() error {
 		return err
 	}
 	var err error
-	pb.Build, err = build.New(pb.primary.Config)
+	pb.Build, err = makeBuild(pb.primary.Config)
 	return err
+}
+
+func makeBuild(c build.Config) (build.Build, error) {
+	return build.New(c, build.WithLogfunc(log.Verbose))
 }

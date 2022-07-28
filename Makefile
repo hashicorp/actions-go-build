@@ -53,7 +53,7 @@ export BIN_PATH
 LDFLAGS      := -X 'main.FullVersion=$$PRODUCT_VERSION'
 LDFLAGS      += -X 'main.Revision=$$PRODUCT_REVISION'
 LDFLAGS      += -X 'main.RevisionTime=$$PRODUCT_REVISION_TIME'
-BUILD_FLAGS  := -v -trimpath -buildvcs=false -ldflags="$(LDFLAGS)"
+BUILD_FLAGS  := -trimpath -buildvcs=false -ldflags="$(LDFLAGS)"
 INSTRUCTIONS := go build -o "$$BIN_PATH" $(BUILD_FLAGS)
 INSTALL      := go install $(BUILD_FLAGS)
 

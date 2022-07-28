@@ -2,14 +2,15 @@ package commands
 
 import (
 	_ "embed"
+	"errors"
 	"flag"
 
 	"fmt"
 	"io"
-	"log"
 	"text/template"
 	"time"
 
+	"github.com/hashicorp/actions-go-build/internal/log"
 	"github.com/hashicorp/actions-go-build/pkg/build"
 	"github.com/hashicorp/actions-go-build/pkg/commands/opts"
 	"github.com/hashicorp/actions-go-build/pkg/crt"
@@ -20,6 +21,11 @@ import (
 
 //go:embed templates/stepsummary.md.tmpl
 var stepSummaryTemplate string
+
+var (
+	ErrNoPrimaryBuildResult      = errors.New("no primary build result found")
+	ErrNoVerificationBuildResult = errors.New("no verification build result found")
+)
 
 type verifyOpts struct {
 	Builds       opts.AllBuilds
@@ -55,7 +61,7 @@ func verifyCore(opts *verifyOpts) error {
 	now := time.Now().UTC()
 	if earliestVerificationBuildTime.After(now) {
 		sleepTime := earliestVerificationBuildTime.Sub(now)
-		log.Printf("Sleeping for %s (%s after initial build start time) to try to trigger temporal nondeterminism.",
+		log.Info("Sleeping for %s (%s after initial build start time) to try to trigger temporal nondeterminism.",
 			sleepTime, staggerTime)
 		time.Sleep(sleepTime)
 	}
@@ -85,10 +91,14 @@ func verifyCore(opts *verifyOpts) error {
 	}
 
 	if path != "" {
-		log.Printf("verification result written to %s", path)
+		log.Info("%s", path)
 	}
+	if err := result.Hashes.Error(); err != nil {
+		return err
+	}
+	log.Info("Build reproduced correctly.")
 
-	return result.Hashes.Error()
+	return nil
 }
 
 type line struct {
@@ -134,69 +144,53 @@ func writeStepSummary(s github.StepSummary, fsh crt.FileSetHashes) error {
 	return closeErr
 }
 
-func primaryBuildResult(opts *verifyOpts) (build.Result, error) {
-
-	if opts.primaryResultFile != "" {
-		r, err := json.ReadFile[build.Result](opts.primaryResultFile)
+func buildResult(name string, b build.Build, rw opts.ResultWriter, loadFromFile string, requireExistingBuild bool) (build.Result, error) {
+	// If a result file is specified, use that.
+	if loadFromFile != "" {
+		r, err := json.ReadFile[build.Result](loadFromFile)
 		if err != nil {
 			// Try loading a full verification result instead.
-			vr, err := json.ReadFile[build.VerificationResult](opts.primaryResultFile)
+			vr, err := json.ReadFile[build.VerificationResult](loadFromFile)
 			if err != nil {
 				return r, err
 			}
 			if vr.Primary == nil {
-				return r, fmt.Errorf("Primary result is nil: %s", opts.primaryResultFile)
+				return r, fmt.Errorf("%s result is nil: %s", name, loadFromFile)
 			}
-			return *vr.Primary, nil
+			r = *vr.Primary
 		}
+		log.Info("Primary build result loaded.")
+		return r, nil
 	}
 
-	// See if this build has already been run.
-	primaryResult, cached, err := opts.Builds.Primary.CachedResult()
-	if cached || err != nil {
-		log.Printf("Primary build result found.")
+	// Use the cached result if it exists.
+	primaryResult, cached, err := b.CachedResult()
+	if err != nil {
 		return primaryResult, err
 	}
-	if opts.noRunPrimaryBuild {
-		return primaryResult, fmt.Errorf("no primary build result found")
+	if cached {
+		log.Info("Using cached %s build result.", name)
+		return primaryResult, err
+	}
+	if requireExistingBuild {
+		return primaryResult, ErrNoPrimaryBuildResult
 	}
 
-	log.Printf("Running primary build.")
-	if primaryResult = opts.Builds.Primary.Run(); primaryResult.Error() != nil {
-		if _, err := opts.ResultWriter.WriteBuildResult(primaryResult); err != nil {
+	log.Info("Running %s build.", name)
+	if primaryResult = b.Run(); primaryResult.Error() != nil {
+		if _, err := rw.WriteBuildResult(primaryResult); err != nil {
 			return primaryResult, err
 		}
-		return primaryResult, fmt.Errorf("primary build failed: %w", primaryResult.Error())
+		return primaryResult, fmt.Errorf("%s build failed: %w", name, primaryResult.Error())
 	}
+	log.Info("OK: Build succeeded: %s", name)
+	return primaryResult, nil
+}
 
-	return primaryResult, cacheResult("Primary", primaryResult)
+func primaryBuildResult(opts *verifyOpts) (build.Result, error) {
+	return buildResult("primary", opts.Builds.Primary, opts.ResultWriter, opts.primaryResultFile, opts.noRunPrimaryBuild)
 }
 
 func verificationBuildResult(opts *verifyOpts) (build.Result, error) {
-	// See if this build has already been run.
-	verificationResult, cached, err := opts.Builds.Verification.CachedResult()
-	if cached || err != nil {
-		log.Printf("Verification build has already been run; skipping.")
-		return verificationResult, err
-	}
-	if opts.noRunVerificationBuild {
-		return verificationResult, fmt.Errorf("no verification build result found")
-	}
-
-	log.Printf("Running verification build.")
-	verificationResult, err = runVerificationBuild(
-		opts.ActionConfig.PrimaryBuildRoot,
-		opts.ActionConfig.VerificationBuildRoot,
-		opts.Builds.Verification,
-	)
-	if err != nil {
-		return verificationResult, fmt.Errorf("setting up for verification build failed: %w", err)
-	}
-	if verificationResult.Error() != nil {
-		if _, err := opts.ResultWriter.WriteBuildResult(verificationResult); err != nil {
-			return verificationResult, err
-		}
-		return verificationResult, fmt.Errorf("verification build failed: %w", verificationResult.Error())
-	}
-	return verificationResult, cacheResult("Verification", verificationResult)
+	return buildResult("verification", opts.Builds.Verification, opts.ResultWriter, "", opts.noRunVerificationBuild)
 }

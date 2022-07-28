@@ -2,7 +2,6 @@ package build
 
 import (
 	"fmt"
-	"log"
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -51,6 +50,10 @@ func (b *build) Config() Config {
 	return b.config
 }
 
+func (b *build) log(f string, a ...any) {
+	b.settings.logFunc(f, a...)
+}
+
 func (b *build) CachedResult() (Result, bool, error) {
 	var r Result
 	path := b.config.buildResultCachePath()
@@ -67,10 +70,10 @@ func (b *build) CachedResult() (Result, bool, error) {
 
 func (b *build) Run() Result {
 	c := b.config
-	r := NewRecorder(b)
-	log.Printf("Starting build process.")
+	r := NewRecorder(b, b.log)
+	b.log("Starting build process.")
 
-	log.Printf("Beginning build, rooted at %q", b.config.Paths.WorkDir)
+	b.log("Beginning build, rooted at %q", b.config.Paths.WorkDir)
 
 	var productRevisionTimestamp time.Time
 	r.AddStep("validating inputs", func() error {
@@ -93,7 +96,7 @@ func (b *build) Run() Result {
 		return fs.SetMtimes(c.Paths.TargetDir, productRevisionTimestamp)
 	})
 	r.AddStep("creating zip file", func() error {
-		return zipper.ZipToFile(c.Paths.TargetDir, c.Paths.ZipPath)
+		return zipper.ZipToFile(c.Paths.TargetDir, c.Paths.ZipPath, r.logFunc)
 	})
 	r.AddStep("writing zip digest", func() error {
 		if err := r.RecordZip(c.Paths.ZipPath); err != nil {
@@ -107,7 +110,7 @@ func (b *build) Run() Result {
 
 func (b *build) createDirectories() error {
 	c := b.config
-	log.Printf("Creating output directories.")
+	b.log("Creating output directories.")
 	return fs.Mkdirs(c.Paths.TargetDir, c.Paths.ZipDir(), c.Paths.MetaDir)
 }
 
@@ -157,10 +160,10 @@ func (b *build) runInstructions() error {
 
 	b.listInstructions()
 
-	log.Printf("Running build instructions with environment:")
+	b.log("Running build instructions with environment:")
 	env := b.Env()
 	for _, e := range b.Env() {
-		fmt.Fprintln(b.settings.stderr, e)
+		b.log(e)
 	}
 	c := b.newCommand(b.settings.bash, path)
 	c.Env = os.Environ()
@@ -171,11 +174,11 @@ func (b *build) runInstructions() error {
 // writeInstructions writes the build instructions to a temporary file
 // and returns its path, or an error if writing fails.
 func (b *build) writeInstructions() (path string, err error) {
-	log.Printf("Writing build instructions to temp file.")
+	b.log("Writing build instructions to temp file.")
 	return fs.WriteTempFile("actions-go-build.instructions", b.config.Parameters.Instructions)
 }
 
 func (b *build) listInstructions() {
-	log.Printf("Listing build instructions...")
-	log.Println(b.config.Parameters.Instructions)
+	b.log("Listing build instructions...")
+	b.log(b.config.Parameters.Instructions)
 }

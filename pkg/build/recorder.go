@@ -2,7 +2,6 @@ package build
 
 import (
 	"fmt"
-	"log"
 	"os"
 	"path/filepath"
 	"time"
@@ -14,19 +13,21 @@ import (
 // Recorder is responsible for executing and logging build steps and
 // constructing the build Result.
 type Recorder struct {
-	steps  []step
-	result Result
+	steps   []step
+	result  Result
+	logFunc func(string, ...any)
 	// nowFunc is usually time.Now but can be overridden
 	// in tests.
 	nowFunc func() time.Time
 }
 
-func NewRecorder(b Build) *Recorder {
+func NewRecorder(b Build, logFunc func(string, ...any)) *Recorder {
 	return &Recorder{
 		result: Result{
 			Config: b.Config(),
 			Env:    b.Env(),
 		},
+		logFunc: logFunc,
 		nowFunc: time.Now,
 	}
 }
@@ -86,13 +87,13 @@ func (br *Recorder) start() *Recorder {
 func (br *Recorder) recordStep(desc string, step func() error) error {
 	err := step()
 	if err == nil {
-		log.Printf("SUCCESS: %s", desc)
+		br.logFunc("SUCCESS: %s", desc)
 		return nil
 	}
 	// Add the step description to the error.
 	err = fmt.Errorf("%s failed: %w", desc, err)
 	br.result.err = err
-	log.Printf("ERROR: %s", err)
+	br.logFunc("ERROR: %s", err)
 	return err
 }
 

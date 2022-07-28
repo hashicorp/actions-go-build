@@ -1,8 +1,7 @@
 package commands
 
 import (
-	"log"
-
+	"github.com/hashicorp/actions-go-build/internal/log"
 	"github.com/hashicorp/actions-go-build/pkg/commands/opts"
 	"github.com/hashicorp/composite-action-framework-go/pkg/cli"
 )
@@ -16,7 +15,7 @@ var BuildPrimary = cli.LeafCommand("primary", "run the primary build", func(b *o
 		return err
 	}
 	if resultFile != "" {
-		log.Printf("Primary build results written to %q", resultFile)
+		log.Info("Primary build results written to %q", resultFile)
 	}
 
 	if err := cacheResult("Primary", result); err != nil {

@@ -3,12 +3,13 @@ module github.com/hashicorp/actions-go-build
 go 1.18
 
 require (
-	github.com/go-git/go-git/v5 v5.4.2
-	github.com/hashicorp/composite-action-framework-go v0.0.3-0.20220728115248-bcc633810a40
+	github.com/hashicorp/composite-action-framework-go v0.0.3-0.20220728141136-53bfb0532590
 	github.com/hashicorp/go-version v1.6.0
+	github.com/mitchellh/cli v1.1.4
 	github.com/otiai10/copy v1.7.0
 	github.com/sethvargo/go-envconfig v0.7.0
 	github.com/sethvargo/go-githubactions v1.0.0
+	golang.org/x/term v0.0.0-20220722155259-a9ba230a4035
 )
 
 require (
@@ -24,6 +25,7 @@ require (
 	github.com/fatih/color v1.7.0 // indirect
 	github.com/go-git/gcfg v1.5.0 // indirect
 	github.com/go-git/go-billy/v5 v5.3.1 // indirect
+	github.com/go-git/go-git/v5 v5.4.2 // indirect
 	github.com/google/go-cmp v0.5.8 // indirect
 	github.com/google/uuid v1.1.2 // indirect
 	github.com/hashicorp/errwrap v1.0.0 // indirect
@@ -34,7 +36,6 @@ require (
 	github.com/kevinburke/ssh_config v0.0.0-20201106050909-4977a11b4351 // indirect
 	github.com/mattn/go-colorable v0.0.9 // indirect
 	github.com/mattn/go-isatty v0.0.3 // indirect
-	github.com/mitchellh/cli v1.1.4 // indirect
 	github.com/mitchellh/copystructure v1.0.0 // indirect
 	github.com/mitchellh/go-homedir v1.1.0 // indirect
 	github.com/mitchellh/reflectwalk v1.0.0 // indirect
@@ -45,6 +46,6 @@ require (
 	github.com/xanzy/ssh-agent v0.3.0 // indirect
 	golang.org/x/crypto v0.0.0-20210421170649-83a5a9bb288b // indirect
 	golang.org/x/net v0.0.0-20210326060303-6b1517762897 // indirect
-	golang.org/x/sys v0.0.0-20210502180810-71e4cd670f79 // indirect
+	golang.org/x/sys v0.0.0-20210615035016-665e8c7367d1 // indirect
 	gopkg.in/warnings.v0 v0.1.2 // indirect
 )

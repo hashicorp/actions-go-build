@@ -3,6 +3,7 @@ package build
 import (
 	"context"
 	"io"
+	"log"
 	"os"
 )
 
@@ -14,6 +15,7 @@ import (
 type Settings struct {
 	bash    string
 	context context.Context
+	logFunc func(string, ...any)
 	stdout  io.Writer
 	stderr  io.Writer
 }
@@ -43,13 +45,17 @@ func (s *Settings) setDefaults() (err error) {
 	if s.stderr == nil {
 		s.stderr = os.Stderr
 	}
+	if s.logFunc == nil {
+		s.logFunc = log.Printf
+	}
 	return nil
 }
 
 // Option represents a function that configures Settings.
 type Option func(*Settings)
 
-func WithContext(c context.Context) Option { return func(s *Settings) { s.context = c } }
-func WithStdout(w io.Writer) Option        { return func(s *Settings) { s.stdout = w } }
-func WithStderr(w io.Writer) Option        { return func(s *Settings) { s.stderr = w } }
-func WithBash(path string) Option          { return func(s *Settings) { s.bash = path } }
+func WithContext(c context.Context) Option      { return func(s *Settings) { s.context = c } }
+func WithStdout(w io.Writer) Option             { return func(s *Settings) { s.stdout = w } }
+func WithStderr(w io.Writer) Option             { return func(s *Settings) { s.stderr = w } }
+func WithBash(path string) Option               { return func(s *Settings) { s.bash = path } }
+func WithLogfunc(f func(string, ...any)) Option { return func(s *Settings) { s.logFunc = f } }

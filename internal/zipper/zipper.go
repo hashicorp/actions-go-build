@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"io"
 	"io/fs"
-	"log"
 	"os"
 	"path/filepath"
 )
@@ -14,13 +13,15 @@ type Zipper struct {
 	dir     string
 	written map[string]struct{}
 	zw      *zip.Writer
+	log     func(string, ...any)
 }
 
 // New returns a new zipper configured to zip the contents of dir.
-func New(w io.Writer) *Zipper {
+func New(w io.Writer, logFunc func(string, ...any)) *Zipper {
 	return &Zipper{
 		written: map[string]struct{}{},
 		zw:      zip.NewWriter(w),
+		log:     logFunc,
 	}
 }
 
@@ -32,7 +33,7 @@ func New(w io.Writer) *Zipper {
 //
 // It is intended to perform the same function as calling 'zip -Xrj $zipFile $dir'
 func (z *Zipper) ZipDir(dir string) error {
-	log.Printf("Zipping %q", dir)
+	z.log("Zipping %q", dir)
 	if err := filepath.WalkDir(dir, func(path string, d fs.DirEntry, err error) error {
 		if err != nil {
 			return err
@@ -42,22 +43,19 @@ func (z *Zipper) ZipDir(dir string) error {
 		}
 		name := filepath.Base(path)
 
-		log.Printf("Adding %q to zip file, from %q", name, path)
+		z.log("Adding %q to zip file, from %q", name, path)
 
 		source, err := os.Open(path)
 		if err != nil {
-			log.Println(err)
 			return err
 		}
 		var closeErr error
 		defer func() {
 			if err := source.Close(); err != nil {
-				log.Println(err)
 				closeErr = err
 			}
 		}()
 		if err := z.writeEntry(name, source); err != nil {
-			log.Println(err)
 			return err
 		}
 		return closeErr
@@ -68,7 +66,7 @@ func (z *Zipper) ZipDir(dir string) error {
 		return err
 	}
 
-	log.Printf("Finished zipping %q", dir)
+	z.log("Finished zipping %q", dir)
 
 	return nil
 }
@@ -99,7 +97,7 @@ func (z *Zipper) writeEntry(name string, source *os.File) error {
 
 // ZipToFile is a convenience function meant to be equivalent to using the command line:
 // 'zip -Xrj $zipFile $dir`
-func ZipToFile(dir, zipFile string) error {
+func ZipToFile(dir, zipFile string, logFunc func(string, ...any)) error {
 	f, err := os.Create(zipFile)
 	if err != nil {
 		return err
@@ -107,7 +105,7 @@ func ZipToFile(dir, zipFile string) error {
 	var closeErr error
 	defer func() { closeErr = f.Close() }()
 
-	z := New(f)
+	z := New(f, logFunc)
 
 	if err := z.ZipDir(dir); err != nil {
 		return err
