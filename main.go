@@ -19,32 +19,6 @@ var (
 	FullVersion, Revision, RevisionTime string
 )
 
-func version() string {
-	if FullVersion != "" {
-		return FullVersion
-	}
-	versionCore = strings.TrimSpace(versionCore)
-	if versionCore == "" {
-		versionCore = "0.0.0-unversioned"
-	}
-	return fmt.Sprintf("%s-local", versionCore)
-}
-
-func revision() string {
-	if Revision == "" {
-		return "(unknown revision)"
-	}
-	revisionString := fmt.Sprintf("(%s)", Revision[:8])
-	if RevisionTime != "" {
-		revisionString += fmt.Sprintf(" %s", RevisionTime)
-	}
-	return revisionString
-}
-
-func versionOutput() string {
-	return fmt.Sprintf("v%s %s", version(), revision())
-}
-
 func main() {
 	status, err := makeCLI(os.Args[1:], versionOutput()).Run()
 	if err != nil {
@@ -60,9 +34,9 @@ func makeCLI(args []string, version string) *cli.CLI {
 	c.Args = args
 
 	c.Commands = map[string]cli.CommandFactory{
-		"":                    makeCommand(commands.Verify),
+		"":                    makeCommand(commands.BuildAndVerify),
 		"build":               makeCommand(commands.Primary),
-		"build-and-verify":    makeCommand(commands.Verify),
+		"build-and-verify":    makeCommand(commands.BuildAndVerify),
 		"run primary":         makeCommand(commands.Primary),
 		"run verification":    makeCommand(commands.Verification),
 		"verify local":        makeCommand(commands.Compare),
@@ -97,4 +71,30 @@ func makeCommand(command *actioncli.Command) cli.CommandFactory {
 			run:      command.Execute,
 		}, nil
 	}
+}
+
+func version() string {
+	if FullVersion != "" {
+		return FullVersion
+	}
+	versionCore = strings.TrimSpace(versionCore)
+	if versionCore == "" {
+		versionCore = "0.0.0-unversioned"
+	}
+	return fmt.Sprintf("%s-local", versionCore)
+}
+
+func revision() string {
+	if Revision == "" {
+		return "(unknown revision)"
+	}
+	revisionString := fmt.Sprintf("(%s)", Revision[:8])
+	if RevisionTime != "" {
+		revisionString += fmt.Sprintf(" %s", RevisionTime)
+	}
+	return revisionString
+}
+
+func versionOutput() string {
+	return fmt.Sprintf("v%s %s", version(), revision())
 }

@@ -26,7 +26,7 @@ func (bo *verifyOpts) ReadEnv() error {
 
 func (bo *verifyOpts) Flags(fs *flag.FlagSet) { cli.FlagsAll(fs, &bo.GitHub, &bo.StepSummary) }
 
-var Verify = cli.LeafCommand("verify", "run primary and verification builds; assert match", func(opts *verifyOpts) error {
+var BuildAndVerify = cli.LeafCommand("build-and-verify", "run primary and verification builds; assert match", func(opts *verifyOpts) error {
 
 	primaryResult, err := primaryBuildResult(opts)
 	if err != nil {
