@@ -109,31 +109,29 @@ mod/framework/update:
 # The run/cli/... targets build and then run the CLI itself
 # which is usful for quickly seeing its output whilst developing.
 
-run/cli/%: $(CLI)
-
-run/cli/config:
+run/cli/config: $(CLI)
 	$(RUNCLI) config
 
-run/cli/config/github:
+run/cli/config/github: $(CLI) 
 	$(RUNCLI) config -github
 
-run/cli/env:
+run/cli/env: $(CLI)
 	$(RUNCLI) env
 
 # run/cli/env/describe is called by dev/docs/environment_doc
-run/cli/env/describe:
+run/cli/env/describe: $(CLI)
 	$(RUNCLI) config env describe
 
-run/cli/env/dump:
+run/cli/env/dump: $(CLI)
 	$(RUNCLI) env dump
 
-run/cli/primary:
+run/cli/primary: $(CLI)
 	$(RUNCLI) primary
 
-run/cli/verification:
+run/cli/verification: $(CLI)
 	$(RUNCLI) verification
 
-run/cli/compare:
+run/cli/compare: $(CLI)
 	$(RUNCLI) compare
 
 test/go/update: export UPDATE_TESTDATA := true
