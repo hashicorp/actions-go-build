@@ -104,12 +104,6 @@ mod/framework/update:
 # The run/cli/... targets build and then run the CLI itself
 # which is usful for quickly seeing its output whilst developing.
 
-run/cli/%: export PRODUCT_REPOSITORY := hashicorp/actions-go-build
-run/cli/%: export PRODUCT_VERSION    := 1.2.3
-run/cli/%: export OS                 := $(shell go env GOOS)
-run/cli/%: export ARCH               := $(shell go env GOARCH)
-run/cli/%: export REPRODUCIBLE       := assert
-run/cli/%: export INSTRUCTIONS       := echo "Running build in bash"; go build -o "$$BIN_PATH"
 run/cli/%: $(CLI)
 
 run/cli/config:
