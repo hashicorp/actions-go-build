@@ -17,6 +17,7 @@ import (
 	"github.com/hashicorp/composite-action-framework-go/pkg/cli"
 	"github.com/hashicorp/composite-action-framework-go/pkg/github"
 	"github.com/hashicorp/composite-action-framework-go/pkg/json"
+	cp "github.com/otiai10/copy"
 )
 
 //go:embed templates/stepsummary.md.tmpl
@@ -45,7 +46,7 @@ func (bo *verifyOpts) ReadEnv() error {
 }
 
 func (bo *verifyOpts) Flags(fs *flag.FlagSet) {
-	cli.FlagsAll(fs, &bo.GitHub, &bo.StepSummary)
+	cli.FlagsAll(fs, &bo.GitHub, &bo.StepSummary, &bo.ResultWriter)
 	fs.StringVar(&bo.primaryResultFile, "resultfile", "", "result JSON file to validate (defaults to local cache)")
 }
 
@@ -68,7 +69,7 @@ func verifyCore(opts *verifyOpts) error {
 
 	verificationResult, err := verificationBuildResult(opts)
 	if err != nil {
-		return err
+		return fmt.Errorf("%w: build ran in %s", err, verificationResult.Config.Paths.WorkDir)
 	}
 
 	result, err := build.NewVerificationResult(primaryResult, verificationResult)
@@ -91,12 +92,12 @@ func verifyCore(opts *verifyOpts) error {
 	}
 
 	if path != "" {
-		log.Info("%s", path)
+		log.Info("RESULT: %s", path)
 	}
 	if err := result.Hashes.Error(); err != nil {
 		return err
 	}
-	log.Info("Build reproduced correctly.")
+	log.Info("OK: Build reproduced correctly.")
 
 	return nil
 }
@@ -144,53 +145,90 @@ func writeStepSummary(s github.StepSummary, fsh crt.FileSetHashes) error {
 	return closeErr
 }
 
-func buildResult(name string, b build.Build, rw opts.ResultWriter, loadFromFile string, requireExistingBuild bool) (build.Result, error) {
+type buildResultConfig struct {
+	name                       string
+	build                      build.Build
+	rw                         opts.ResultWriter
+	loadFromFile               string
+	readFromVerificationResult func(build.VerificationResult) *build.Result
+	requireExistingBuild       bool
+	preBuild                   func() error
+}
+
+func buildResult(c buildResultConfig) (build.Result, error) {
 	// If a result file is specified, use that.
-	if loadFromFile != "" {
-		r, err := json.ReadFile[build.Result](loadFromFile)
+	if c.loadFromFile != "" {
+		r, err := json.ReadFile[build.Result](c.loadFromFile)
 		if err != nil {
 			// Try loading a full verification result instead.
-			vr, err := json.ReadFile[build.VerificationResult](loadFromFile)
+			vr, err := json.ReadFile[build.VerificationResult](c.loadFromFile)
 			if err != nil {
 				return r, err
 			}
-			if vr.Primary == nil {
-				return r, fmt.Errorf("%s result is nil: %s", name, loadFromFile)
+			result := c.readFromVerificationResult(vr)
+			if result == nil {
+				return r, fmt.Errorf("%s result is nil: %s", c.name, c.loadFromFile)
 			}
-			r = *vr.Primary
+			r = *result
 		}
 		log.Info("Primary build result loaded.")
 		return r, nil
 	}
 
 	// Use the cached result if it exists.
-	primaryResult, cached, err := b.CachedResult()
+	result, cached, err := c.build.CachedResult()
 	if err != nil {
-		return primaryResult, err
+		return result, err
 	}
 	if cached {
-		log.Info("Using cached %s build result.", name)
-		return primaryResult, err
+		log.Info("Using cached %s build result.", c.name)
+		return result, err
 	}
-	if requireExistingBuild {
-		return primaryResult, ErrNoPrimaryBuildResult
+	if c.requireExistingBuild {
+		return result, ErrNoPrimaryBuildResult
 	}
 
-	log.Info("Running %s build.", name)
-	if primaryResult = b.Run(); primaryResult.Error() != nil {
-		if _, err := rw.WriteBuildResult(primaryResult); err != nil {
-			return primaryResult, err
+	// Run the build.
+	if c.preBuild != nil {
+		if err := c.preBuild(); err != nil {
+			return result, err
 		}
-		return primaryResult, fmt.Errorf("%s build failed: %w", name, primaryResult.Error())
 	}
-	log.Info("OK: Build succeeded: %s", name)
-	return primaryResult, nil
+	log.Info("Running %s build.", c.name)
+	if result = c.build.Run(); result.Error() != nil {
+		if _, err := c.rw.WriteBuildResult(result); err != nil {
+			return result, err
+		}
+		return result, fmt.Errorf("%s build failed: %w", c.name, result.Error())
+	}
+	log.Info("OK: Build succeeded: %s", c.name)
+	return result, nil
 }
 
 func primaryBuildResult(opts *verifyOpts) (build.Result, error) {
-	return buildResult("primary", opts.Builds.Primary, opts.ResultWriter, opts.primaryResultFile, opts.noRunPrimaryBuild)
+	return buildResult(buildResultConfig{
+		name:                       "primary",
+		build:                      opts.Builds.Primary,
+		rw:                         opts.ResultWriter,
+		loadFromFile:               opts.primaryResultFile,
+		readFromVerificationResult: func(vr build.VerificationResult) *build.Result { return vr.Primary },
+		requireExistingBuild:       opts.noRunPrimaryBuild,
+		preBuild:                   nil,
+	})
 }
 
 func verificationBuildResult(opts *verifyOpts) (build.Result, error) {
-	return buildResult("verification", opts.Builds.Verification, opts.ResultWriter, "", opts.noRunVerificationBuild)
+	return buildResult(buildResultConfig{
+		name:                       "verification",
+		build:                      opts.Builds.Verification,
+		rw:                         opts.ResultWriter,
+		loadFromFile:               "",
+		readFromVerificationResult: func(vr build.VerificationResult) *build.Result { return vr.Verification },
+		requireExistingBuild:       opts.noRunVerificationBuild,
+		preBuild: func() error {
+			pPath := opts.Builds.Primary.Config().Paths.WorkDir
+			vPath := opts.Builds.Verification.Config().Paths.WorkDir
+			return cp.Copy(pPath, vPath)
+		},
+	})
 }

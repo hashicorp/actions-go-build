@@ -2,12 +2,12 @@ package main
 
 import (
 	"fmt"
-	"log"
 	"os"
 	"strings"
 
 	_ "embed"
 
+	"github.com/hashicorp/actions-go-build/internal/log"
 	"github.com/hashicorp/actions-go-build/pkg/commands"
 	actioncli "github.com/hashicorp/composite-action-framework-go/pkg/cli"
 	"github.com/mitchellh/cli"
@@ -22,7 +22,7 @@ var (
 func main() {
 	status, err := makeCLI(os.Args[1:], versionOutput()).Run()
 	if err != nil {
-		log.Println(err)
+		log.Info("%s", err)
 	}
 	os.Exit(status)
 }
@@ -55,7 +55,7 @@ func (c *cmd) Help() string     { return c.help }
 func (c *cmd) Synopsis() string { return c.synopsis }
 func (c *cmd) Run(args []string) int {
 	if err := c.run(append([]string{""}, args...)); err != nil {
-		log.Println(err)
+		log.Info("%s", err)
 		return 1
 	}
 	return 0

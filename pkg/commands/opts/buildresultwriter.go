@@ -8,24 +8,20 @@ import (
 	"os"
 	"path/filepath"
 
+	"github.com/hashicorp/actions-go-build/internal/log"
 	"github.com/hashicorp/actions-go-build/pkg/build"
-	"github.com/hashicorp/composite-action-framework-go/pkg/cli"
 	"github.com/hashicorp/composite-action-framework-go/pkg/fs"
 )
 
 type ResultWriter struct {
-	github   GitHubOpts
 	filename string
 	file     *os.File
-}
-
-func (brw *ResultWriter) ReadEnv() error {
-	return cli.ReadEnvAll(&brw.github)
+	show     bool
 }
 
 func (brw *ResultWriter) Flags(fs *flag.FlagSet) {
-	cli.FlagsAll(fs, &brw.github)
 	fs.StringVar(&brw.filename, "output", "", "overwrite file path to write JSON results")
+	fs.BoolVar(&brw.show, "show", !log.IsTerm(), "show the results json")
 }
 
 // WriteBuildResult returns the path written.
@@ -59,7 +55,7 @@ func (brw *ResultWriter) makeWriter(defaultFilename string) (io.Writer, string, 
 	if brw.file, err = os.Create(filename); err != nil {
 		return nil, "", err
 	}
-	if !brw.github.GitHubMode {
+	if !brw.show {
 		return brw.file, filename, nil
 	}
 	return io.MultiWriter(os.Stdout, brw.file), filename, nil

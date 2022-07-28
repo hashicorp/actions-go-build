@@ -20,7 +20,7 @@ func (pb *PrimaryBuild) Flags(fs *flag.FlagSet) {
 }
 
 func (pb *PrimaryBuild) ReadEnv() error {
-	if err := cli.ReadEnvAll(&pb.ResultWriter, &pb.primary); err != nil {
+	if err := cli.ReadEnvAll(&pb.primary); err != nil {
 		return err
 	}
 	var err error

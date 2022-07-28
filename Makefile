@@ -118,6 +118,9 @@ run/config-github: $(CLI)
 run/test: $(CLI)
 	$(RUNCLI) test
 
+run/test-show: $(CLI)
+	$(RUNCLI) test -show
+
 run/build: $(CLI)
 	$(RUNCLI) build
 
@@ -125,7 +128,10 @@ run/build: $(CLI)
 run/build/env/describe: $(CLI)
 	$(RUNCLI) build env describe
 
-run/build-env/dump: $(CLI)
+run/build/env/dump: $(CLI)
+	$(RUNCLI) build env dump
+
+run/build/env/dump-verification: $(CLI)
 	$(RUNCLI) build env dump
 
 run/build/primary: $(CLI)
