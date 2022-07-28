@@ -79,9 +79,6 @@ env:
 	@echo "  PRODUCT_REVISION=$$PRODUCT_REVISION"
 	@echo "  PRODUCT_REVISION_TIME=$$PRODUCT_REVISION_TIME"
 
-.PHONY: $(CLI)
-$(CLI): $(BIN_PATH)
-
 .PHONY: $(BIN_PATH)
 $(BIN_PATH):
 	@$(INSTRUCTIONS)
@@ -106,33 +103,39 @@ mod/framework/update:
 	@REF="$$(cd ../composite-action-framework-go && make module/ref/head)" && \
 		go get "$$REF"
 
-# The run/cli/... targets build and then run the CLI itself
+# The run/... targets build and then run the CLI itself
 # which is usful for quickly seeing its output whilst developing.
 
-run/cli/config: $(CLI)
+run: $(CLI)
+	$(RUNCLI)
+
+run/config: $(CLI)
 	$(RUNCLI) config
 
-run/cli/config/github: $(CLI) 
+run/config-github: $(CLI) 
 	$(RUNCLI) config -github
 
-run/cli/env: $(CLI)
-	$(RUNCLI) env
+run/test: $(CLI)
+	$(RUNCLI) test
 
-# run/cli/env/describe is called by dev/docs/environment_doc
-run/cli/env/describe: $(CLI)
-	$(RUNCLI) config env describe
+run/build: $(CLI)
+	$(RUNCLI) build
 
-run/cli/env/dump: $(CLI)
-	$(RUNCLI) env dump
+# run/build/env/describe is called by dev/docs/environment_doc
+run/build/env/describe: $(CLI)
+	$(RUNCLI) build env describe
 
-run/cli/primary: $(CLI)
-	$(RUNCLI) primary
+run/build-env/dump: $(CLI)
+	$(RUNCLI) build env dump
 
-run/cli/verification: $(CLI)
-	$(RUNCLI) verification
+run/build/primary: $(CLI)
+	$(RUNCLI) build primary
 
-run/cli/compare: $(CLI)
-	$(RUNCLI) compare
+run/build/verification: $(CLI)
+	$(RUNCLI) build verification
+
+run/verify: $(CLI)
+	$(RUNCLI) verify
 
 test/go/update: export UPDATE_TESTDATA := true
 test/go/update: test/go

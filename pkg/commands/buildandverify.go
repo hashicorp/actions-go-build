@@ -4,7 +4,7 @@ import (
 	"github.com/hashicorp/composite-action-framework-go/pkg/cli"
 )
 
-var BuildAndVerify = cli.LeafCommand("build-and-verify", "run primary and verification builds; assert match", func(opts *verifyOpts) error {
+var Test = cli.LeafCommand("test", "run two builds; check for basic reproducibility", func(opts *verifyOpts) error {
 	return verifyCore(opts)
 }).WithHelp(`
 Run the primary and verification builds and verify that their outputs are identical.

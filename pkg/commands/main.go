@@ -14,7 +14,10 @@ var stderr = os.Stderr
 // when this CLI is incorporated into a parent CLI, the commands within will be
 // rooted at "go". E.g. "go-build", "go-build primary", "go-build verification".
 var Main = cli.RootCommand("go-build", "go build and related functions",
-	BuildAndVerify, Config, Env, Steps)
+	Build, Test, Config)
 
-var Steps = cli.RootCommand("steps", "run individual build steps",
-	Primary, Verification, Verify)
+var Build = cli.RootCommand("build", "run builds and inspect the build env",
+	BuildPrimary, BuildVerification, BuildEnv)
+
+var BuildEnv = cli.RootCommand("env", "inspect the build environment",
+	BuildEnvDescribe, BuildEnvDump)

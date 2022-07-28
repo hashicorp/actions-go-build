@@ -10,9 +10,9 @@ import (
 	cp "github.com/otiai10/copy"
 )
 
-// Verification runs the verification build, first copying the primary build
+// BuildVerification runs the verification build, first copying the primary build
 // directory to the verification build root.
-var Verification = cli.LeafCommand("verification", "run the verification build", func(c *opts.VerificationBuildOpts) error {
+var BuildVerification = cli.LeafCommand("verification", "run the verification build", func(c *opts.VerificationBuildOpts) error {
 	result, err := runVerificationBuild(c.PrimaryBuildRoot, c.VerificationBuildRoot, c.Build)
 	if err != nil {
 		return err

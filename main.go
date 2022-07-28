@@ -34,13 +34,13 @@ func makeCLI(args []string, version string) *cli.CLI {
 	c.Args = args
 
 	c.Commands = map[string]cli.CommandFactory{
-		"build-and-verify":    makeCommand(commands.BuildAndVerify),
-		"run primary":         makeCommand(commands.Primary),
-		"run verification":    makeCommand(commands.Verification),
-		"verify local":        makeCommand(commands.Verify),
-		"config action":       makeCommand(commands.Config),
-		"config env describe": makeCommand(commands.EnvDescribe),
-		"config env dump":     makeCommand(commands.EnvDump),
+		"test":               makeCommand(commands.Test),
+		"build primary":      makeCommand(commands.BuildPrimary),
+		"build verification": makeCommand(commands.BuildVerification),
+		"build env describe": makeCommand(commands.BuildEnvDescribe),
+		"build env dump":     makeCommand(commands.BuildEnvDump),
+		"verify":             makeCommand(commands.Verify),
+		"config":             makeCommand(commands.Config),
 	}
 
 	return c
