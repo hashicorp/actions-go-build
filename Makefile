@@ -20,7 +20,7 @@ CLINAME := $(notdir $(CURDIR))
 CLI     := bin/$(CLINAME)
 RUNCLI  := @./$(CLI)
 
-cli:
+cli: test
 	@go build -trimpath -o "$(CLI)"
 
 ifneq ($(GITHUB_PATH),)
@@ -28,7 +28,7 @@ install: cli
 	@echo "$(dir $(CURDIR)/$(CLI))" >> "$$GITHUB_PATH"
 	@echo "Command '$(CLINAME)' installed to GITHUB_PATH"
 else
-install: cli
+install: test
 	@go install "$(CLIPKG)"
 	@echo "Command '$(CLINAME)' installed to GOBIN"
 endif
