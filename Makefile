@@ -146,9 +146,11 @@ test/go:
 .PHONY: docs
 docs: readme changelog
 
+.PHONY: readme
 readme:
 	@./dev/docs/readme_update
 
+.PHONY: changelog
 changelog:
 	@./dev/docs/changelog_update
 

@@ -2,5 +2,7 @@
 
 set -Eeuo pipefail
 
+set -x
+
 NEW_README="$(./dev/docs/insert README.md)" || exit 1
 echo "$NEW_README" > README.md
