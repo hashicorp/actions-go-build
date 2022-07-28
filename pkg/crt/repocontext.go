@@ -117,8 +117,22 @@ func getRepoName(dir string) (string, error) {
 	return "", fmt.Errorf("Neither GITHUB_REPOSITORY nor PRODUCT_REPOSITORY set, and no remote named origin.")
 }
 
+func getRepoNameFromLocalFilePath(path string) (string, error) {
+	path = filepath.ToSlash(path)
+	path = strings.TrimSuffix(path, ".")
+	path = strings.TrimSuffix(path, "/")
+	parts := strings.Split(path, "/")
+	if len(parts) < 2 {
+		return "", fmt.Errorf("Unable to determine repo name from remote %q", path)
+	}
+	return fmt.Sprintf("%s/%s", parts[len(parts)-2], parts[len(parts)-1]), nil
+}
+
 func getRepoNameFromRemoteURL(remoteURL string) (string, error) {
 	var path string
+	if strings.HasPrefix(remoteURL, "/") || strings.HasPrefix(remoteURL, "../") {
+		return getRepoNameFromLocalFilePath(remoteURL)
+	}
 	u, err := url.Parse(remoteURL)
 	if err == nil {
 		path = u.Path

@@ -7,6 +7,17 @@ import (
 func TestGetRepoNameFromRemoteURL(t *testing.T) {
 	// Each case should have the same answer: "dadgarcorp/lockbox"
 	cases := []string{
+		// Local filesystem
+		"/Users/dave/src/github.com/dadgarcorp/lockbox/.",
+		"/Users/dave/src/github.com/dadgarcorp/lockbox/",
+		"/Users/dave/src/github.com/dadgarcorp/lockbox",
+		"../dadgarcorp/lockbox/.",
+		"../dadgarcorp/lockbox/",
+		"../dadgarcorp/lockbox",
+		"../../../dadgarcorp/lockbox/.",
+		"../../../dadgarcorp/lockbox/",
+		"../../../dadgarcorp/lockbox",
+
 		// Special Git SSH URLs (i.e. not real URLs)
 		"git@github.com:dadgarcorp/lockbox.git",
 		"git@github.com:dadgarcorp/lockbox",
