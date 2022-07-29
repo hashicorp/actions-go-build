@@ -124,6 +124,8 @@ do
 			range="$remote_oid..$local_oid"
 		fi
 
+		assert_success "$local_oid" "Compilation" go build ./...
+
 		# Check for version consistency.
 		assert_success "$local_oid" "Version check" make version/check
 
