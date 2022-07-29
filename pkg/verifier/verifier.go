@@ -79,7 +79,7 @@ func (v *Verifier) makeResult(pr, vr *build.Result) (*build.VerificationResult, 
 		Primary:             pr,
 		Verification:        vr,
 		Hashes:              hashes,
-		Error:               errMessage,
+		ErrorMessage:        errMessage,
 		ReproducedCorrectly: err == nil,
 	}, nil
 }

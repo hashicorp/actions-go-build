@@ -1,6 +1,10 @@
 package build
 
-import "github.com/hashicorp/actions-go-build/pkg/crt"
+import (
+	"errors"
+
+	"github.com/hashicorp/actions-go-build/pkg/crt"
+)
 
 // VerificationResult captures the result of a primary
 // and local verification build together with easy-access
@@ -9,8 +13,15 @@ type VerificationResult struct {
 	Primary             *Result
 	Verification        *Result
 	Hashes              crt.FileSetHashes
-	Error               string `json:",omitempty"`
+	ErrorMessage        string `json:",omitempty"`
 	ReproducedCorrectly bool
+}
+
+func (vr *VerificationResult) Error() error {
+	if vr.ErrorMessage == "" {
+		return nil
+	}
+	return errors.New(vr.ErrorMessage)
 }
 
 // NewVerificationResult constructs a new VerificationResult ready for
@@ -34,7 +45,7 @@ func NewVerificationResult(primary, verification Result) (*VerificationResult, e
 		Primary:             &primary,
 		Verification:        &verification,
 		Hashes:              hashes,
-		Error:               errMessage,
+		ErrorMessage:        errMessage,
 		ReproducedCorrectly: reproduced,
 	}, nil
 }

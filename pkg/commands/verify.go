@@ -4,9 +4,10 @@ import (
 	"github.com/hashicorp/composite-action-framework-go/pkg/cli"
 )
 
+type verifyOpts struct{}
+
 var Verify = cli.LeafCommand("verify", "verify a build", func(opts *verifyOpts) error {
-	opts.noRunPrimaryBuild = true
-	return verifyCore(opts)
+	return nil
 }).WithHelp(`
 Compares the primary and verification build results, and reports an error
 if the build did not reproduce correctly.
