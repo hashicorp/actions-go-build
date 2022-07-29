@@ -186,3 +186,8 @@ func (b *build) listInstructions() {
 	b.log("Listing build instructions...")
 	b.log(b.config.Parameters.Instructions)
 }
+
+// Result func makes a build a ResultSource.
+func (b *build) Result() (Result, error) {
+	return b.Run(), nil
+}

@@ -10,6 +10,7 @@ import (
 	"text/template"
 	"time"
 
+	"github.com/hashicorp/actions-go-build/internal/config"
 	"github.com/hashicorp/actions-go-build/internal/log"
 	"github.com/hashicorp/actions-go-build/pkg/build"
 	"github.com/hashicorp/actions-go-build/pkg/commands/opts"
@@ -28,26 +29,64 @@ var (
 	ErrNoVerificationBuildResult = errors.New("no verification build result found")
 )
 
+type buildOpts struct {
+	build              build.Build
+	loadResultFromFile string
+	noRun              bool
+}
+
+type primaryBuildOpts struct{ buildOpts }
+type verificationBuildOpts struct{ buildOpts }
+
+func (pbo *primaryBuildOpts) Flag(fs *flag.FlagSet) {
+	fs.StringVar(&pbo.loadResultFromFile, "buildresult", "", "build result JSON file to validate (defaults to local cache)")
+}
+
+func getBuildFromEnv(f func(config.Config) (build.Config, error)) (build.Build, error) {
+	config, err := config.FromEnvironment()
+	if err != nil {
+		return nil, err
+	}
+	c, err := f(config)
+	if err != nil {
+		return nil, err
+	}
+	return build.New(c, build.WithLogfunc(log.Verbose))
+}
+
+func (pbo *primaryBuildOpts) ReadEnv() error {
+	var err error
+	pbo.build, err = getBuildFromEnv(func(c config.Config) (build.Config, error) {
+		return c.PrimaryBuildConfig()
+	})
+	return err
+}
+
+func (vbo *verificationBuildOpts) ReadEnv() error {
+	var err error
+	vbo.build, err = getBuildFromEnv(func(c config.Config) (build.Config, error) {
+		return c.VerificationBuildConfig()
+	})
+	return err
+}
+
+type BuildOpts interface {
+	primaryBuildOpts | verificationBuildOpts
+}
+
 type verifyOpts struct {
-	Builds       opts.AllBuilds
-	ActionConfig opts.ActionConfig
-	GitHub       opts.GitHubOpts
 	StepSummary  github.StepSummary
 	ResultWriter opts.ResultWriter
-
-	primaryResultFile string
-
-	// internal opts used for different flavours of verification.
-	noRunPrimaryBuild, noRunVerificationBuild bool
+	primary      primaryBuildOpts
+	verify       verificationBuildOpts
 }
 
 func (bo *verifyOpts) ReadEnv() error {
-	return cli.ReadEnvAll(&bo.Builds, &bo.ActionConfig, &bo.GitHub, &bo.StepSummary)
+	return cli.ReadEnvAll(&bo.primary, &bo.verify, &bo.StepSummary)
 }
 
 func (bo *verifyOpts) Flags(fs *flag.FlagSet) {
-	cli.FlagsAll(fs, &bo.GitHub, &bo.StepSummary, &bo.ResultWriter)
-	fs.StringVar(&bo.primaryResultFile, "resultfile", "", "result JSON file to validate (defaults to local cache)")
+	cli.FlagsAll(fs, &bo.StepSummary, &bo.ResultWriter)
 }
 
 func verifyCore(opts *verifyOpts) error {
@@ -80,7 +119,7 @@ func verifyCore(opts *verifyOpts) error {
 	if err := writeStepSummary(opts.StepSummary, result.Hashes); err != nil {
 		return err
 	}
-	if opts.GitHub.GitHubMode {
+	if log.IsVerbose() {
 		if err := writeLogSummary(stderr, result.Hashes); err != nil {
 			return err
 		}
