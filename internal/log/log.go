@@ -8,7 +8,7 @@ import (
 	"golang.org/x/term"
 )
 
-type logFunc func(string, ...any)
+type Func func(string, ...any)
 
 // IsTerm returns true if we appear to be connected to a tty,
 // indicating that there is likely to be a user present.
@@ -38,7 +38,7 @@ func IsInfo() bool {
 
 var nothing = func(string, ...any) {}
 
-var Info, Verbose, Debug = func() (info, verbose, debug logFunc) {
+var Info, Verbose, Debug = func() (info, verbose, debug Func) {
 	info, verbose, debug = nothing, nothing, nothing
 	l := log.New(os.Stderr, "", 0)
 	if !IsTerm() {
