@@ -3,6 +3,7 @@ package commands
 import (
 	"os"
 
+	"github.com/hashicorp/actions-go-build/pkg/build"
 	"github.com/hashicorp/composite-action-framework-go/pkg/cli"
 )
 
@@ -33,4 +34,8 @@ var BuildPrimary = cli.LeafCommand("primary", "run the primary build", func(opts
 
 type pBuildOpts struct {
 	buildOpts
+}
+
+func (opts *pBuildOpts) build() (*build.Manager, error) {
+	return opts.primaryBuild()
 }

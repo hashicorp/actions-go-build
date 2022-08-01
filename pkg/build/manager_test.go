@@ -2,6 +2,7 @@ package build
 
 import (
 	"errors"
+	"os"
 	"strings"
 	"testing"
 
@@ -22,6 +23,14 @@ func makeOpts(opts ...ManagerOption) []ManagerOption { return opts }
 
 var e = errors.New
 
+// TODO: This test needs refactoring now we have a separate Runner type.
+// Manager -> Runner -> Build is the hierarchy, but this is testing the
+// manager in terms of builds, so skipping the runner level.
+//
+// There should be separate tests for Runner -> Build and Manager -> Runner.
+//
+// The current shape of these tests is caused by refactoring the main codebase
+// but not the tests at the same time.
 func TestResultManager_ok(t *testing.T) {
 
 	cases := []struct {
@@ -114,8 +123,18 @@ type mockBuild struct {
 	cacheErr      error
 }
 
-func (m *mockBuild) Env() []string  { return nil }
-func (m *mockBuild) Config() Config { return Config{Product: crt.Product{SourceHash: "blargle"}} }
+func (m *mockBuild) Env() []string { return nil }
+
+func (m *mockBuild) Config() Config {
+	return Config{
+		Product: crt.Product{
+			SourceHash: "blargle",
+		},
+		Paths: Paths{
+			MetaDir: os.TempDir(),
+		},
+	}
+}
 func (m *mockBuild) CachedResult() (Result, bool, error) {
 	if m.cached == nil {
 		return Result{}, false, m.cacheErr

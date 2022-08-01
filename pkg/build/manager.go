@@ -30,6 +30,14 @@ func WithDebugLogFunc(f func(string, ...any)) ManagerOption {
 	return func(bm *Manager) { bm.debug = f }
 }
 
+func (bm *Manager) Runner() *Runner {
+	return bm.runner
+}
+
+func (bm *Manager) Build() Build {
+	return bm.runner.build
+}
+
 func (bm *Manager) ResultFromCache() (Result, bool, error) {
 	bm.debug("Inspecting cache for build result.")
 	return bm.runner.build.CachedResult()

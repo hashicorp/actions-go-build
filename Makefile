@@ -93,7 +93,9 @@ install: $(BIN_PATH)
 	@echo "Command '$(CLINAME)' installed to GITHUB_PATH"
 	$(CLINAME) --version
 else
+install: 
 install:
+	@$(TEST) > /dev/null 2>&1 || { echo "Tests failed, please run 'make test'."; exit 1; }
 	@$(INSTALL)
 	@echo "Command '$(CLINAME)' installed to GOBIN"
 	$(CLINAME) --version
@@ -147,7 +149,7 @@ test/go/update: export UPDATE_TESTDATA := true
 test/go/update: test/go
 
 test/go: 
-	go test $(GO_TEST_FLAGS) ./...
+	@go test $(GO_TEST_FLAGS) ./...
 
 .PHONY: docs
 docs: readme changelog

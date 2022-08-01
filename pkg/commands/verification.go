@@ -47,6 +47,10 @@ func (opts vBuildOpts) ownFlags(fs *flag.FlagSet) {
 	fs.DurationVar(&opts.staggerTime, "staggertime", 5*time.Second, "minimum time to wait after start of primary build")
 }
 
+func (opts *vBuildOpts) build() (*build.Manager, error) {
+	return opts.verificationBuild()
+}
+
 func (opts *vBuildOpts) verificationBuild() (*build.Manager, error) {
 	pb, err := opts.primaryBuild()
 	if err != nil {
