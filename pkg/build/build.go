@@ -4,12 +4,10 @@ import (
 	"fmt"
 	"os"
 	"os/exec"
-	"path/filepath"
 	"time"
 
 	"github.com/hashicorp/actions-go-build/internal/log"
 	"github.com/hashicorp/actions-go-build/internal/zipper"
-	"github.com/hashicorp/actions-go-build/pkg/digest"
 	"github.com/hashicorp/composite-action-framework-go/pkg/fs"
 	"github.com/hashicorp/composite-action-framework-go/pkg/json"
 )
@@ -18,44 +16,42 @@ import (
 // It could be a primary build or a verification build, this Build doesn't
 // need to know.
 type Build interface {
-	Run() Result
 	Env() []string
 	Config() Config
 	CachedResult() (Result, bool, error)
-}
-
-func resolveBashPath(path string) (string, error) {
-	if path == "" {
-		path = "bash"
-	}
-	return exec.LookPath(path)
+	Steps() []Step
 }
 
 func New(cfg Config, options ...Option) (Build, error) {
+	return newCore(cfg, options...)
+}
+
+func newCore(cfg Config, options ...Option) (*core, error) {
 	s, err := newSettings(options)
 	if err != nil {
-		return &build{}, err
+		return nil, err
 	}
-	return &build{
+	return &core{
 		settings: s,
 		config:   cfg,
 	}, nil
 }
 
-type build struct {
-	settings Settings
-	config   Config
+type core struct {
+	settings      Settings
+	config        Config
+	prebuildSteps []Step
 }
 
-func (b *build) Config() Config {
+func (b *core) Config() Config {
 	return b.config
 }
 
-func (b *build) log(f string, a ...any) {
+func (b *core) log(f string, a ...any) {
 	b.settings.logFunc(f, a...)
 }
 
-func (b *build) CachedResult() (Result, bool, error) {
+func (b *core) CachedResult() (Result, bool, error) {
 	var r Result
 	path := b.config.buildResultCachePath()
 	exists, err := fs.FileExists(path)
@@ -72,53 +68,44 @@ func (b *build) CachedResult() (Result, bool, error) {
 	return r, err == nil, err
 }
 
-func (b *build) Run() Result {
-	c := b.config
-	r := NewRecorder(b, b.log)
-	b.log("Starting build process.")
-
-	b.log("Beginning build, rooted at %q", b.config.Paths.WorkDir)
-
-	var productRevisionTimestamp time.Time
-	r.AddStep("validating inputs", func() error {
-		var err error
-		productRevisionTimestamp, err = c.Product.RevisionTimestamp()
-		return err
-	})
-
-	r.AddStep("creating output directories", b.createDirectories)
-
-	r.AddStep("running build instructions", b.runInstructions)
-	r.AddStep("asserting executable written", b.assertExecutableWritten)
-	r.AddStep("writing executable digest", func() error {
-		if err := r.RecordBin(c.Paths.BinPath); err != nil {
-			return err
-		}
-		return b.writeDigest(c.Paths.BinPath, "bin_digest")
-	})
-	r.AddStep("setting mtimes", func() error {
-		return fs.SetMtimes(c.Paths.TargetDir, productRevisionTimestamp)
-	})
-	r.AddStep("creating zip file", func() error {
-		return zipper.ZipToFile(c.Paths.TargetDir, c.Paths.ZipPath, r.logFunc)
-	})
-	r.AddStep("writing zip digest", func() error {
-		if err := r.RecordZip(c.Paths.ZipPath); err != nil {
-			return err
-		}
-		return b.writeDigest(c.Paths.ZipPath, "zip_digest")
-	})
-
-	return r.Run()
+func newStep(desc string, action StepFunc) Step {
+	return Step{desc: desc, action: action}
 }
 
-func (b *build) createDirectories() error {
+func (b *core) Steps() []Step {
+	c := b.config
+	var productRevisionTimestamp time.Time
+
+	return []Step{
+		newStep("validating inputs", func() error {
+			var err error
+			productRevisionTimestamp, err = c.Product.RevisionTimestamp()
+			return err
+		}),
+
+		newStep("creating output directories", b.createDirectories),
+
+		newStep("running build instructions", b.runInstructions),
+
+		newStep("asserting executable written", b.assertExecutableWritten),
+
+		newStep("setting mtimes", func() error {
+			return fs.SetMtimes(c.Paths.TargetDir, productRevisionTimestamp)
+		}),
+
+		newStep("creating zip file", func() error {
+			return zipper.ZipToFile(c.Paths.TargetDir, c.Paths.ZipPath, b.settings.logFunc)
+		}),
+	}
+}
+
+func (b *core) createDirectories() error {
 	c := b.config
 	b.log("Creating output directories.")
 	return fs.Mkdirs(c.Paths.TargetDir, c.Paths.ZipDir(), c.Paths.MetaDir)
 }
 
-func (b *build) assertExecutableWritten() error {
+func (b *core) assertExecutableWritten() error {
 	binExists, err := b.executableWasWritten()
 	if err != nil {
 		return err
@@ -129,22 +116,11 @@ func (b *build) assertExecutableWritten() error {
 	return nil
 }
 
-func (b *build) executableWasWritten() (bool, error) {
+func (b *core) executableWasWritten() (bool, error) {
 	return fs.FileExists(b.config.Paths.BinPath)
 }
 
-func (b *build) writeDigest(of, named string) error {
-	sha, err := digest.FileSHA256Hex(of)
-	if err != nil {
-		return err
-	}
-
-	digestPath := filepath.Join(b.config.Paths.MetaDir, named)
-
-	return fs.WriteFile(digestPath, sha)
-}
-
-func (b *build) newCommand(name string, args ...string) *exec.Cmd {
+func (b *core) newCommand(name string, args ...string) *exec.Cmd {
 	cmd := exec.CommandContext(b.settings.context, name, args...)
 	cmd.Dir = b.config.Paths.WorkDir
 	cmd.Stdout = b.settings.stdout
@@ -152,11 +128,11 @@ func (b *build) newCommand(name string, args ...string) *exec.Cmd {
 	return cmd
 }
 
-func (b *build) runCommand(name string, args ...string) error {
+func (b *core) runCommand(name string, args ...string) error {
 	return b.newCommand(name, args...).Run()
 }
 
-func (b *build) runInstructions() error {
+func (b *core) runInstructions() error {
 	path, err := b.writeInstructions()
 	if err != nil {
 		return err
@@ -177,17 +153,12 @@ func (b *build) runInstructions() error {
 
 // writeInstructions writes the build instructions to a temporary file
 // and returns its path, or an error if writing fails.
-func (b *build) writeInstructions() (path string, err error) {
+func (b *core) writeInstructions() (path string, err error) {
 	b.log("Writing build instructions to temp file.")
 	return fs.WriteTempFile("actions-go-build.instructions", b.config.Parameters.Instructions)
 }
 
-func (b *build) listInstructions() {
+func (b *core) listInstructions() {
 	b.log("Listing build instructions...")
 	b.log(b.config.Parameters.Instructions)
-}
-
-// Result func makes a build a ResultSource.
-func (b *build) Result() (Result, error) {
-	return b.Run(), nil
 }

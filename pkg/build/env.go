@@ -13,7 +13,7 @@ type EnvVar struct {
 
 // Env materialises the values for each defined env var as a slice
 // compatible with exec.CMD.Env.
-func (b *build) Env() []string {
+func (b *core) Env() []string {
 	bed := BuildEnvDefinitions()
 	env := make([]string, len(bed))
 	for i, e := range bed {

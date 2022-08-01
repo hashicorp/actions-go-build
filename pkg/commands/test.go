@@ -6,61 +6,22 @@ import (
 	"io"
 	"os"
 
-	"github.com/hashicorp/actions-go-build/internal/config"
-	"github.com/hashicorp/actions-go-build/internal/log"
 	"github.com/hashicorp/actions-go-build/pkg/build"
 	"github.com/hashicorp/actions-go-build/pkg/verifier"
 	"github.com/hashicorp/composite-action-framework-go/pkg/cli"
-	cp "github.com/otiai10/copy"
 )
 
-type testOpts struct {
-	rebuildP   bool
-	rebuildV   bool
-	rebuildAll bool
-	v          bool
-	config     config.Config
-
-	pBuild, vBuild *build.Manager
-}
-
-func (opts *testOpts) ReadEnv() error {
-	var err error
-	opts.config, err = config.FromEnvironment()
-	return err
-}
-
-func (opts *testOpts) Flags(fs *flag.FlagSet) {
-	fs.BoolVar(&opts.v, "v", false, "verbose logging")
-	fs.BoolVar(&opts.rebuildP, "rebuild-p", false, "re-run the primary build even if cached")
-	fs.BoolVar(&opts.rebuildV, "rebuild-v", false, "re-run the verification build even if cached")
-	fs.BoolVar(&opts.rebuildAll, "rebuild", false, "re-run both builds, ignoring the cache")
-}
-
-func (opts *testOpts) Init() error {
-	var err error
-	if opts.pBuild, err = opts.primaryBuild(); err != nil {
-		return err
-	}
-	if opts.vBuild, err = opts.verificationBuild(); err != nil {
-		return err
-	}
-	return nil
-}
-
 var Test = cli.LeafCommand("test", "test reproducibility of current worktree + config", func(opts *testOpts) error {
-
 	verifier := verifier.New(opts.pBuild, opts.vBuild)
 	result, err := verifier.Verify()
 	if err != nil {
 		return err
 	}
-	if opts.v {
+	if opts.verbose {
 		if err := dumpJSON(os.Stdout, result); err != nil {
 			return err
 		}
 	}
-
 	return result.Error()
 
 }).WithHelp(`
@@ -83,52 +44,41 @@ func dumpJSON(w io.Writer, v any) error {
 	return e.Encode(v)
 }
 
-func (opts *testOpts) primaryBuild() (*build.Manager, error) {
-	pc, err := opts.config.PrimaryBuildConfig()
-	if err != nil {
-		return nil, err
-	}
-	b, err := opts.build(pc, opts.rebuildAll || opts.rebuildP)
-	if err != nil {
-		return nil, err
-	}
-	return opts.newManager(b), nil
+type testOpts struct {
+	rebuildAll bool
+	verbose    bool
+
+	pOpts pBuildOpts
+	vOpts vBuildOpts
+
+	pBuild, vBuild *build.Manager
 }
 
-func (opts *testOpts) verificationBuild() (*build.Manager, error) {
-	vc, err := opts.config.VerificationBuildConfig()
-	if err != nil {
-		return nil, err
-	}
-
-	b, err := opts.build(vc, opts.rebuildAll || opts.rebuildV)
-	if err != nil {
-		return nil, err
-	}
-	pc, err := opts.config.PrimaryBuildConfig()
-	if err != nil {
-		return nil, err
-	}
-	preBuild := func(build.Build) error {
-		pPath := pc.Paths.WorkDir
-		vPath := vc.Paths.WorkDir
-		return cp.Copy(pPath, vPath)
-	}
-	return opts.newManager(b, build.WithPreBuild(preBuild)), nil
+func (opts *testOpts) ReadEnv() error {
+	return cli.ReadEnvAll(&opts.pOpts, &opts.vOpts)
 }
 
-func (opts *testOpts) newManager(b build.Build, options ...build.ManagerOption) *build.Manager {
-	options = append(options, build.WithLogFunc(opts.logFunc()))
-	return build.NewManager(b, options...)
+func (opts *testOpts) Flags(fs *flag.FlagSet) {
+	opts.vOpts.ownFlags(fs)
+	fs.BoolVar(&opts.verbose, "v", false, "verbose logging")
+	fs.BoolVar(&opts.pOpts.rebuild, "rebuild-p", false, "re-run the primary build even if cached")
+	fs.BoolVar(&opts.vOpts.rebuild, "rebuild-v", false, "re-run the verification build even if cached")
+	fs.BoolVar(&opts.rebuildAll, "rebuild", false, "re-run both builds, ignoring the cache")
 }
 
-func (opts *testOpts) logFunc() log.Func {
-	if opts.v {
-		return log.Info
+func (opts *testOpts) Init() error {
+	opts.pOpts.verbose = opts.verbose
+	opts.vOpts.verbose = opts.verbose
+
+	opts.pOpts.rebuild = opts.pOpts.rebuild || opts.rebuildAll
+	opts.vOpts.rebuild = opts.vOpts.rebuild || opts.rebuildAll
+
+	var err error
+	if opts.pBuild, err = opts.pOpts.primaryBuild(); err != nil {
+		return err
 	}
-	return log.Verbose
-}
-
-func (opts *testOpts) build(c build.Config, rebuild bool) (build.Build, error) {
-	return build.New(c, build.WithLogfunc(opts.logFunc()))
+	if opts.vBuild, err = opts.vOpts.verificationBuild(); err != nil {
+		return err
+	}
+	return nil
 }

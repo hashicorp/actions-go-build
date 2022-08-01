@@ -1,55 +1,80 @@
 package commands
 
 import (
-	"fmt"
+	"flag"
+	"os"
+	"time"
 
-	"github.com/hashicorp/actions-go-build/internal/log"
 	"github.com/hashicorp/actions-go-build/pkg/build"
-	"github.com/hashicorp/actions-go-build/pkg/commands/opts"
 	"github.com/hashicorp/composite-action-framework-go/pkg/cli"
-	cp "github.com/otiai10/copy"
 )
 
 // BuildVerification runs the verification build, first copying the primary build
 // directory to the verification build root.
-var BuildVerification = cli.LeafCommand("verification", "run the verification build", func(opts *opts.VerificationBuildOpts) error {
-	log.Verbose("Running verification build")
-	log.Verbose("Copying %s to %s", opts.PrimaryBuildRoot, opts.VerificationBuildRoot)
-	result, err := runVerificationBuild(opts.PrimaryBuildRoot, opts.VerificationBuildRoot, opts.Build)
+var BuildVerification = cli.LeafCommand("verification", "run the verification build", func(opts *vBuildOpts) error {
+	pb, err := opts.verificationBuild()
 	if err != nil {
 		return err
 	}
 
-	resultFile, err := opts.ResultWriter.WriteBuildResult(result)
+	result, err := pb.Result()
 	if err != nil {
 		return err
 	}
-	if resultFile != "" {
-		log.Info("Verification build results written to %q", resultFile)
-	}
-
-	if err := cacheResult("Verification", result); err != nil {
-		return err
+	if opts.verbose {
+		if err := dumpJSON(os.Stdout, result); err != nil {
+			return err
+		}
 	}
 
 	return result.Error()
 }).WithHelp(`
 Run the verification build by making a copy of the current directory in a temporary
-path and executing the build instructions there.
-` +
-	buildInstructionsHelp)
+path and executing the build instructions there at least 5 seconds later.
+` + buildInstructionsHelp)
 
-func runVerificationBuild(primaryBuildRoot, verificationBuildRoot string, verificationBuild build.Build) (build.Result, error) {
-	if err := cp.Copy(primaryBuildRoot, verificationBuildRoot); err != nil {
-		return build.Result{}, err
-	}
-	return verificationBuild.Run(), nil
+type vBuildOpts struct {
+	buildOpts
+	staggerTime time.Duration
 }
 
-func cacheResult(name string, result build.Result) error {
-	_, err := result.Save()
+func (opts vBuildOpts) Flags(fs *flag.FlagSet) {
+	cli.FlagsAll(fs, &opts.buildOpts)
+	opts.ownFlags(fs)
+}
+
+func (opts vBuildOpts) ownFlags(fs *flag.FlagSet) {
+	fs.DurationVar(&opts.staggerTime, "staggertime", 5*time.Second, "minimum time to wait after start of primary build")
+}
+
+func (opts *vBuildOpts) verificationBuild() (*build.Manager, error) {
+	pb, err := opts.primaryBuild()
 	if err != nil {
-		return fmt.Errorf("Failed to cache build results: %s", err)
+		return nil, err
 	}
-	return nil
+	pr, cached, err := pb.ResultFromCache()
+	if err != nil {
+		return nil, err
+	}
+
+	// By default, we'll just wait the staggerTime.
+	startAfter := time.Now().Add(opts.staggerTime)
+	if cached {
+		// If we know when the primary build started we can go a bit quicker.
+		startAfter = pr.Meta.Start.Add(opts.staggerTime)
+	}
+
+	pc, err := opts.config.PrimaryBuildConfig()
+	if err != nil {
+		return nil, err
+	}
+	vc, err := opts.config.VerificationBuildConfig()
+	if err != nil {
+		return nil, err
+	}
+	b, err := build.NewLocalVerification(pc.Paths.WorkDir, startAfter, vc, opts.buildOpts.buildOpts()...)
+	if err != nil {
+		return nil, err
+	}
+	return opts.newManager(b), nil
 }

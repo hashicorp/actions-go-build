@@ -5,6 +5,7 @@ import (
 	"io"
 	"log"
 	"os"
+	"os/exec"
 )
 
 // Settings contains settings for running the instructions.
@@ -29,6 +30,13 @@ func newSettings(options []Option) (Settings, error) {
 		return Settings{}, err
 	}
 	return *out, nil
+}
+
+func resolveBashPath(path string) (string, error) {
+	if path == "" {
+		path = "bash"
+	}
+	return exec.LookPath(path)
 }
 
 func (s *Settings) setDefaults() (err error) {

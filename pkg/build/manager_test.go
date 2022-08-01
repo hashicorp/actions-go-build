@@ -2,17 +2,22 @@ package build
 
 import (
 	"errors"
+	"strings"
 	"testing"
+
+	"github.com/hashicorp/actions-go-build/pkg/crt"
 )
 
 func result(id string) *Result { return &Result{ErrorMessage: id} }
+
 func assertResultsEqual(t *testing.T, got, want Result) {
 	t.Helper()
-	if got.ErrorMessage == want.ErrorMessage {
+	if strings.HasPrefix(got.ErrorMessage, want.ErrorMessage) {
 		return
 	}
 	t.Errorf("got result %q; want %q", got.ErrorMessage, want.ErrorMessage)
 }
+
 func makeOpts(opts ...ManagerOption) []ManagerOption { return opts }
 
 var e = errors.New
@@ -55,18 +60,13 @@ func TestResultManager_ok(t *testing.T) {
 			opts:  makeOpts(WithForceRebuild(true)),
 			want:  result("fresh"),
 		},
-		{
-			desc:  "cached no prebuild err",
-			build: &mockBuild{cached: result("cached")},
-			opts:  makeOpts(WithPreBuild(func(Build) error { return e("prebuild") })),
-			want:  result("cached"),
-		},
 	}
 
 	for _, c := range cases {
 		build, opts, want := c.build, c.opts, c.want
 		t.Run(c.desc, func(t *testing.T) {
-			m := NewManager(build, opts...)
+			runner := NewRunner(build, t.Logf)
+			m := NewManager(runner, opts...)
 			got, err := m.Result()
 			if err != nil {
 				t.Fatal(err)
@@ -89,24 +89,13 @@ func TestManager_err(t *testing.T) {
 			opts:    nil,
 			wantErr: e("cache err"),
 		},
-		{
-			desc:    "no cache return prebuild err",
-			build:   &mockBuild{},
-			opts:    makeOpts(WithPreBuild(func(Build) error { return e("prebuild") })),
-			wantErr: e("prebuild"),
-		},
-		{
-			desc:    "no cache return prebuild err",
-			build:   &mockBuild{},
-			opts:    makeOpts(WithPreBuild(func(Build) error { return e("prebuild") })),
-			wantErr: e("prebuild"),
-		},
 	}
 
 	for _, c := range cases {
 		build, opts, wantErr := c.build, c.opts, c.wantErr
 		t.Run(c.desc, func(t *testing.T) {
-			m := NewManager(build, opts...)
+			runner := NewRunner(build, t.Logf)
+			m := NewManager(runner, opts...)
 			_, gotErr := m.Result()
 			if gotErr == nil {
 				t.Fatalf("got nil error; want %q", wantErr)
@@ -125,17 +114,16 @@ type mockBuild struct {
 	cacheErr      error
 }
 
-func (m *mockBuild) Run() Result {
-	if m.fresh != nil {
-		return *m.fresh
-	}
-	return Result{}
-}
 func (m *mockBuild) Env() []string  { return nil }
-func (m *mockBuild) Config() Config { return Config{} }
+func (m *mockBuild) Config() Config { return Config{Product: crt.Product{SourceHash: "blargle"}} }
 func (m *mockBuild) CachedResult() (Result, bool, error) {
 	if m.cached == nil {
 		return Result{}, false, m.cacheErr
 	}
 	return *m.cached, true, m.cacheErr
+}
+func (m *mockBuild) Steps() []Step {
+	return []Step{
+		newStep("fresh", func() error { return errors.New("an error") }),
+	}
 }

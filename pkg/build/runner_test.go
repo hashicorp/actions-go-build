@@ -11,7 +11,7 @@ import (
 	tmp "github.com/hashicorp/composite-action-framework-go/pkg/testhelpers/tmptest"
 )
 
-func TestBuild_Run_ok(t *testing.T) {
+func TestRunner_Run_ok(t *testing.T) {
 	dir := tmp.Dir(t)
 	t.Logf("Test dir: %q", dir)
 
@@ -20,15 +20,15 @@ func TestBuild_Run_ok(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	b := testBuild.(*build)
+	b := testBuild.(*core)
 	b.createTestProductRepo(t)
-	result := b.Run()
+	result := NewRunner(b, t.Logf).Run()
 	if err := result.Error(); err != nil {
 		t.Fatal(err)
 	}
 }
 
-func TestBuild_Run_err(t *testing.T) {
+func TestRunner_Run_err(t *testing.T) {
 	dir := tmp.Dir(t)
 	t.Logf("Test dir: %q", dir)
 
@@ -39,9 +39,9 @@ func TestBuild_Run_err(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	b := testBuild.(*build)
+	b := testBuild.(*core)
 	b.createTestProductRepo(t)
-	result := b.Run()
+	result := NewRunner(b, t.Logf).Run()
 	gotErr := result.Error()
 	want := "running build instructions failed: exit status 1"
 	if gotErr == nil {
@@ -69,7 +69,7 @@ go 1.18
 `
 
 // createTestProductRepo creates a test repo and returns its path.
-func (b *build) createTestProductRepo(t *testing.T) {
+func (b *core) createTestProductRepo(t *testing.T) {
 	b.writeTestFile(t, "main.go", mainDotGo)
 	b.writeTestFile(t, "go.mod", goDotMod)
 	repo, err := git.Init(b.config.Paths.WorkDir, git.WithAuthor("test", "test@test.com"))
@@ -91,11 +91,11 @@ func must(t *testing.T, err error) {
 	}
 }
 
-func (b *build) runTestCommand(t *testing.T, name string, args ...string) {
+func (b *core) runTestCommand(t *testing.T, name string, args ...string) {
 	must(t, b.runCommand(name, args...))
 }
 
-func (b *build) writeTestFile(t *testing.T, name, contents string) {
+func (b *core) writeTestFile(t *testing.T, name, contents string) {
 	name = filepath.Join(b.config.Paths.WorkDir, name)
 	must(t, fs.WriteFile(name, contents))
 }

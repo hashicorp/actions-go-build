@@ -46,8 +46,3 @@ type Meta struct {
 	Start, Finish time.Time
 	Duration      string
 }
-
-type step struct {
-	desc   string
-	action func() error
-}

@@ -29,7 +29,7 @@ func IsDebug() bool {
 }
 
 func IsVerbose() bool {
-	return IsTerm() || IsDebug()
+	return !IsTerm() || IsDebug()
 }
 
 func IsInfo() bool {

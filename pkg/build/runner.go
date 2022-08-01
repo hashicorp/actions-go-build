@@ -10,10 +10,10 @@ import (
 	"github.com/hashicorp/actions-go-build/pkg/digest"
 )
 
-// Recorder is responsible for executing and logging build steps and
+// Runner is responsible for executing and logging build steps and
 // constructing the build Result.
-type Recorder struct {
-	steps   []step
+type Runner struct {
+	build   Build
 	result  Result
 	logFunc func(string, ...any)
 	// nowFunc is usually time.Now but can be overridden
@@ -21,8 +21,9 @@ type Recorder struct {
 	nowFunc func() time.Time
 }
 
-func NewRecorder(b Build, logFunc func(string, ...any)) *Recorder {
-	return &Recorder{
+func NewRunner(b Build, logFunc func(string, ...any)) *Runner {
+	return &Runner{
+		build: b,
 		result: Result{
 			Config: b.Config(),
 			Env:    b.Env(),
@@ -32,25 +33,37 @@ func NewRecorder(b Build, logFunc func(string, ...any)) *Recorder {
 	}
 }
 
-func (br *Recorder) AddStep(desc string, action func() error) {
-	br.steps = append(br.steps, step{desc, action})
+type StepFunc func() error
+
+type Step struct {
+	desc   string
+	action StepFunc
 }
 
-func (br *Recorder) Run() Result {
+func (br *Runner) Run() Result {
+	br.logFunc("Beginning build, rooted at %q", br.result.Config.Paths.WorkDir)
 	br.start()
-	for _, s := range br.steps {
+	for _, s := range br.build.Steps() {
 		if br.recordStep(s.desc, s.action); br.Failed() {
 			break
 		}
 	}
+	if !br.Failed() {
+		br.recordStep("recording executable file details", func() error {
+			return br.RecordBin(br.result.Config.Paths.BinPath)
+		})
+		br.recordStep("recording zip file details", func() error {
+			return br.RecordZip(br.result.Config.Paths.ZipPath)
+		})
+	}
 	return br.Result()
 }
 
-func (br *Recorder) isFinished() bool {
+func (br *Runner) isFinished() bool {
 	return br.result.Meta.Finish != (time.Time{})
 }
 
-func (br *Recorder) finish() {
+func (br *Runner) finish() {
 	if !br.isFinished() {
 		br.result.Meta.Finish = br.nowFunc()
 		br.result.Meta.Duration = br.result.Meta.Finish.Sub(br.result.Meta.Start).String()
@@ -58,33 +71,33 @@ func (br *Recorder) finish() {
 	}
 }
 
-func (br *Recorder) Result() Result {
+func (br *Runner) Result() Result {
 	br.finish()
 	return br.result
 }
 
-func (br *Recorder) Failed() bool {
+func (br *Runner) Failed() bool {
 	return br.result.err != nil
 }
 
-func (br *Recorder) RecordBin(path string) error {
+func (br *Runner) RecordBin(path string) error {
 	var err error
 	br.result.Executable, err = getFileDetails(path)
 	return err
 }
 
-func (br *Recorder) RecordZip(path string) error {
+func (br *Runner) RecordZip(path string) error {
 	var err error
 	br.result.Zip, err = getFileDetails(path)
 	return err
 }
 
-func (br *Recorder) start() *Recorder {
+func (br *Runner) start() *Runner {
 	br.result.Meta.Start = br.nowFunc()
 	return br
 }
 
-func (br *Recorder) recordStep(desc string, step func() error) error {
+func (br *Runner) recordStep(desc string, step func() error) error {
 	err := step()
 	if err == nil {
 		br.logFunc("SUCCESS: %s", desc)
@@ -93,6 +106,7 @@ func (br *Recorder) recordStep(desc string, step func() error) error {
 	// Add the step description to the error.
 	err = fmt.Errorf("%s failed: %w", desc, err)
 	br.result.err = err
+	br.result.ErrorMessage = err.Error()
 	br.logFunc("ERROR: %s", err)
 	return err
 }
