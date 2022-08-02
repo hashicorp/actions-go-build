@@ -95,7 +95,7 @@ install: $(BIN_PATH)
 else
 install: 
 install:
-	@$(TEST) > /dev/null 2>&1 || { echo "Tests failed, please run 'make test'."; exit 1; }
+	@$(MAKE) test > /dev/null 2>&1 || { echo "Tests failed, please run 'make test'."; exit 1; }
 	@$(INSTALL)
 	@echo "Command '$(CLINAME)' installed to GOBIN"
 	$(CLINAME) --version

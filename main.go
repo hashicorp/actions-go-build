@@ -1,9 +1,7 @@
 package main
 
 import (
-	"fmt"
 	"os"
-	"strings"
 
 	_ "embed"
 
@@ -20,14 +18,17 @@ var (
 )
 
 func main() {
-	status, err := makeCLI(os.Args[1:], versionOutput()).Run()
+
+	status, err := makeCLI(os.Args[1:]).Run()
 	if err != nil {
 		log.Info("%s", err)
 	}
 	os.Exit(status)
 }
 
-func makeCLI(args []string, version string) *cli.CLI {
+func makeCLI(args []string) *cli.CLI {
+
+	versionCommand, version := commands.MakeVersionCommand(versionCore, FullVersion, Revision, RevisionTime)
 
 	c := cli.NewCLI("actions-go-build", version)
 
@@ -41,6 +42,7 @@ func makeCLI(args []string, version string) *cli.CLI {
 		"build env dump":     makeCommand(commands.BuildEnvDump),
 		"verify":             makeCommand(commands.Verify),
 		"config":             makeCommand(commands.Config),
+		"version":            makeCommand(versionCommand),
 	}
 
 	return c
@@ -69,30 +71,4 @@ func makeCommand(command *actioncli.Command) cli.CommandFactory {
 			run:      command.Execute,
 		}, nil
 	}
-}
-
-func version() string {
-	if FullVersion != "" {
-		return FullVersion
-	}
-	versionCore = strings.TrimSpace(versionCore)
-	if versionCore == "" {
-		versionCore = "0.0.0-unversioned"
-	}
-	return fmt.Sprintf("%s-local", versionCore)
-}
-
-func revision() string {
-	if Revision == "" {
-		return "(unknown revision)"
-	}
-	revisionString := fmt.Sprintf("(%s)", Revision[:8])
-	if RevisionTime != "" {
-		revisionString += fmt.Sprintf(" %s", RevisionTime)
-	}
-	return revisionString
-}
-
-func versionOutput() string {
-	return fmt.Sprintf("v%s %s", version(), revision())
 }

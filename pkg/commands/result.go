@@ -48,6 +48,6 @@ func (p *presenter) result(what string, r Result) error {
 
 func dumpJSON(w io.Writer, v any) error {
 	e := json.NewEncoder(w)
-	e.SetIndent("", " ")
+	e.SetIndent("", "  ")
 	return e.Encode(v)
 }
