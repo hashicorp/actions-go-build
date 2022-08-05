@@ -37,8 +37,8 @@ test/update: test/go/update
 
 CLINAME   := $(PRODUCT_NAME)
 CLI       := bin/$(CLINAME)
-RUNCLI    := @./$(CLI)
 TMP_BUILD := $(TMPDIR)/temp-build/$(CLINAME)
+RUNCLI    := @$(TMP_BUILD)
 
 BIN_PATH ?= $(CLI)
 
