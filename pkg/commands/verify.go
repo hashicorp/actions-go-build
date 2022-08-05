@@ -9,6 +9,7 @@ import (
 	"path/filepath"
 
 	"github.com/artdarek/go-unzip"
+	"github.com/hashicorp/actions-go-build/internal/log"
 	"github.com/hashicorp/actions-go-build/pkg/build"
 	"github.com/hashicorp/actions-go-build/pkg/verifier"
 	"github.com/hashicorp/composite-action-framework-go/pkg/cli"
@@ -18,15 +19,25 @@ import (
 
 type verifyOpts struct {
 	present    presenter
-	resultFile string
 	build      buildFlags
+	resultFile string
 }
 
 func (opts *verifyOpts) ReadEnv() error { return cli.ReadEnvAll(&opts.present) }
 
 func (opts *verifyOpts) Flags(fs *flag.FlagSet) {
 	cli.FlagsAll(fs, &opts.present, &opts.build)
-	fs.StringVar(&opts.resultFile, "result", "", "path to the json build result file to verify")
+}
+
+func (opts *verifyOpts) ParseArgs(args []string) error {
+	if len(args) == 0 {
+		return fmt.Errorf("argument missing: path to json build result file")
+	}
+	if len(args) > 1 {
+		return fmt.Errorf("too many arguments: exactly one required")
+	}
+	opts.resultFile = args[0]
+	return nil
 }
 
 var Verify = cli.LeafCommand("verify", "verify a build result", func(opts *verifyOpts) error {
@@ -41,7 +52,7 @@ var Verify = cli.LeafCommand("verify", "verify a build result", func(opts *verif
 	}
 
 	if br.Config.Product.IsDirty() {
-		return fmt.Errorf("result is dirty (source hash != revision); we can't verify dirty builds")
+		log.Info("WARNING: Result is dirty: source hash != revision")
 	}
 
 	// Update the build paths to a temp dir to run the verification build in.
@@ -59,6 +70,7 @@ var Verify = cli.LeafCommand("verify", "verify a build result", func(opts *verif
 		return err
 	}
 	defer destFile.Close()
+	log.Info("Downloading %s", sourceURL)
 	response, err := http.Get(sourceURL)
 	if err != nil {
 		return err
@@ -66,6 +78,9 @@ var Verify = cli.LeafCommand("verify", "verify a build result", func(opts *verif
 	defer response.Body.Close()
 	if _, err := io.Copy(destFile, response.Body); err != nil {
 		return err
+	}
+	if response.StatusCode != http.StatusOK {
+		return fmt.Errorf("unable to download source code: %s", response.Status)
 	}
 	if err := destFile.Close(); err != nil {
 		return err
