@@ -35,9 +35,10 @@ cover: test/go
 
 test/update: test/go/update
 
-CLINAME := $(PRODUCT_NAME)
-CLI     := bin/$(CLINAME)
-RUNCLI  := @./$(CLI)
+CLINAME   := $(PRODUCT_NAME)
+CLI       := bin/$(CLINAME)
+RUNCLI    := @./$(CLI)
+TMP_BUILD := $(TMPDIR)/temp-build/$(CLINAME)
 
 BIN_PATH ?= $(CLI)
 
@@ -68,7 +69,11 @@ env:
 	@echo "  PRODUCT_REVISION=$$PRODUCT_REVISION"
 	@echo "  PRODUCT_REVISION_TIME=$$PRODUCT_REVISION_TIME"
 
-TMP_PATH := $(TMPDIR)/temp-build/actions-go-build
+.PHONY: $(TMP_BUILD)
+$(TMP_BUILD):
+	@rm -f "$(TMP_BUILD)"
+	@mkdir -p "$(dir $(TMP_BUILD))"
+	@go build -o "$(TMP_BUILD)"
 
 # When building the binary, we first do a plain 'go build' to build a temporary
 # binary that contains no version info. Then we use that version of the binary
@@ -81,12 +86,10 @@ TMP_PATH := $(TMPDIR)/temp-build/actions-go-build
 # Thus, each version of actions-go-build is built using itself
 .PHONY: $(BIN_PATH)
 $(BIN_PATH):
-	@rm -f "$(TMP_PATH)"
-	@mkdir -p "$(dir $(TMP_PATH))"
 	# First build:   Plain go build...
-	@go build -o "$(TMP_PATH)"
+	$(MAKE) $(TMP_BUILD)
 	# Second build:  Using first build to build self...
-	@$(TMP_PATH) build primary -rebuild
+	@$(TMP_BUILD) build primary -rebuild
 	@mv "dist/$(CLINAME)" "$@"
 	# Third build:   Using second (self-built) build to build self...
 	@"$@" build primary -rebuild
@@ -119,41 +122,41 @@ mod/framework/update:
 # The run/... targets build and then run the CLI itself
 # which is usful for quickly seeing its output whilst developing.
 
-run: $(CLI)
+run: $(TMP_BUILD)
 	$(RUNCLI)
 
-run/config: $(CLI)
+run/config: $(TMP_BUILD)
 	$(RUNCLI) config
 
-run/config-github: $(CLI) 
+run/config-github: $(TMP_BUILD) 
 	$(RUNCLI) config -github
 
-run/test: $(CLI)
+run/test: $(TMP_BUILD)
 	$(RUNCLI) test
 
-run/test-show: $(CLI)
+run/test-show: $(TMP_BUILD)
 	$(RUNCLI) test -show
 
-run/build: $(CLI)
+run/build: $(TMP_BUILD)
 	$(RUNCLI) build
 
 # run/build/env/describe is called by dev/docs/environment_doc
-run/build/env/describe: $(CLI)
+run/build/env/describe: $(TMP_BUILD)
 	$(RUNCLI) build env describe
 
-run/build/env/dump: $(CLI)
+run/build/env/dump: $(TMP_BUILD)
 	$(RUNCLI) build env dump
 
-run/build/env/dump-verification: $(CLI)
+run/build/env/dump-verification: $(TMP_BUILD)
 	$(RUNCLI) build env dump
 
-run/build/primary: $(CLI)
+run/build/primary: $(TMP_BUILD)
 	$(RUNCLI) build primary
 
-run/build/verification: $(CLI)
+run/build/verification: $(TMP_BUILD)
 	$(RUNCLI) build verification
 
-run/verify: $(CLI)
+run/verify: $(TMP_BUILD)
 	$(RUNCLI) verify
 
 test/go/update: export UPDATE_TESTDATA := true
