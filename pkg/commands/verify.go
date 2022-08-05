@@ -11,6 +11,18 @@ import (
 	"github.com/hashicorp/composite-action-framework-go/pkg/json"
 )
 
+const verifyHelp = `
+Verify that a build result is reproducible by attempting to run the same build again.
+
+Args: <build result JSON file>
+
+This command accepts a build result JSON file path, and uses it to run a new verification
+build, and compares the results. It downloads a copy of the source code (currently only
+supports code hosted on GitHub.com), and uses the config from the result file to run a
+similar build in a temporary directory. The new result is compared with the old one, and
+a verification result is produced (use the -json flag to print the result to stdout).
+`
+
 type verifyOpts struct {
 	present    presenter
 	build      buildFlags
@@ -66,14 +78,4 @@ var Verify = cli.LeafCommand("verify", "verify a build result's reproducibility"
 
 	return opts.present.result("Verification result", result)
 
-}).WithHelp(`
-Verify that a build result is reproducible by attempting to run the same build again.
-
-Args: <build result JSON file>
-
-This command accepts a build result JSON file path, and uses it to run a new verification
-build, and compares the results. It downloads a copy of the source code (currently only
-supports code hosted on GitHub.com), and uses the config from the result file to run a
-similar build in a temporary directory. The new result is compared with the old one, and
-a verification result is produced (use the -json flag to print the result to stdout).
-`)
+}).WithHelp(verifyHelp)

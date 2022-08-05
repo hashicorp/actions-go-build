@@ -3,7 +3,7 @@ module github.com/hashicorp/actions-go-build
 go 1.18
 
 require (
-	github.com/hashicorp/composite-action-framework-go v0.0.3-0.20220728141136-53bfb0532590
+	github.com/hashicorp/composite-action-framework-go v0.0.3-0.20220805221309-4cc26b848dc2
 	github.com/hashicorp/go-version v1.6.0
 	github.com/mitchellh/cli v1.1.4
 	github.com/otiai10/copy v1.7.0
