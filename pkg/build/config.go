@@ -41,3 +41,10 @@ func (c Config) buildResultCachePath() string {
 	filename := fmt.Sprintf("buildresult-%s.json", c.Product.SourceHash)
 	return filepath.Join(c.Paths.MetaDir, filename)
 }
+
+// ChangeRoot returns a copy of this Config with an updated build root.
+func (c Config) ChangeRoot(dir string) (Config, error) {
+	var err error
+	c.Paths, err = NewBuildPaths(dir, c.Product.ExecutableName, c.Parameters.ZipName)
+	return c, err
+}

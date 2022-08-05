@@ -55,7 +55,7 @@ func (c Config) EnvVars() ([]EnvVar, error) {
 	addEnv("REPRODUCIBLE", c.Reproducible)
 	addEnv("INSTRUCTIONS", c.Parameters.Instructions)
 	addEnv("BIN_NAME", c.Product.ExecutableName)
-	addEnv("ZIP_NAME", c.ZipName)
+	addEnv("ZIP_NAME", c.Parameters.ZipName)
 	addEnv("PRIMARY_BUILD_ROOT", c.PrimaryBuildRoot)
 	addEnv("VERIFICATION_BUILD_ROOT", c.VerificationBuildRoot)
 	addEnv("BIN_PATH_PRIMARY", primary.Paths.BinPath)

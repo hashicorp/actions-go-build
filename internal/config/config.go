@@ -37,8 +37,6 @@ type Config struct {
 	// Optional inputs which do not affect the bytes produced.
 	// Mostly useful for testing.
 
-	// ZipName is the name of the zip file to be created.
-	ZipName string `env:"ZIP_NAME"`
 	// PrimaryBuildRoot is the absolute path where the instructions are run for the
 	// primary build. This path should already exist and contain the product repo
 	// checked out at the commit we want to build.
@@ -76,7 +74,7 @@ func FromEnvironment(creator crt.Tool) (Config, error) {
 // buildConfig returns a BuildConfig based on this Config, rooted at root.
 // The root must be an absolute path.
 func (c Config) buildConfig(root string) (build.Config, error) {
-	paths, err := build.NewBuildPaths(root, c.Product.ExecutableName, c.ZipName)
+	paths, err := build.NewBuildPaths(root, c.Product.ExecutableName, c.Parameters.ZipName)
 	if err != nil {
 		return build.Config{}, err
 	}
@@ -93,10 +91,6 @@ func (c Config) VerificationBuildConfig() (build.Config, error) {
 	return c.buildConfig(c.VerificationBuildRoot)
 }
 
-func defaultZipName(product crt.Product, params build.Parameters) string {
-	return fmt.Sprintf("%s_%s_%s_%s.zip", product.Name, product.Version.Full, params.OS, params.Arch)
-}
-
 func (c Config) init(rc crt.RepoContext, creator crt.Tool) (Config, error) {
 	var err error
 	if c.Product, err = c.Product.Init(rc); err != nil {
@@ -107,9 +101,6 @@ func (c Config) init(rc crt.RepoContext, creator crt.Tool) (Config, error) {
 	}
 	if c.Reproducible, err = c.resolveReproducible(); err != nil {
 		return c, err
-	}
-	if c.ZipName == "" {
-		c.ZipName = defaultZipName(c.Product, c.Parameters)
 	}
 	if c.PrimaryBuildRoot == "" {
 		c.PrimaryBuildRoot = rc.Dir

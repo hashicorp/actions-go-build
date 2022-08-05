@@ -33,7 +33,7 @@ func TestConfig_init_ok(t *testing.T) {
 				c.Product.Version.Full = "1.2.3+ent"
 				c.Product.Version.Core = "1.2.3"
 				c.Product.Version.Meta = "ent"
-				c.ZipName = "lockbox_1.2.3+ent_linux_amd64.zip"
+				c.Parameters.ZipName = "lockbox_1.2.3+ent_linux_amd64.zip"
 			}),
 		},
 		{
@@ -46,17 +46,17 @@ func TestConfig_init_ok(t *testing.T) {
 				c.Product.Version.Full = "1.2.3+ent.hsm"
 				c.Product.Version.Core = "1.2.3"
 				c.Product.Version.Meta = "ent.hsm"
-				c.ZipName = "lockbox_1.2.3+ent.hsm_linux_amd64.zip"
+				c.Parameters.ZipName = "lockbox_1.2.3+ent.hsm_linux_amd64.zip"
 			}),
 		},
 		{
 			"overridden zip_name",
 			testUninitializedConfig(func(i *Config) {
-				i.ZipName = "blarglefish.zip"
+				i.Parameters.ZipName = "blarglefish.zip"
 			}),
 			testRepoContext(),
 			testConfig(func(c *Config) {
-				c.ZipName = "blarglefish.zip"
+				c.Parameters.ZipName = "blarglefish.zip"
 			}),
 		},
 		{
@@ -178,7 +178,6 @@ func standardConfig() Config {
 		Reproducible:          "assert",
 		PrimaryBuildRoot:      "/some/dir/work",
 		VerificationBuildRoot: "/some/dir/verification",
-		ZipName:               "lockbox_1.2.3_linux_amd64.zip",
 		Tool: crt.Tool{
 			Name:     "thisaction",
 			Version:  "0.0.0",
@@ -207,9 +206,9 @@ func standardUnintializedConfig() Config {
 			Instructions: "",
 			OS:           "linux",
 			Arch:         "amd64",
+			ZipName:      "",
 		},
 		Reproducible:          "",
-		ZipName:               "",
 		PrimaryBuildRoot:      "",
 		VerificationBuildRoot: "",
 	}
@@ -220,5 +219,6 @@ func standardParameters() build.Parameters {
 		GoVersion: "1.18",
 		OS:        "linux",
 		Arch:      "amd64",
+		ZipName:   "lockbox_1.2.3_linux_amd64.zip",
 	}
 }

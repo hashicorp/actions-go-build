@@ -21,10 +21,44 @@ available to your build instructions.
 See the 'config env dump' subcommand to print out the values for all these variables.
 `
 
-type buildOpts struct {
+// buildFlags are flags you can pass to any build, be it primary or verification.
+type buildFlags struct {
 	rebuild bool
 	verbose bool
-	config  config.Config
+}
+
+func (flags *buildFlags) Flags(fs *flag.FlagSet) {
+	fs.BoolVar(&flags.rebuild, "rebuild", false, "re-run the build even if cached")
+	fs.BoolVar(&flags.verbose, "v", false, "verbose logging")
+}
+
+func (flags *buildFlags) managerOpts() []build.ManagerOption {
+	return []build.ManagerOption{
+		build.WithLogFunc(flags.logFunc()),
+		build.WithForceRebuild(flags.rebuild),
+	}
+}
+
+func (flags *buildFlags) logFunc() log.Func {
+	if flags.verbose {
+		return log.Info
+	}
+	return log.Verbose
+}
+
+func (flags *buildFlags) newManager(b build.Build) *build.Manager {
+	r := build.NewRunner(b, flags.logFunc())
+	return build.NewManager(r, flags.managerOpts()...)
+}
+
+func (flags *buildFlags) buildOpts() []build.Option {
+	return []build.Option{build.WithLogfunc(flags.logFunc())}
+}
+
+// buildOpts has all the buildFlags plus a build config read from the environment.
+type buildOpts struct {
+	buildFlags
+	config config.Config
 }
 
 func (opts *buildOpts) ReadEnv() error {
@@ -33,10 +67,7 @@ func (opts *buildOpts) ReadEnv() error {
 	return err
 }
 
-func (opts *buildOpts) Flags(fs *flag.FlagSet) {
-	fs.BoolVar(&opts.rebuild, "rebuild", false, "re-run the build even if cached")
-	fs.BoolVar(&opts.verbose, "v", false, "verbose logging")
-}
+func (opts *buildOpts) Flags(fs *flag.FlagSet) { opts.buildFlags.Flags(fs) }
 
 func (opts *buildOpts) primaryBuild() (*build.Manager, error) {
 	pc, err := opts.config.PrimaryBuildConfig()
@@ -48,27 +79,4 @@ func (opts *buildOpts) primaryBuild() (*build.Manager, error) {
 		return nil, err
 	}
 	return opts.newManager(b), nil
-}
-
-func (opts *buildOpts) managerOpts() []build.ManagerOption {
-	return []build.ManagerOption{
-		build.WithLogFunc(opts.logFunc()),
-		build.WithForceRebuild(opts.rebuild),
-	}
-}
-
-func (opts *buildOpts) newManager(b build.Build) *build.Manager {
-	r := build.NewRunner(b, opts.logFunc())
-	return build.NewManager(r, opts.managerOpts()...)
-}
-
-func (opts *buildOpts) buildOpts() []build.Option {
-	return []build.Option{build.WithLogfunc(opts.logFunc())}
-}
-
-func (opts *buildOpts) logFunc() log.Func {
-	if opts.verbose {
-		return log.Info
-	}
-	return log.Verbose
 }

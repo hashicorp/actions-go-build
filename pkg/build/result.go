@@ -46,3 +46,8 @@ type Meta struct {
 	Start, Finish time.Time
 	Duration      string
 }
+
+// Result makes BuildResult a ResultSource which can be used by the verifier.
+func (br Result) Result() (Result, error) {
+	return br, nil
+}

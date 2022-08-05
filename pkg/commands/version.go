@@ -16,6 +16,8 @@ type versionOpts struct {
 	short   bool
 }
 
+func (opts *versionOpts) ReadEnv() error { return cli.ReadEnvAll(&opts.present) }
+
 func (opts *versionOpts) Flags(fs *flag.FlagSet) {
 	cli.FlagsAll(fs, &opts.present)
 	fs.BoolVar(&opts.notrunc, "no-trunc", false, "don't truncate the revision SHA")

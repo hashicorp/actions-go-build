@@ -46,7 +46,7 @@ func TestConfig_BuildConfig_ok(t *testing.T) {
 		{
 			"root/blah (overridden zip name)",
 			testConfig(func(c *Config) {
-				c.ZipName = "blargle.zip"
+				c.Parameters.ZipName = "blargle.zip"
 			}),
 			"/blah",
 			testBuildConfig(func(bc *build.Config) {
@@ -55,6 +55,7 @@ func TestConfig_BuildConfig_ok(t *testing.T) {
 				bc.Paths.BinPath = "/blah/dist/lockbox"
 				bc.Paths.ZipPath = "/blah/out/blargle.zip"
 				bc.Paths.MetaDir = "/blah/meta"
+				bc.Parameters.ZipName = "blargle.zip"
 			}),
 		},
 	}

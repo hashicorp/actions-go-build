@@ -21,6 +21,8 @@ type Parameters struct {
 	OS string `env:"OS"`
 	// Arch is the target Architecture for this build.
 	Arch string `env:"ARCH"`
+	// ZipName is the name of the zip file to create.
+	ZipName string `env:"ZIP_NAME"`
 }
 
 func (bp Parameters) Init(p crt.Product) (Parameters, error) {
@@ -36,6 +38,9 @@ func (bp Parameters) setDefaults(p crt.Product) (Parameters, error) {
 	if bp.GoVersion == "" {
 		bp.GoVersion = strings.TrimPrefix(runtime.Version(), "go")
 	}
+	if bp.ZipName == "" {
+		bp.ZipName = bp.defaultZipName(p)
+	}
 	if bp.Instructions == "" {
 		var err error
 		bp.Instructions, err = bp.defaultInstructions(p)
@@ -50,6 +55,10 @@ func (bp Parameters) setDefaults(p crt.Product) (Parameters, error) {
 		bp.Arch = runtime.GOARCH
 	}
 	return bp, nil
+}
+
+func (bp Parameters) defaultZipName(p crt.Product) string {
+	return fmt.Sprintf("%s_%s_%s_%s.zip", p.Name, p.Version.Full, bp.OS, bp.Arch)
 }
 
 func (bp Parameters) defaultInstructions(p crt.Product) (string, error) {
