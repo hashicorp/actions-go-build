@@ -87,7 +87,7 @@ $(TMP_BUILD):
 .PHONY: $(BIN_PATH)
 $(BIN_PATH):
 	# First build:   Plain go build...
-	$(MAKE) $(TMP_BUILD)
+	@$(MAKE) $(TMP_BUILD)
 	# Second build:  Using first build to build self...
 	@$(TMP_BUILD) build primary -rebuild
 	@mv "dist/$(CLINAME)" "$@"
