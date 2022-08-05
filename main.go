@@ -7,28 +7,33 @@ import (
 
 	"github.com/hashicorp/actions-go-build/internal/log"
 	"github.com/hashicorp/actions-go-build/pkg/commands"
+	"github.com/hashicorp/actions-go-build/pkg/crt"
+	"github.com/hashicorp/actions-go-build/product"
 	actioncli "github.com/hashicorp/composite-action-framework-go/pkg/cli"
 	"github.com/mitchellh/cli"
 )
 
-var (
-	//go:embed dev/VERSION
-	versionCore                         string
-	FullVersion, Revision, RevisionTime string
-)
+//go:embed dev/VERSION
+var versionCore string
 
 func main() {
 
-	status, err := makeCLI(os.Args[1:]).Run()
+	p, err := product.Product("actions-go-build", versionCore)
+	if err != nil {
+		log.Info("Error: invalid build: invalid product info: %s", err)
+		os.Exit(1)
+	}
+
+	status, err := makeCLI(p, os.Args[1:]).Run()
 	if err != nil {
 		log.Info("%s", err)
 	}
 	os.Exit(status)
 }
 
-func makeCLI(args []string) *cli.CLI {
+func makeCLI(thisTool crt.Product, args []string) *cli.CLI {
 
-	versionCommand, version := commands.MakeVersionCommand(versionCore, FullVersion, Revision, RevisionTime)
+	versionCommand, version := commands.MakeVersionCommand(thisTool)
 
 	c := cli.NewCLI("actions-go-build", version)
 

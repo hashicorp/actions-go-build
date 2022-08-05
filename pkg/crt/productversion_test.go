@@ -124,5 +124,4 @@ func TestProductVersion_Init(t *testing.T) {
 			}
 		})
 	}
-
 }

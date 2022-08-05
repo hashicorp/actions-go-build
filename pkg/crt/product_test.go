@@ -261,3 +261,57 @@ func standardProduct() Product {
 		RevisionTime: "2022-07-13T12:50:01Z",
 	}
 }
+
+func TestProduct_VersionCommandOutput(t *testing.T) {
+	cases := []struct {
+		desc      string
+		in        Product
+		wantLong  string
+		wantShort string
+	}{
+		{
+			"clean",
+			Product{
+				Name: "lockbox",
+				Version: ProductVersion{
+					Full: "1.2.3-beta+meta",
+				},
+				SourceHash:   "18f94bdcebddbf044de219f8586b054aa3ef0ed3",
+				Revision:     "18f94bdcebddbf044de219f8586b054aa3ef0ed3",
+				RevisionTime: "2022-08-05T12:39:04Z",
+			},
+			"lockbox v1.2.3-beta+meta (18f94bdcebddbf044de219f8586b054aa3ef0ed3) 2022-08-05T12:39:04Z",
+			"lockbox v1.2.3-beta+meta (18f94bdc) 2022-08-05",
+		},
+		{
+			"dirty",
+			Product{
+				Name: "lockbox",
+				Version: ProductVersion{
+					Full: "1.2.3-beta+meta",
+				},
+				SourceHash:   "blah",
+				Revision:     "18f94bdcebddbf044de219f8586b054aa3ef0ed3",
+				RevisionTime: "2022-08-05T12:39:04Z",
+			},
+			"Dirty build: source hash: blah\n" +
+				"lockbox v1.2.3-beta+meta (18f94bdcebddbf044de219f8586b054aa3ef0ed3) 2022-08-05T12:39:04Z",
+			"Dirty build: source hash: blah\n" +
+				"lockbox v1.2.3-beta+meta (18f94bdc) 2022-08-05",
+		},
+	}
+
+	for _, c := range cases {
+		in, wantLong, wantShort := c.in, c.wantLong, c.wantShort
+		t.Run(wantShort, func(t *testing.T) {
+			gotLong := in.VersionCommandOutput()
+			if gotLong != wantLong {
+				t.Errorf("got long:\n\t%q\nwant:\n\t%q", gotLong, wantLong)
+			}
+			gotShort := in.VersionCommandOutputShort()
+			if gotShort != wantShort {
+				t.Errorf("got short:\n\t%q\nwant:\n\t%q", gotShort, wantShort)
+			}
+		})
+	}
+}

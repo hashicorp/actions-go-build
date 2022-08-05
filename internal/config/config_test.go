@@ -85,7 +85,12 @@ func TestConfig_init_ok(t *testing.T) {
 	for _, c := range cases {
 		description, inputs, rc, want := c.description, c.inputs, c.rc, c.want
 		t.Run(description, func(t *testing.T) {
-			got, err := inputs.init(rc, "0.0.0", "cabba9e")
+			tool := crt.Tool{
+				Name:     "thisaction",
+				Version:  "0.0.0",
+				Revision: "cabba9e",
+			}
+			got, err := inputs.init(rc, tool)
 			if err != nil {
 				t.Fatal(err)
 			}
@@ -172,8 +177,11 @@ func standardConfig() Config {
 		PrimaryBuildRoot:      "/some/dir/work",
 		VerificationBuildRoot: "/some/dir/verification",
 		ZipName:               "lockbox_1.2.3_linux_amd64.zip",
-		ToolVersion:           "0.0.0",
-		ToolRevision:          "cabba9e",
+		Tool: crt.Tool{
+			Name:     "thisaction",
+			Version:  "0.0.0",
+			Revision: "cabba9e",
+		},
 	}
 }
 

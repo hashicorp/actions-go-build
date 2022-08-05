@@ -58,6 +58,29 @@ func (p Product) RevisionTimestamp() (time.Time, error) {
 	return ts, maybeErr(err, "invalid revision timestamp %q", p.RevisionTime)
 }
 
+func (p Product) VersionCommandOutput() string {
+	return p.versionCommandOutput(p.Revision, p.RevisionTime)
+}
+
+func (p Product) VersionCommandOutputShort() string {
+	parts := strings.SplitN(p.RevisionTime, "T", 2)
+	time := parts[0]
+	rev := p.Revision
+	// If revision is 40 chars or more, it's probably a git commit SHA1, so shorten it.
+	if len(rev) >= 40 {
+		rev = rev[:8]
+	}
+	return p.versionCommandOutput(rev, time)
+}
+
+func (p Product) versionCommandOutput(rev, revTime string) string {
+	var d string
+	if p.IsDirty() {
+		d = fmt.Sprintf("Dirty build: source hash: %s\n", p.SourceHash)
+	}
+	return fmt.Sprintf("%s%s v%s (%s) %s", d, p.Name, p.Version.Full, rev, revTime)
+}
+
 // trimSpace trims space from the user-provided input fields only.
 func (p Product) trimSpace() Product {
 	p.Repository = strings.TrimSpace(p.Repository)

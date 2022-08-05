@@ -29,7 +29,7 @@ type buildOpts struct {
 
 func (opts *buildOpts) ReadEnv() error {
 	var err error
-	opts.config, err = config.FromEnvironment(version, revision)
+	opts.config, err = config.FromEnvironment(tool)
 	return err
 }
 

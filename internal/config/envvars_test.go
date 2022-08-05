@@ -5,6 +5,7 @@ import (
 	"testing"
 
 	"github.com/hashicorp/actions-go-build/pkg/build"
+	"github.com/hashicorp/actions-go-build/pkg/crt"
 	"github.com/hashicorp/composite-action-framework-go/pkg/testhelpers/assert"
 	"github.com/hashicorp/composite-action-framework-go/pkg/testhelpers/goldenfile"
 )
@@ -80,6 +81,11 @@ func standardBuildconfig() build.Config {
 			BinPath:   "/dist/lockbox",
 			ZipPath:   "/out/lockbox_1.2.3_linux_amd64.zip",
 			MetaDir:   "/meta",
+		},
+		Tool: crt.Tool{
+			Name:     "thisaction",
+			Version:  "0.0.0",
+			Revision: "cabba9e",
 		},
 	}
 }

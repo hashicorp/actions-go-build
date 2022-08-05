@@ -31,9 +31,8 @@ type Config struct {
 	//   - "nope"   - don't run the verification build at all.
 	Reproducible string `env:"REPRODUCIBLE"`
 
-	// ToolVersion and ToolRevision are the version and revision of the actions-go-build
-	// binary that read or created this config.
-	ToolVersion, ToolRevision string
+	// Tool is the version of actions-go-build that created this config.
+	Tool crt.Tool
 
 	// Optional inputs which do not affect the bytes produced.
 	// Mostly useful for testing.
@@ -54,13 +53,7 @@ type Config struct {
 
 // FromEnvironment creates a new Config from environment variables
 // and repository context in the current working directory.
-func FromEnvironment(version, revision string) (Config, error) {
-	if version == "" {
-		version = "unknown version"
-	}
-	if revision == "" {
-		revision = "unknown revision"
-	}
+func FromEnvironment(creator crt.Tool) (Config, error) {
 	var c Config
 	ctx := context.Background()
 	if err := envconfig.Process(ctx, &c); err != nil {
@@ -77,7 +70,7 @@ func FromEnvironment(version, revision string) (Config, error) {
 		return c, err
 	}
 
-	return c.init(rc, version, revision)
+	return c.init(rc, creator)
 }
 
 // buildConfig returns a BuildConfig based on this Config, rooted at root.
@@ -87,7 +80,7 @@ func (c Config) buildConfig(root string) (build.Config, error) {
 	if err != nil {
 		return build.Config{}, err
 	}
-	return build.NewConfig(c.Product, c.Parameters, paths)
+	return build.NewConfig(c.Product, c.Parameters, paths, c.Tool)
 }
 
 // PrimaryBuildConfig returns the config for the primary build.
@@ -104,7 +97,7 @@ func defaultZipName(product crt.Product, params build.Parameters) string {
 	return fmt.Sprintf("%s_%s_%s_%s.zip", product.Name, product.Version.Full, params.OS, params.Arch)
 }
 
-func (c Config) init(rc crt.RepoContext, version, revision string) (Config, error) {
+func (c Config) init(rc crt.RepoContext, creator crt.Tool) (Config, error) {
 	var err error
 	if c.Product, err = c.Product.Init(rc); err != nil {
 		return c, err
@@ -124,8 +117,7 @@ func (c Config) init(rc crt.RepoContext, version, revision string) (Config, erro
 	if c.VerificationBuildRoot == "" {
 		c.VerificationBuildRoot = defaultVerificationBuildRoot(rc)
 	}
-	c.ToolVersion = version
-	c.ToolRevision = revision
+	c.Tool = creator
 	return c, nil
 }
 
