@@ -63,7 +63,8 @@ func (bp Parameters) defaultInstructions(p crt.Product) (string, error) {
 	}
 	if gt {
 		// TODO: See if we can remove this by moving the output directories
-		// away from the repository.
+		// away from the repository. It's currently needed because it breaks
+		// reproducibility when buildvcs=true.
 		flags = append(flags, "-buildvcs=false")
 	}
 	if p.Module != "" {
