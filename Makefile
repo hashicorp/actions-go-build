@@ -13,9 +13,6 @@ else
 CURR_VERSION := $(shell cat dev/VERSION)
 endif
 
-PRODUCT_VERSION ?= $(CURR_VERSION)
-export PRODUCT_VERSION
-
 CURR_VERSION_CL := dev/changes/v$(CURR_VERSION).md
 
 DIRTY := $(shell git diff --exit-code > /dev/null 2>&1 || echo -n "dirty-")
@@ -26,11 +23,6 @@ else
 CURR_REVISION := $(shell git rev-parse HEAD)
 PRODUCT_REVISION := $(CURR_REVISION)
 endif
-
-PRODUCT_REVISION_TIME := $(shell git show -s --format=%ci "$(CURR_REVISION)" || echo "")
-
-export PRODUCT_REVISION
-export PRODUCT_REVISION_TIME
 
 CURR_REVISION    := $(DIRTY)$(CURR_REVISION)
 PRODUCT_REVISION ?= $(CURR_REVISION)
@@ -48,7 +40,6 @@ CLI     := bin/$(CLINAME)
 RUNCLI  := @./$(CLI)
 
 BIN_PATH ?= $(CLI)
-export BIN_PATH
 
 LDFLAGS      := -X 'main.FullVersion=$$PRODUCT_VERSION'
 LDFLAGS      += -X 'main.Revision=$$PRODUCT_REVISION'
@@ -56,8 +47,6 @@ LDFLAGS      += -X 'main.RevisionTime=$$PRODUCT_REVISION_TIME'
 BUILD_FLAGS  := -trimpath -buildvcs=false -ldflags="$(LDFLAGS)"
 INSTRUCTIONS := go build -o "$$BIN_PATH" $(BUILD_FLAGS)
 INSTALL      := go install $(BUILD_FLAGS)
-
-export INSTRUCTIONS
 
 FORMAT_INSTRUCTIONS := sed -E -e 's/-([^-]+)/\n  -\1/g' -e 's/-X/  -X/g' -e 's/\n/\\\n/g' -e 's/  \\/ \\/g'
 
@@ -79,9 +68,31 @@ env:
 	@echo "  PRODUCT_REVISION=$$PRODUCT_REVISION"
 	@echo "  PRODUCT_REVISION_TIME=$$PRODUCT_REVISION_TIME"
 
+TMP_PATH := $(TMPDIR)/temp-build/actions-go-build
+
+# When building the binary, we first do a plain 'go build' to build a temporary
+# binary that contains no version info. Then we use that version of the binary
+# to build this product with all the version info added automatically from the
+# build context.
+#
+# We then use _that_ binary to build yet another binary, this time with the
+# correct tool version injected into the build.
+#
+# Thus, each version of actions-go-build is built using itself
 .PHONY: $(BIN_PATH)
 $(BIN_PATH):
-	@$(INSTRUCTIONS)
+	@rm -f "$(TMP_PATH)"
+	@mkdir -p "$(dir $(TMP_PATH))"
+	# First build:   Plain go build...
+	@go build -o "$(TMP_PATH)"
+	# Second build:  Using first build to build self...
+	@$(TMP_PATH) build primary -rebuild
+	@mv "dist/$(CLINAME)" "$@"
+	# Third build:   Using second (self-built) build to build self...
+	@"$@" build primary -rebuild
+	@mv "dist/$(CLINAME)" "$@"
+	# Verifying reproducibility...
+	./$@ test
 
 cli: $(BIN_PATH)
 	@echo "Build successful."
@@ -93,12 +104,12 @@ install: $(BIN_PATH)
 	@echo "Command '$(CLINAME)' installed to GITHUB_PATH"
 	$(CLINAME) --version
 else
-install: 
-install:
+install: $(BIN_PATH)
 	@$(MAKE) test > /dev/null 2>&1 || { echo "Tests failed, please run 'make test'."; exit 1; }
-	@$(INSTALL)
-	@echo "Command '$(CLINAME)' installed to GOBIN"
-	$(CLINAME) --version
+	@mv "$<" /usr/local/bin/
+	@#$(INSTALL)
+	$(CLINAME) version -full
+	@echo "$(CLINAME) v$$($(CLINAME) version -short) installed to /usr/local/bin"
 endif
 
 mod/framework/update:

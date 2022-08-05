@@ -10,11 +10,17 @@ import (
 )
 
 type versionOpts struct {
+	present presenter
 	notrunc bool
+	full    bool
+	short   bool
 }
 
 func (opts *versionOpts) Flags(fs *flag.FlagSet) {
+	cli.FlagsAll(fs, &opts.present)
 	fs.BoolVar(&opts.notrunc, "no-trunc", false, "don't truncate the revision SHA")
+	fs.BoolVar(&opts.full, "full", false, "print detailed version info")
+	fs.BoolVar(&opts.short, "short", false, "print just the unadorned version")
 }
 
 // tool is set when MakeVersionCommand is called.
@@ -36,6 +42,25 @@ func MakeVersionCommand(p crt.Product) (*cli.Command, string) {
 	trunc := p.VersionCommandOutputShort()
 	return cli.LeafCommand("version", "version information", func(opts *versionOpts) error {
 		var err error
+		if opts.full && opts.short {
+			return fmt.Errorf("both -short and -full specified")
+		}
+		if opts.full {
+			if err = opts.present.productInfo(p); err != nil {
+				return err
+			}
+			if p.IsDirty() {
+				_, err = fmt.Fprintf(os.Stderr, "Dirty build: SourceHash != Revision\n")
+			}
+			return err
+		}
+		if opts.present.json {
+			return fmt.Errorf("json output only available when using -full")
+		}
+		if opts.short {
+			_, err = fmt.Fprintln(os.Stdout, p.Version.Full)
+			return err
+		}
 		if opts.notrunc {
 			_, err = fmt.Fprintln(os.Stdout, p.VersionCommandOutput())
 		} else {

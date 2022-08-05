@@ -2,8 +2,6 @@ package product
 
 import (
 	_ "embed"
-	"fmt"
-	"strings"
 
 	"github.com/hashicorp/actions-go-build/pkg/crt"
 )
@@ -13,6 +11,8 @@ var (
 
 	// Repository is the repository name, e.g. github.com/hashicorp/<product_name>
 	Repository string
+	// Module is the go module housing this product.
+	Module string
 	// Name is the full product name, typically the same as the last path segment of
 	// the repository.
 	Name string
@@ -58,6 +58,7 @@ func Product(defaultName, coreVersion string) (crt.Product, error) {
 	}.Init()
 	return crt.Product{
 		Repository:     Repository,
+		Module:         Module,
 		Name:           Name,
 		CoreName:       CoreName,
 		ExecutableName: ExecutableName,
@@ -66,30 +67,4 @@ func Product(defaultName, coreVersion string) (crt.Product, error) {
 		RevisionTime:   RevisionTime,
 		SourceHash:     SourceHash,
 	}, err
-}
-
-func versionOutput(coreVersion, fullVersion, revision, revisionTime string) string {
-	return fmt.Sprintf("v%s %s", versionString(coreVersion, fullVersion), revisionInfo(revision, revisionTime))
-}
-
-func versionString(coreVersion, fullVersion string) string {
-	if fullVersion != "" {
-		return fullVersion
-	}
-	coreVersion = strings.TrimSpace(coreVersion)
-	if coreVersion == "" {
-		coreVersion = "0.0.0-unversioned"
-	}
-	return fmt.Sprintf("%s-local", coreVersion)
-}
-
-func revisionInfo(revision, revisionTime string) string {
-	if revision == "" {
-		return "(unknown revision)"
-	}
-	revisionString := fmt.Sprintf("(%s)", revision)
-	if revisionTime != "" {
-		revisionString += fmt.Sprintf(" %s", revisionTime)
-	}
-	return revisionString
 }

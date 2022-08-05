@@ -1,6 +1,7 @@
 package crt
 
 import (
+	"bufio"
 	"errors"
 	"fmt"
 	"net/url"
@@ -9,12 +10,14 @@ import (
 	"strings"
 	"time"
 
+	"github.com/hashicorp/composite-action-framework-go/pkg/fs"
 	"github.com/hashicorp/composite-action-framework-go/pkg/git"
 	"github.com/hashicorp/go-version"
 )
 
 type RepoContext struct {
 	RepoName    string
+	ModuleName  string
 	Dir         string
 	RootDir     string
 	CommitSHA   string
@@ -59,8 +62,35 @@ func GetRepoContext(dir string, ignoreDirs []string) (RepoContext, error) {
 		return RepoContext{}, err // blah
 	}
 
+	var moduleName string
+	goDotMod := filepath.Join(dir, "go.mod")
+	exists, err := fs.FileExists(goDotMod)
+	if err != nil {
+		return RepoContext{}, err
+	}
+	if exists {
+		f, err := os.Open(goDotMod)
+		if err != nil {
+			return RepoContext{}, err
+		}
+		defer f.Close()
+		s := bufio.NewScanner(f)
+		for s.Scan() {
+			t := s.Text()
+			if !strings.HasPrefix(t, "module ") {
+				continue
+			}
+			parts := strings.SplitN(t, " ", 2)
+			if len(parts) == 2 {
+				moduleName = parts[1]
+			}
+			break
+		}
+	}
+
 	return RepoContext{
 		RepoName:    repoName,
+		ModuleName:  moduleName,
 		Dir:         dir,
 		RootDir:     repo.RootDir(),
 		CommitSHA:   sha,

@@ -66,7 +66,39 @@ func (bp Parameters) defaultInstructions(p crt.Product) (string, error) {
 		// away from the repository.
 		flags = append(flags, "-buildvcs=false")
 	}
+	if p.Module != "" {
+		ldFlags := fmt.Sprintf(`"%s"`, defaultLDFlags(p))
+		flags = append(flags, "-ldflags", ldFlags)
+	}
 	return strings.Join(flags, " "), nil
+}
+
+type kv struct {
+	k, v string
+}
+
+func defaultLDFlags(p crt.Product) string {
+	var ldflags []string
+	for _, kv := range []kv{
+		{"Repository", p.Repository},
+		{"Module", p.Module},
+		{"Name", p.Name},
+		{"CoreName", p.CoreName},
+		{"ExecutableName", p.ExecutableName},
+		{"VersionFull", p.Version.Full},
+		{"VersionCore", p.Version.Core},
+		{"VersionMeta", p.Version.Meta},
+		{"Revision", p.Revision},
+		{"RevisionTime", p.RevisionTime},
+		{"SourceHash", p.SourceHash},
+	} {
+		ldflags = append(ldflags, mkLDFlag(p, kv.k, kv.v))
+	}
+	return strings.Join(ldflags, " ")
+}
+
+func mkLDFlag(p crt.Product, name, value string) string {
+	return fmt.Sprintf("-X '%s/product.%s=%s'", p.Module, name, value)
 }
 
 func goVersion118OrGreater(vs string) (bool, error) {

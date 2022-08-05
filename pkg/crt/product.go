@@ -15,6 +15,8 @@ type Product struct {
 	// Repository is the product repository URL minus the scheme.
 	// E.g. github.com/hashicorp/lockbox
 	Repository string `env:"PRODUCT_REPOSITORY"`
+	// Module is the name of the Go module this product is defined in.
+	Module string
 	// Name is the product name. This is used to derive the default names
 	// for the executable binary, the zip package, deb and rpm packages,
 	// container image tags, and other artifacts in the future.
@@ -93,6 +95,10 @@ func (p Product) trimSpace() Product {
 func (p Product) setDefaults(rc RepoContext) (Product, error) {
 	if p.Repository == "" {
 		p.Repository = rc.RepoName
+	}
+
+	if p.Module == "" {
+		p.Module = rc.ModuleName
 	}
 
 	if p.Name == "" {

@@ -1,12 +1,16 @@
 package commands
 
 import (
+	"bytes"
 	"encoding/json"
 	"flag"
+	"fmt"
 	"io"
 	"os"
+	"strings"
 
 	"github.com/hashicorp/actions-go-build/internal/log"
+	"github.com/hashicorp/actions-go-build/pkg/crt"
 )
 
 type presenter struct {
@@ -44,6 +48,24 @@ func (p *presenter) result(what string, r Result) error {
 	}
 	log.Info("%s succeeded; use the -json flag to see the full result.", what)
 	return nil
+}
+
+func (p *presenter) productInfo(product crt.Product) error {
+	if p.json {
+		return dumpJSON(os.Stdout, product)
+	}
+	buf := &bytes.Buffer{}
+	if err := dumpJSON(buf, product); err != nil {
+		return err
+	}
+	s := buf.String()
+	s = strings.ReplaceAll(s, `",`, "")
+	s = strings.ReplaceAll(s, `"`, "")
+	s = strings.ReplaceAll(s, `},`, "")
+	s = strings.ReplaceAll(s, `}`, "")
+	s = strings.ReplaceAll(s, `{`, "")
+	_, err := fmt.Fprint(os.Stdout, s)
+	return err
 }
 
 func dumpJSON(w io.Writer, v any) error {
