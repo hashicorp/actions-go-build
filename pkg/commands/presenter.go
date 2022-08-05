@@ -14,17 +14,18 @@ import (
 )
 
 type presenter struct {
-	json bool
+	jsonStdErr bool
+	json       bool
 }
 
 func (p *presenter) ReadEnv() error {
 	// If we're not a terminal (e.g. in CI) then default json mode to on.
-	p.json = !log.IsTerm()
+	p.jsonStdErr = !log.IsTerm()
 	return nil
 }
 
 func (p *presenter) Flags(fs *flag.FlagSet) {
-	fs.BoolVar(&p.json, "json", p.json, "show the result as json")
+	fs.BoolVar(&p.json, "json", p.json, "print the result json to stdout")
 }
 
 type Result interface {
@@ -32,27 +33,36 @@ type Result interface {
 }
 
 func (p *presenter) result(what string, r Result) error {
-
-	// In JSON mode don't write log messages, just stick to pure JSON output.
-	if p.json {
-		if err := dumpJSON(os.Stdout, r); err != nil {
-			return err
-		}
-		return r.Error()
-	}
-
-	// Otherwise tell the user how to see the full result.
-	if err := r.Error(); err != nil {
-		log.Info("%s failed; use the -json flag to see the full result.", what)
+	resultErr := r.Error()
+	dumped, err := p.maybeDumpJSON(r)
+	if err != nil {
 		return err
 	}
-	log.Info("%s succeeded; use the -json flag to see the full result.", what)
-	return nil
+	if dumped {
+		return resultErr
+	}
+
+	resultStatus := "succeeded"
+	if resultErr != nil {
+		resultStatus = "failed"
+	}
+	log.Info("%s %s; use the -json flag to see the full result.", what, resultStatus)
+	return resultErr
+}
+
+func (p *presenter) maybeDumpJSON(v any) (bool, error) {
+	if p.json {
+		return true, dumpJSON(os.Stdout, v)
+	}
+	if p.jsonStdErr {
+		return true, dumpJSON(os.Stderr, v)
+	}
+	return false, nil
 }
 
 func (p *presenter) productInfo(product crt.Product) error {
-	if p.json {
-		return dumpJSON(os.Stdout, product)
+	if dumped, err := p.maybeDumpJSON(product); dumped || err != nil {
+		return err
 	}
 	buf := &bytes.Buffer{}
 	if err := dumpJSON(buf, product); err != nil {

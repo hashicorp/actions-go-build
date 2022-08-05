@@ -86,6 +86,8 @@ $(TMP_BUILD):
 # Thus, each version of actions-go-build is built using itself
 .PHONY: $(BIN_PATH)
 $(BIN_PATH):
+	# Running tests...
+	@$(MAKE) test > /dev/null 2>&1 || { echo "Tests failed, please run 'make test'."; exit 1; }
 	# First build:   Plain go build...
 	@$(MAKE) $(TMP_BUILD)
 	# Second build:  Using first build to build self...
@@ -108,11 +110,8 @@ install: $(BIN_PATH)
 	$(CLINAME) --version
 else
 install: $(BIN_PATH)
-	@$(MAKE) test > /dev/null 2>&1 || { echo "Tests failed, please run 'make test'."; exit 1; }
 	@mv "$<" /usr/local/bin/
-	@#$(INSTALL)
-	$(CLINAME) version -full
-	@echo "$(CLINAME) v$$($(CLINAME) version -short) installed to /usr/local/bin"
+	@V="$$($(CLINAME) version -short)" && echo "$(CLINAME) v$$V installed to /usr/local/bin"
 endif
 
 mod/framework/update:

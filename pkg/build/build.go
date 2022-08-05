@@ -20,6 +20,8 @@ type Build interface {
 	Config() Config
 	CachedResult() (Result, bool, error)
 	Steps() []Step
+	Kind() string
+	ChangeRoot(string) error
 }
 
 func New(cfg Config, options ...Option) (Build, error) {
@@ -45,6 +47,14 @@ type core struct {
 
 func (b *core) Config() Config {
 	return b.config
+}
+
+func (b *core) Kind() string { return "unknown" }
+
+func (b *core) ChangeRoot(dir string) error {
+	var err error
+	b.config, err = b.config.ChangeRoot(dir)
+	return err
 }
 
 func (b *core) log(f string, a ...any) {

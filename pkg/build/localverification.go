@@ -25,6 +25,8 @@ func NewLocalVerification(primaryRoot string, startAfter time.Time, cfg Config, 
 	}, nil
 }
 
+func (lv *LocalVerification) Kind() string { return "local verification" }
+
 func (lv *LocalVerification) Steps() []Step {
 
 	var sleepTime time.Duration
