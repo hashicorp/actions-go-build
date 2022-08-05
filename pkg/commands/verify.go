@@ -6,6 +6,7 @@ import (
 	"io"
 	"net/http"
 	"os"
+	"path"
 	"path/filepath"
 
 	"github.com/artdarek/go-unzip"
@@ -13,7 +14,6 @@ import (
 	"github.com/hashicorp/actions-go-build/pkg/build"
 	"github.com/hashicorp/actions-go-build/pkg/verifier"
 	"github.com/hashicorp/composite-action-framework-go/pkg/cli"
-	"github.com/hashicorp/composite-action-framework-go/pkg/fs"
 	"github.com/hashicorp/composite-action-framework-go/pkg/json"
 )
 
@@ -86,14 +86,15 @@ var Verify = cli.LeafCommand("verify", "verify a build result", func(opts *verif
 		return err
 	}
 
-	// Extract the downloaded zip file.
-	sourcePath := filepath.Join(tmpDir, br.Config.Product.Name)
-	if err := fs.Mkdir(sourcePath); err != nil {
+	// Extract the downloaded zip file directly in the same dir as the zip.
+	// These zips contain a directory that contains all the code, so we'll
+	// use that directory as the build root.
+	if err := unzip.New(destFilePath, tmpDir).Extract(); err != nil {
 		return err
 	}
-	if err := unzip.New(destFilePath, sourcePath).Extract(); err != nil {
-		return err
-	}
+
+	innerDirName := fmt.Sprintf("%s-%s", path.Base(br.Config.Product.Repository), br.Config.Product.Revision)
+	sourcePath := filepath.Join(tmpDir, innerDirName)
 
 	// Change our build root to the downloaded source dir.
 	c, err := br.Config.ChangeRoot(sourcePath)
