@@ -1,7 +1,6 @@
 package crt
 
 import (
-	"fmt"
 	"strings"
 
 	"github.com/hashicorp/go-version"
@@ -20,6 +19,21 @@ type ProductVersion struct {
 	Meta string `env:"PRODUCT_VERSION_META"`
 }
 
+func (p ProductVersion) String() string { return p.Full }
+
+// NewProductVersion accepts a coreVersion and a fullVersion. The fullVersion may
+// be empty, in which case the full version will be set to coreVersion-local indicating
+// a "local" build, without proper version information.
+// If the coreVersion is also empty, then we set it to 0.0.0-unversioned.
+func NewProductVersion(coreVersion, fullVersion string) (ProductVersion, error) {
+	fullVersion = strings.TrimSpace(fullVersion)
+	coreVersion = strings.TrimSpace(coreVersion)
+	return ProductVersion{
+		Full: fullVersion,
+		Core: coreVersion,
+	}.Init()
+}
+
 // trimSpace trims leading and trailing space from fields read from external inputs
 // only.
 func (pv ProductVersion) trimSpace() ProductVersion {
@@ -28,29 +42,41 @@ func (pv ProductVersion) trimSpace() ProductVersion {
 	return pv
 }
 
-// resolve takes a ProductVersion formed by external inputs and ensures all fields
-// are consistently populated.
-func (pv ProductVersion) resolve(rc RepoContext) (ProductVersion, error) {
-	if pv.Full != "" && pv.Meta != "" {
-		return pv, fmt.Errorf("both version and version_meta are set")
-	}
-	if pv.Full == "" {
-		// rc.CoreVersion is the version from the version file.
-		vfmt := rc.CoreVersion.String()
-		if pv.Meta != "" {
-			vfmt += fmt.Sprintf("+%s", pv.Meta)
-		}
-		v, err := version.NewVersion(vfmt)
+// Init ensures that all fields in the ProductVersion are consistent, and fills in
+// any missing fields.
+func (pv ProductVersion) Init() (ProductVersion, error) {
+	if pv.Full != "" {
+		v, err := version.NewVersion(pv.Full)
 		if err != nil {
-			return pv, fmt.Errorf("parsing version %q: %w", vfmt, err)
+			return pv, err
 		}
-		pv.Full = v.String()
+		pv.Core = v.Core().String()
+		if p := v.Prerelease(); p != "" {
+			pv.Core += "-" + p
+		}
+		pv.Meta = v.Metadata()
+		return pv, nil
 	}
-	v, err := version.NewVersion(pv.Full)
-	if err != nil {
-		return pv, fmt.Errorf("parsing version %q: %w", pv.Full, err)
+
+	if pv.Core == "" && pv.Meta == "" {
+		pv.Meta = "local"
 	}
-	pv.Core = v.Core().String()
-	pv.Meta = v.Metadata()
+
+	if pv.Core == "" {
+		pv.Full = "0.0.0-unversioned"
+		pv.Core = "0.0.0-unversioned"
+	}
+
+	pv.Full = pv.Core
+
+	if pv.Meta != "" {
+		pv.Full += "+" + pv.Meta
+	}
+
 	return pv, nil
+}
+
+func (pv ProductVersion) InitWithCoreVersion(coreVersion string) (ProductVersion, error) {
+	pv.Core = coreVersion
+	return pv.Init()
 }

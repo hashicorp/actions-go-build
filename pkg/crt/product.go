@@ -83,7 +83,7 @@ func (p Product) setDefaults(rc RepoContext) (Product, error) {
 	}
 
 	var err error
-	if p.Version, err = p.Version.resolve(rc); err != nil {
+	if p.Version, err = p.Version.InitWithCoreVersion(rc.CoreVersion.String()); err != nil {
 		return p, err
 	}
 
