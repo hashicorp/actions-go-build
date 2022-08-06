@@ -51,14 +51,17 @@ func (bm *Manager) Result() (Result, error) {
 	if bm.forceRebuild {
 		bm.debug("Force-rebuild on, not inspecting cache.")
 	} else {
-		if r, cached, err := bm.ResultFromCache(); cached || err != nil {
-			if cached {
-				bm.log("Loaded build result from cache.")
-			}
+		r, cached, err := bm.ResultFromCache()
+		if err != nil {
 			return r, err
 		}
+		if cached {
+			bm.debug("Loaded build result from cache.")
+			return r, nil
+		}
+		bm.debug("No build result avilable in cache.")
 	}
-	bm.log("Running a fresh build.")
+	bm.debug("Running a fresh build...")
 	result := bm.runner.Run()
 	cachePath, err := result.Save()
 	if err != nil {

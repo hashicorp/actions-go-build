@@ -91,7 +91,7 @@ func (v *Verifier) verificationResult(pr, vr *build.Result) (*build.Verification
 }
 
 func (v *Verifier) fileHashes(desc string, pf, vf crt.File) (crt.FileHashes, error) {
-	v.debug("Comparing primary and verification versions of %s file: %s", pf.Name)
+	v.debug("Comparing primary and verification versions of %s file: %s", desc, pf.Name)
 	match := pf.SHA256Sum == vf.SHA256Sum
 	var err error
 	if pf.Name != vf.Name {

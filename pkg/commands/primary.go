@@ -12,12 +12,23 @@ Run the primary build by executing the build instructions in the current directo
 ` + buildInstructionsHelp
 
 type pBuildOpts struct {
-	present presenter
+	logOpts
 	buildOpts
+	present presenter
 }
 
-func (opts *pBuildOpts) ReadEnv() error         { return cli.ReadEnvAll(&opts.present, &opts.buildOpts) }
-func (opts *pBuildOpts) Flags(fs *flag.FlagSet) { cli.FlagsAll(fs, &opts.present, &opts.buildOpts) }
+func (opts *pBuildOpts) ReadEnv() error { return cli.ReadEnvAll(&opts.present, &opts.buildOpts) }
+func (opts *pBuildOpts) Flags(fs *flag.FlagSet) {
+	opts.logOpts.Flags(fs)
+	opts.buildFlags.ownFlags(fs)
+	opts.present.ownFlags(fs)
+}
+
+func (opts *pBuildOpts) Init() error {
+	opts.buildOpts.logOpts = opts.logOpts
+	opts.present.logOpts = opts.logOpts
+	return nil
+}
 
 // BuildPrimary runs the primary build, in the current directory.
 var BuildPrimary = cli.LeafCommand("primary", "run the primary build", func(opts *pBuildOpts) error {

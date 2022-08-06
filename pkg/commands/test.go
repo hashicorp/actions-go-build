@@ -37,7 +37,7 @@ func (opts *testOpts) ReadEnv() error {
 
 func (opts *testOpts) Flags(fs *flag.FlagSet) {
 	opts.vOpts.ownFlags(fs)
-	opts.present.Flags(fs)
+	opts.present.ownFlags(fs)
 	opts.logOpts.Flags(fs)
 	fs.BoolVar(&opts.pOpts.rebuild, "rebuild-p", false, "re-run the primary build even if cached")
 	fs.BoolVar(&opts.vOpts.rebuild, "rebuild-v", false, "re-run the verification build even if cached")
@@ -45,6 +45,7 @@ func (opts *testOpts) Flags(fs *flag.FlagSet) {
 }
 
 func (opts *testOpts) Init() error {
+	opts.present.logOpts = opts.logOpts
 	opts.pOpts.logOpts = opts.logOpts
 	opts.vOpts.logOpts = opts.logOpts
 	opts.pOpts.rebuild = opts.pOpts.rebuild || opts.rebuildAll

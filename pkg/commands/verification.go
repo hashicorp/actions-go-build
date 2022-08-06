@@ -14,16 +14,25 @@ path and executing the build instructions there at least 5 seconds later.
 ` + buildInstructionsHelp
 
 type vBuildOpts struct {
-	present presenter
+	logOpts
 	buildOpts
+	present     presenter
 	staggerTime time.Duration
 }
 
 func (opts *vBuildOpts) ReadEnv() error { return cli.ReadEnvAll(&opts.present, &opts.buildOpts) }
 
 func (opts *vBuildOpts) Flags(fs *flag.FlagSet) {
-	cli.FlagsAll(fs, &opts.present, &opts.buildOpts)
+	opts.logOpts.Flags(fs)
+	opts.buildOpts.ownFlags(fs)
+	opts.present.ownFlags(fs)
 	opts.ownFlags(fs)
+}
+
+func (opts *vBuildOpts) Init() error {
+	opts.buildOpts.logOpts = opts.logOpts
+	opts.present.logOpts = opts.logOpts
+	return nil
 }
 
 // ownFlags is separated out to make it possible to reuse verification-build-specific flags

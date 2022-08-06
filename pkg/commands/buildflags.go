@@ -4,7 +4,6 @@ import (
 	"flag"
 
 	"github.com/hashicorp/actions-go-build/pkg/build"
-	"github.com/hashicorp/composite-action-framework-go/pkg/cli"
 )
 
 // buildFlags are flags you can pass to any build, be it primary or verification.
@@ -14,7 +13,11 @@ type buildFlags struct {
 }
 
 func (flags *buildFlags) Flags(fs *flag.FlagSet) {
-	cli.FlagsAll(fs, &flags.logOpts)
+	flags.logOpts.Flags(fs)
+	flags.ownFlags(fs)
+}
+
+func (flags *buildFlags) ownFlags(fs *flag.FlagSet) {
 	fs.BoolVar(&flags.rebuild, "rebuild", false, "re-run the build even if cached")
 }
 

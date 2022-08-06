@@ -14,17 +14,23 @@ import (
 )
 
 type presenter struct {
+	logOpts
 	jsonStdErr bool
 	json       bool
 }
 
 func (p *presenter) ReadEnv() error {
-	// If we're not a terminal (e.g. in CI) then default json mode to on.
-	p.jsonStdErr = !log.IsTerm()
+	// Write result to stderr by default if not quiet and either verbose or term.
+	p.jsonStdErr = !p.logOpts.quietFlag && (p.logOpts.verboseFlag || log.IsVerbose())
 	return nil
 }
 
 func (p *presenter) Flags(fs *flag.FlagSet) {
+	p.logOpts.Flags(fs)
+	p.ownFlags(fs)
+}
+
+func (p *presenter) ownFlags(fs *flag.FlagSet) {
 	fs.BoolVar(&p.json, "json", p.json, "print the result json to stdout")
 }
 
@@ -46,7 +52,7 @@ func (p *presenter) result(what string, r Result) error {
 	if resultErr != nil {
 		resultStatus = "failed"
 	}
-	log.Info("%s %s; use the -json flag to see the full result.", what, resultStatus)
+	p.loud("%s %s; use the -json flag to see the full result.", what, resultStatus)
 	return resultErr
 }
 

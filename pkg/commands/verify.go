@@ -23,6 +23,7 @@ a verification result is produced (use the -json flag to print the result to std
 `
 
 type verifyOpts struct {
+	logOpts
 	buildFlags
 	present    presenter
 	resultFile string
@@ -31,7 +32,15 @@ type verifyOpts struct {
 func (opts *verifyOpts) ReadEnv() error { return cli.ReadEnvAll(&opts.present) }
 
 func (opts *verifyOpts) Flags(fs *flag.FlagSet) {
-	cli.FlagsAll(fs, &opts.present, &opts.buildFlags)
+	opts.logOpts.Flags(fs)
+	opts.buildFlags.ownFlags(fs)
+	opts.present.ownFlags(fs)
+}
+
+func (opts *verifyOpts) Init() error {
+	opts.buildFlags.logOpts = opts.logOpts
+	opts.present.logOpts = opts.logOpts
+	return nil
 }
 
 func (opts *verifyOpts) ParseArgs(args []string) error {
@@ -57,7 +66,7 @@ var Verify = cli.LeafCommand("verify", "verify a build result's reproducibility"
 	}
 
 	if br.Config.Product.IsDirty() {
-		opts.logFunc()("WARNING: Result is dirty: source hash != revision")
+		opts.log("WARNING: Result is dirty: source hash != revision")
 	}
 
 	sourceURL := fmt.Sprintf("https://github.com/%s/archive/%s.zip", br.Config.Product.Repository, br.Config.Product.Revision)

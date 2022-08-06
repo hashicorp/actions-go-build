@@ -18,6 +18,7 @@ func (opts *logOpts) Flags(fs *flag.FlagSet) {
 
 func (opts *logOpts) log(f string, a ...any)   { opts.logFunc()(f, a...) }
 func (opts *logOpts) debug(f string, a ...any) { opts.debugFunc()(f, a...) }
+func (opts *logOpts) loud(f string, a ...any)  { opts.loudFunc()(f, a...) }
 
 func (opts *logOpts) debugFunc() log.Func {
 	if opts.debugFlag {
@@ -33,8 +34,15 @@ func (opts *logOpts) logFunc() log.Func {
 	if opts.quietFlag {
 		return log.Discard
 	}
-	if opts.verboseFlag {
+	if opts.debugFlag || opts.verboseFlag {
 		return log.Info
 	}
 	return log.Verbose
+}
+
+func (opts *logOpts) loudFunc() log.Func {
+	if opts.quietFlag {
+		return log.Discard
+	}
+	return log.Info
 }

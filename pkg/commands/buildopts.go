@@ -32,7 +32,13 @@ func (opts *buildOpts) ReadEnv() error {
 	return err
 }
 
-func (opts *buildOpts) Flags(fs *flag.FlagSet) { opts.buildFlags.Flags(fs) }
+func (opts *buildOpts) Flags(fs *flag.FlagSet) {
+	opts.buildFlags.Flags(fs)
+}
+
+func (opts *buildOpts) ownFlags(fs *flag.FlagSet) {
+	opts.buildFlags.ownFlags(fs)
+}
 
 func (opts *buildOpts) primaryBuild() (*build.Manager, error) {
 	pc, err := opts.config.PrimaryBuildConfig()

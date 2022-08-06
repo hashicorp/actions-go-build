@@ -1,6 +1,7 @@
 package build
 
 import (
+	"os"
 	"time"
 
 	cp "github.com/otiai10/copy"
@@ -34,11 +35,14 @@ func (lv *LocalVerification) Steps() []Step {
 	if lv.startAfter.After(now) {
 		sleepTime = lv.startAfter.Sub(now)
 	}
+	pPath := lv.primaryRoot
+	vPath := lv.Config().Paths.WorkDir
 
 	pre := []Step{
+		newStep("ensuring new empty directory to run build in", func() error {
+			return os.RemoveAll(vPath)
+		}),
 		newStep("copying primary build root dir to temp dir", func() error {
-			pPath := lv.primaryRoot
-			vPath := lv.Config().Paths.WorkDir
 			return cp.Copy(pPath, vPath)
 		}),
 		newStep("waiting until the stagger time has elapsed", func() error {
