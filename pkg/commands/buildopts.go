@@ -4,7 +4,6 @@ import (
 	"flag"
 
 	"github.com/hashicorp/actions-go-build/internal/config"
-	"github.com/hashicorp/actions-go-build/internal/log"
 	"github.com/hashicorp/actions-go-build/pkg/build"
 )
 
@@ -20,40 +19,6 @@ available to your build instructions.
 
 See the 'config env dump' subcommand to print out the values for all these variables.
 `
-
-// buildFlags are flags you can pass to any build, be it primary or verification.
-type buildFlags struct {
-	rebuild bool
-	verbose bool
-}
-
-func (flags *buildFlags) Flags(fs *flag.FlagSet) {
-	fs.BoolVar(&flags.rebuild, "rebuild", false, "re-run the build even if cached")
-	fs.BoolVar(&flags.verbose, "v", false, "verbose logging")
-}
-
-func (flags *buildFlags) managerOpts() []build.ManagerOption {
-	return []build.ManagerOption{
-		build.WithLogFunc(flags.logFunc()),
-		build.WithForceRebuild(flags.rebuild),
-	}
-}
-
-func (flags *buildFlags) logFunc() log.Func {
-	if flags.verbose {
-		return log.Info
-	}
-	return log.Verbose
-}
-
-func (flags *buildFlags) newManager(b build.Build) *build.Manager {
-	r := build.NewRunner(b, flags.logFunc())
-	return build.NewManager(r, flags.managerOpts()...)
-}
-
-func (flags *buildFlags) buildOpts() []build.Option {
-	return []build.Option{build.WithLogfunc(flags.logFunc())}
-}
 
 // buildOpts has all the buildFlags plus a build config read from the environment.
 type buildOpts struct {

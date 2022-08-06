@@ -38,8 +38,8 @@ func IsInfo() bool {
 
 var nothing = func(string, ...any) {}
 
-var Info, Verbose, Debug = func() (info, verbose, debug Func) {
-	info, verbose, debug = nothing, nothing, nothing
+var Info, Verbose, Debug, Discard = func() (info, verbose, debug, discard Func) {
+	info, verbose, debug, discard = nothing, nothing, nothing, nothing
 	l := log.New(os.Stderr, "", 0)
 	if !IsTerm() {
 		l.SetFlags(log.LstdFlags)

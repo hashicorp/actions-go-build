@@ -83,7 +83,7 @@ $(TMP_BUILD):
 # We then use _that_ binary to build yet another binary, this time with the
 # correct tool version injected into the build.
 #
-# Thus, each version of actions-go-build is built using itself
+# Thus, each version of actions-go-build is built using itself.
 .PHONY: $(BIN_PATH)
 $(BIN_PATH):
 	# Running tests...

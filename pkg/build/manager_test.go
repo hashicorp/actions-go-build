@@ -6,6 +6,7 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/hashicorp/actions-go-build/internal/log"
 	"github.com/hashicorp/actions-go-build/pkg/crt"
 )
 
@@ -74,7 +75,7 @@ func TestResultManager_ok(t *testing.T) {
 	for _, c := range cases {
 		build, opts, want := c.build, c.opts, c.want
 		t.Run(c.desc, func(t *testing.T) {
-			runner := NewRunner(build, t.Logf)
+			runner := NewRunner(build, t.Logf, log.Debug)
 			m := NewManager(runner, opts...)
 			got, err := m.Result()
 			if err != nil {
@@ -103,7 +104,7 @@ func TestManager_err(t *testing.T) {
 	for _, c := range cases {
 		build, opts, wantErr := c.build, c.opts, c.wantErr
 		t.Run(c.desc, func(t *testing.T) {
-			runner := NewRunner(build, t.Logf)
+			runner := NewRunner(build, t.Logf, log.Debug)
 			m := NewManager(runner, opts...)
 			_, gotErr := m.Result()
 			if gotErr == nil {

@@ -13,23 +13,25 @@ import (
 // Runner is responsible for executing and logging build steps and
 // constructing the build Result.
 type Runner struct {
-	build   Build
-	result  Result
-	logFunc func(string, ...any)
+	build     Build
+	result    Result
+	logFunc   func(string, ...any)
+	debugFunc func(string, ...any)
 	// nowFunc is usually time.Now but can be overridden
 	// in tests.
 	nowFunc func() time.Time
 }
 
-func NewRunner(b Build, logFunc func(string, ...any)) *Runner {
+func NewRunner(b Build, logFunc, debugFunc func(string, ...any)) *Runner {
 	return &Runner{
 		build: b,
 		result: Result{
 			Config: b.Config(),
 			Env:    b.Env(),
 		},
-		logFunc: logFunc,
-		nowFunc: time.Now,
+		logFunc:   logFunc,
+		debugFunc: debugFunc,
+		nowFunc:   time.Now,
 	}
 }
 
@@ -98,16 +100,17 @@ func (br *Runner) start() *Runner {
 }
 
 func (br *Runner) recordStep(desc string, step func() error) error {
+	br.debugFunc("Running build step: %s", desc)
 	err := step()
 	if err == nil {
-		br.logFunc("SUCCESS: %s", desc)
+		br.logFunc("OK: %s", desc)
 		return nil
 	}
+	br.debugFunc("FAILED: %s", desc)
 	// Add the step description to the error.
 	err = fmt.Errorf("%s failed: %w", desc, err)
 	br.result.err = err
 	br.result.ErrorMessage = err.Error()
-	br.logFunc("ERROR: %s", err)
 	return err
 }
 
