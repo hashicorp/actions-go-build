@@ -1,16 +1,15 @@
-package verifier
+package build
 
 import (
 	"fmt"
 
 	"github.com/google/go-cmp/cmp"
 	"github.com/hashicorp/actions-go-build/internal/log"
-	"github.com/hashicorp/actions-go-build/pkg/build"
 	"github.com/hashicorp/actions-go-build/pkg/crt"
 )
 
 type ResultSource interface {
-	Result() (build.Result, error)
+	Result() (Result, error)
 }
 
 type Verifier struct {
@@ -18,7 +17,7 @@ type Verifier struct {
 	log, debug            log.Func
 }
 
-func New(primary, verification ResultSource, logFunc, debugFunc log.Func) *Verifier {
+func NewVerifier(primary, verification ResultSource, logFunc, debugFunc log.Func) *Verifier {
 	return &Verifier{
 		primary:      primary,
 		verification: verification,
@@ -31,7 +30,7 @@ func New(primary, verification ResultSource, logFunc, debugFunc log.Func) *Verif
 // It returns an error when issues occur discovering that result, not
 // when the result itself says that the reproduction didn't work.
 // You still need to query the result to find out if it was successful.
-func (v *Verifier) Verify() (*build.VerificationResult, error) {
+func (v *Verifier) Verify() (*VerificationResult, error) {
 	pr, err := v.loadResult("primary", v.primary)
 	if err != nil {
 		return nil, err
@@ -43,7 +42,7 @@ func (v *Verifier) Verify() (*build.VerificationResult, error) {
 	return v.verificationResult(pr, vr)
 }
 
-func (v *Verifier) loadResult(name string, rs ResultSource) (*build.Result, error) {
+func (v *Verifier) loadResult(name string, rs ResultSource) (*Result, error) {
 	v.debug("Getting %s build result", name)
 	r, err := rs.Result()
 	if err != nil {
@@ -55,7 +54,7 @@ func (v *Verifier) loadResult(name string, rs ResultSource) (*build.Result, erro
 	return &r, nil
 }
 
-func (v *Verifier) verificationResult(pr, vr *build.Result) (*build.VerificationResult, error) {
+func (v *Verifier) verificationResult(pr, vr *Result) (*VerificationResult, error) {
 	v.debug("Returning verification result.")
 	// Exit early if we're comparing apples with oranges.
 	if diff := cmp.Diff(pr.Config.Product, vr.Config.Product); diff != "" {
@@ -81,7 +80,7 @@ func (v *Verifier) verificationResult(pr, vr *build.Result) (*build.Verification
 
 	hashes := crt.NewFileSetHashes(binHashes, zipHashes)
 
-	return &build.VerificationResult{
+	return &VerificationResult{
 		Primary:             pr,
 		Verification:        vr,
 		Hashes:              hashes,

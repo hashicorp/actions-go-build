@@ -16,7 +16,7 @@ func TestRunner_Run_ok(t *testing.T) {
 	dir := tmp.Dir(t)
 	t.Logf("Test dir: %q", dir)
 
-	testBuild, err := New(standardConfig(dir))
+	testBuild, err := New("test-build", standardConfig(dir))
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -35,7 +35,7 @@ func TestRunner_Run_err(t *testing.T) {
 
 	c := standardConfig(dir)
 	c.Parameters.Instructions = "echo 'oh no!'; exit 1"
-	testBuild, err := New(c)
+	testBuild, err := New("test-build", c)
 	if err != nil {
 		t.Fatal(err)
 	}

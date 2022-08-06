@@ -22,7 +22,7 @@ type RemoteVerification struct {
 }
 
 func NewRemoteVerification(sourceURL string, cfg Config, options ...Option) (Build, error) {
-	core, err := newCore(cfg, options...)
+	core, err := newCore("remote-verification-build", cfg, options...)
 	if err != nil {
 		return nil, err
 	}

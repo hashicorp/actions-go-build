@@ -5,7 +5,6 @@ import (
 	"fmt"
 
 	"github.com/hashicorp/actions-go-build/pkg/build"
-	"github.com/hashicorp/actions-go-build/pkg/verifier"
 	"github.com/hashicorp/composite-action-framework-go/pkg/cli"
 	"github.com/hashicorp/composite-action-framework-go/pkg/json"
 )
@@ -77,7 +76,7 @@ var Verify = cli.LeafCommand("verify", "verify a build result's reproducibility"
 	}
 	m := opts.buildFlags.newManager(b)
 
-	verifier := verifier.New(br, m, opts.logFunc(), opts.debugFunc())
+	verifier := build.NewVerifier(br, m, opts.logFunc(), opts.debugFunc())
 
 	result, err := verifier.Verify()
 	if err != nil {

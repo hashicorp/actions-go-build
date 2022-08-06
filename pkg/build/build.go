@@ -6,7 +6,6 @@ import (
 	"os/exec"
 	"time"
 
-	"github.com/hashicorp/actions-go-build/internal/log"
 	"github.com/hashicorp/actions-go-build/internal/zipper"
 	"github.com/hashicorp/composite-action-framework-go/pkg/fs"
 	"github.com/hashicorp/composite-action-framework-go/pkg/json"
@@ -24,25 +23,24 @@ type Build interface {
 	ChangeRoot(string) error
 }
 
-func New(cfg Config, options ...Option) (Build, error) {
-	return newCore(cfg, options...)
+func New(name string, cfg Config, options ...Option) (Build, error) {
+	return newCore(name, cfg, options...)
 }
 
-func newCore(cfg Config, options ...Option) (*core, error) {
-	s, err := newSettings(options)
+type core struct {
+	Settings
+	config Config
+}
+
+func newCore(name string, cfg Config, options ...Option) (*core, error) {
+	s, err := newSettings(name, options)
 	if err != nil {
 		return nil, err
 	}
 	return &core{
-		settings: s,
+		Settings: s,
 		config:   cfg,
 	}, nil
-}
-
-type core struct {
-	settings      Settings
-	config        Config
-	prebuildSteps []Step
 }
 
 func (b *core) Config() Config {
@@ -57,23 +55,19 @@ func (b *core) ChangeRoot(dir string) error {
 	return err
 }
 
-func (b *core) log(f string, a ...any) {
-	b.settings.logFunc(f, a...)
-}
-
 func (b *core) CachedResult() (Result, bool, error) {
 	var r Result
 	path := b.config.buildResultCachePath()
 	exists, err := fs.FileExists(path)
 	if err != nil {
-		log.Debug("Cache read error: %s", err)
+		b.Debug("Cache read error: %s", err)
 		return r, false, err
 	}
 	if !exists {
-		log.Debug("Cache miss: %s", path)
+		b.Debug("Cache miss: %s", path)
 		return r, false, nil
 	}
-	log.Debug("Cache hit: %s", path)
+	b.Debug("Cache hit: %s", path)
 	r, err = json.ReadFile[Result](path)
 	return r, err == nil, err
 }
@@ -104,14 +98,14 @@ func (b *core) Steps() []Step {
 		}),
 
 		newStep("creating zip file", func() error {
-			return zipper.ZipToFile(c.Paths.TargetDir, c.Paths.ZipPath, b.settings.logFunc)
+			return zipper.ZipToFile(c.Paths.TargetDir, c.Paths.ZipPath, b.Settings.logFunc)
 		}),
 	}
 }
 
 func (b *core) createDirectories() error {
 	c := b.config
-	b.log("Creating output directories.")
+	b.Log("Creating output directories.")
 	return fs.Mkdirs(c.Paths.TargetDir, c.Paths.ZipDir(), c.Paths.MetaDir)
 }
 
@@ -131,10 +125,10 @@ func (b *core) executableWasWritten() (bool, error) {
 }
 
 func (b *core) newCommand(name string, args ...string) *exec.Cmd {
-	cmd := exec.CommandContext(b.settings.context, name, args...)
+	cmd := exec.CommandContext(b.Settings.context, name, args...)
 	cmd.Dir = b.config.Paths.WorkDir
-	cmd.Stdout = b.settings.stdout
-	cmd.Stderr = b.settings.stderr
+	cmd.Stdout = b.Settings.stdout
+	cmd.Stderr = b.Settings.stderr
 	return cmd
 }
 
@@ -150,12 +144,12 @@ func (b *core) runInstructions() error {
 
 	b.listInstructions()
 
-	b.log("Running build instructions with environment:")
+	b.Log("Running build instructions with environment:")
 	env := b.Env()
 	for _, e := range b.Env() {
-		b.log(e)
+		b.Log(e)
 	}
-	c := b.newCommand(b.settings.bash, path)
+	c := b.newCommand(b.Settings.bash, path)
 	c.Env = os.Environ()
 	c.Env = append(c.Env, env...)
 	return c.Run()
@@ -164,11 +158,11 @@ func (b *core) runInstructions() error {
 // writeInstructions writes the build instructions to a temporary file
 // and returns its path, or an error if writing fails.
 func (b *core) writeInstructions() (path string, err error) {
-	b.log("Writing build instructions to temp file.")
+	b.Log("Writing build instructions to temp file.")
 	return fs.WriteTempFile("actions-go-build.instructions", b.config.Parameters.Instructions)
 }
 
 func (b *core) listInstructions() {
-	b.log("Listing build instructions...")
-	b.log(b.config.Parameters.Instructions)
+	b.Log("Listing build instructions...")
+	b.Log(b.config.Parameters.Instructions)
 }

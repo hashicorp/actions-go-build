@@ -4,7 +4,6 @@ import (
 	"flag"
 
 	"github.com/hashicorp/actions-go-build/pkg/build"
-	"github.com/hashicorp/actions-go-build/pkg/verifier"
 	"github.com/hashicorp/composite-action-framework-go/pkg/cli"
 )
 
@@ -59,7 +58,7 @@ func (opts *testOpts) Init() error {
 }
 
 var Test = cli.LeafCommand("test", "test reproducibility of current worktree + config", func(opts *testOpts) error {
-	verifier := verifier.New(opts.pBuild, opts.vBuild, opts.logFunc(), opts.debugFunc())
+	verifier := build.NewVerifier(opts.pBuild, opts.vBuild, opts.logFunc(), opts.debugFunc())
 	result, err := verifier.Verify()
 	if err != nil {
 		return err

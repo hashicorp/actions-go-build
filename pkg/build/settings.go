@@ -3,9 +3,10 @@ package build
 import (
 	"context"
 	"io"
-	"log"
 	"os"
 	"os/exec"
+
+	"github.com/hashicorp/actions-go-build/internal/log"
 )
 
 // Settings contains settings for running the instructions.
@@ -14,14 +15,19 @@ import (
 // Don't use this directly, use the With... functions to set
 // settings when calling New.
 type Settings struct {
-	bash    string
-	context context.Context
-	logFunc func(string, ...any)
-	stdout  io.Writer
-	stderr  io.Writer
+	bash      string
+	name      string
+	context   context.Context
+	logFunc   func(string, ...any)
+	debugFunc func(string, ...any)
+	stdout    io.Writer
+	stderr    io.Writer
 }
 
-func newSettings(options []Option) (Settings, error) {
+func (s *Settings) Log(f string, a ...any)   { s.logFunc(s.name+": "+f, a...) }
+func (s *Settings) Debug(f string, a ...any) { s.debugFunc(s.name+": "+f, a...) }
+
+func newSettings(name string, options []Option) (Settings, error) {
 	out := &Settings{}
 	for _, o := range options {
 		o(out)
@@ -47,14 +53,17 @@ func (s *Settings) setDefaults() (err error) {
 	if s.context == nil {
 		s.context = context.Background()
 	}
+	if s.logFunc == nil {
+		s.logFunc = log.Verbose
+	}
+	if s.debugFunc == nil {
+		s.logFunc = log.Debug
+	}
 	if s.stdout == nil {
-		s.stdout = os.Stdout
+		s.stdout = os.Stderr
 	}
 	if s.stderr == nil {
 		s.stderr = os.Stderr
-	}
-	if s.logFunc == nil {
-		s.logFunc = log.Printf
 	}
 	return nil
 }
@@ -62,8 +71,8 @@ func (s *Settings) setDefaults() (err error) {
 // Option represents a function that configures Settings.
 type Option func(*Settings)
 
-func WithContext(c context.Context) Option      { return func(s *Settings) { s.context = c } }
-func WithStdout(w io.Writer) Option             { return func(s *Settings) { s.stdout = w } }
-func WithStderr(w io.Writer) Option             { return func(s *Settings) { s.stderr = w } }
-func WithBash(path string) Option               { return func(s *Settings) { s.bash = path } }
-func WithLogfunc(f func(string, ...any)) Option { return func(s *Settings) { s.logFunc = f } }
+func WithContext(c context.Context) Option        { return func(s *Settings) { s.context = c } }
+func WithLogfunc(f func(string, ...any)) Option   { return func(s *Settings) { s.logFunc = f } }
+func WithDebugfunc(f func(string, ...any)) Option { return func(s *Settings) { s.debugFunc = f } }
+func WithStdout(w io.Writer) Option               { return func(s *Settings) { s.stdout = w } }
+func WithStderr(w io.Writer) Option               { return func(s *Settings) { s.stderr = w } }
