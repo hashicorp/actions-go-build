@@ -23,8 +23,8 @@ new and changed files.
 `
 
 type testOpts struct {
+	logOpts
 	rebuildAll     bool
-	verbose        bool
 	present        presenter
 	pOpts          pBuildOpts
 	vOpts          vBuildOpts
@@ -38,14 +38,15 @@ func (opts *testOpts) ReadEnv() error {
 func (opts *testOpts) Flags(fs *flag.FlagSet) {
 	opts.vOpts.ownFlags(fs)
 	opts.present.Flags(fs)
-	fs.BoolVar(&opts.verbose, "v", false, "verbose logging")
+	opts.logOpts.Flags(fs)
 	fs.BoolVar(&opts.pOpts.rebuild, "rebuild-p", false, "re-run the primary build even if cached")
 	fs.BoolVar(&opts.vOpts.rebuild, "rebuild-v", false, "re-run the verification build even if cached")
 	fs.BoolVar(&opts.rebuildAll, "rebuild", false, "re-run both builds, ignoring the cache")
 }
 
 func (opts *testOpts) Init() error {
-	opts.pOpts.verbose, opts.vOpts.verbose = opts.verbose, opts.verbose
+	opts.pOpts.logOpts = opts.logOpts
+	opts.vOpts.logOpts = opts.logOpts
 	opts.pOpts.rebuild = opts.pOpts.rebuild || opts.rebuildAll
 	opts.vOpts.rebuild = opts.vOpts.rebuild || opts.rebuildAll
 	var err error
@@ -57,7 +58,7 @@ func (opts *testOpts) Init() error {
 }
 
 var Test = cli.LeafCommand("test", "test reproducibility of current worktree + config", func(opts *testOpts) error {
-	verifier := verifier.New(opts.pBuild, opts.vBuild)
+	verifier := verifier.New(opts.pBuild, opts.vBuild, opts.logFunc(), opts.debugFunc())
 	result, err := verifier.Verify()
 	if err != nil {
 		return err

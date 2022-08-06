@@ -7,30 +7,33 @@ import (
 )
 
 type logOpts struct {
-	debug, verbose, quiet bool
+	debugFlag, verboseFlag, quietFlag bool
 }
 
 func (opts *logOpts) Flags(fs *flag.FlagSet) {
-	fs.BoolVar(&opts.debug, "debug", false, "debug logging")
-	fs.BoolVar(&opts.verbose, "v", false, "verbose logging")
-	fs.BoolVar(&opts.quiet, "q", false, "quiet logging")
+	fs.BoolVar(&opts.debugFlag, "debug", false, "debug logging")
+	fs.BoolVar(&opts.verboseFlag, "v", false, "verbose logging")
+	fs.BoolVar(&opts.quietFlag, "q", false, "quiet logging")
 }
 
+func (opts *logOpts) log(f string, a ...any)   { opts.logFunc()(f, a...) }
+func (opts *logOpts) debug(f string, a ...any) { opts.debugFunc()(f, a...) }
+
 func (opts *logOpts) debugFunc() log.Func {
-	if opts.debug {
+	if opts.debugFlag {
 		return log.Info
 	}
-	if opts.quiet {
+	if opts.quietFlag {
 		return log.Discard
 	}
 	return log.Debug
 }
 
 func (opts *logOpts) logFunc() log.Func {
-	if opts.quiet {
+	if opts.quietFlag {
 		return log.Discard
 	}
-	if opts.verbose {
+	if opts.verboseFlag {
 		return log.Info
 	}
 	return log.Verbose

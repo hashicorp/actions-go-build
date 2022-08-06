@@ -4,7 +4,6 @@ import (
 	"flag"
 	"fmt"
 
-	"github.com/hashicorp/actions-go-build/internal/log"
 	"github.com/hashicorp/actions-go-build/pkg/build"
 	"github.com/hashicorp/actions-go-build/pkg/verifier"
 	"github.com/hashicorp/composite-action-framework-go/pkg/cli"
@@ -24,15 +23,15 @@ a verification result is produced (use the -json flag to print the result to std
 `
 
 type verifyOpts struct {
+	buildFlags
 	present    presenter
-	build      buildFlags
 	resultFile string
 }
 
 func (opts *verifyOpts) ReadEnv() error { return cli.ReadEnvAll(&opts.present) }
 
 func (opts *verifyOpts) Flags(fs *flag.FlagSet) {
-	cli.FlagsAll(fs, &opts.present, &opts.build)
+	cli.FlagsAll(fs, &opts.present, &opts.buildFlags)
 }
 
 func (opts *verifyOpts) ParseArgs(args []string) error {
@@ -58,18 +57,18 @@ var Verify = cli.LeafCommand("verify", "verify a build result's reproducibility"
 	}
 
 	if br.Config.Product.IsDirty() {
-		log.Info("WARNING: Result is dirty: source hash != revision")
+		opts.logFunc()("WARNING: Result is dirty: source hash != revision")
 	}
 
 	sourceURL := fmt.Sprintf("https://github.com/%s/archive/%s.zip", br.Config.Product.Repository, br.Config.Product.Revision)
 
-	b, err := build.NewRemoteVerification(sourceURL, br.Config, opts.build.buildOpts()...)
+	b, err := build.NewRemoteVerification(sourceURL, br.Config, opts.buildFlags.buildOpts()...)
 	if err != nil {
 		return err
 	}
-	m := opts.build.newManager(b)
+	m := opts.buildFlags.newManager(b)
 
-	verifier := verifier.New(br, m)
+	verifier := verifier.New(br, m, opts.logFunc(), opts.debugFunc())
 
 	result, err := verifier.Verify()
 	if err != nil {
