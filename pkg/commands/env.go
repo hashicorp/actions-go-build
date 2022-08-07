@@ -32,6 +32,10 @@ func (opts *envDumpOpts) Flags(fs *flag.FlagSet) {
 	fs.BoolVar(&opts.showVerification, "verification", false, "show the env for a verification build")
 }
 
+func (opts *envDumpOpts) Init() error {
+	return cli.InitAll(&opts.primary, &opts.verification)
+}
+
 var BuildEnvDump = cli.LeafCommand("dump", "print the current build environment", func(opts *envDumpOpts) error {
 	var b build.Build
 	if opts.showVerification {

@@ -19,19 +19,23 @@ type Settings struct {
 	bash         string
 	name         string
 	context      context.Context
-	logFunc      func(string, ...any)
-	debugFunc    func(string, ...any)
-	loudFunc     func(string, ...any)
+	Log          func(string, ...any)
+	Debug        func(string, ...any)
+	Loud         func(string, ...any)
 	stdout       io.Writer
 	stderr       io.Writer
 	forceRebuild bool
 }
 
-func (s *Settings) makeLogFunc(logFunc log.Func) log.Func {
+func makeNamedLogFunc(name string, logFunc log.Func) log.Func {
 	return func(f string, a ...any) {
-		f = fmt.Sprintf("%s: %s", s.name, f)
+		f = fmt.Sprintf("%s: %s", name, f)
 		logFunc(f, a...)
 	}
+}
+
+func (s *Settings) makeLogFunc(logFunc log.Func) log.Func {
+	return makeNamedLogFunc(s.name, logFunc)
 }
 
 // Option represents a function that configures Settings.
@@ -42,17 +46,17 @@ func WithContext(c context.Context) Option { return func(s *Settings) { s.contex
 
 // WithLogfunc sets the log func.
 func WithLogfunc(f func(string, ...any)) Option {
-	return func(s *Settings) { s.logFunc = s.makeLogFunc(f) }
+	return func(s *Settings) { s.Log = s.makeLogFunc(f) }
 }
 
 // WithDebugfunc sest the debug func.
 func WithDebugfunc(f func(string, ...any)) Option {
-	return func(s *Settings) { s.debugFunc = s.makeLogFunc(f) }
+	return func(s *Settings) { s.Debug = s.makeLogFunc(f) }
 }
 
 // WithDebugfunc sest the debug func.
 func WithLoudfunc(f func(string, ...any)) Option {
-	return func(s *Settings) { s.loudFunc = s.makeLogFunc(f) }
+	return func(s *Settings) { s.Loud = s.makeLogFunc(f) }
 }
 
 // WithStdout sets the stdout for when we shell out.
@@ -64,11 +68,13 @@ func WithStderr(w io.Writer) Option { return func(s *Settings) { s.stderr = w } 
 // WithForceRebuild forces a build to be re-done rather than using cache.
 func WithForceRebuild(on bool) Option { return func(s *Settings) { s.forceRebuild = on } }
 
-func (s *Settings) Log(f string, a ...any)   { s.logFunc(s.name+": "+f, a...) }
-func (s *Settings) Debug(f string, a ...any) { s.debugFunc(s.name+": "+f, a...) }
-
 func newSettings(name string, options []Option) (Settings, error) {
-	out := &Settings{}
+	if name == "" {
+		name = "unnamed"
+	}
+	out := &Settings{
+		name: name,
+	}
 	for _, o := range options {
 		o(out)
 	}
@@ -93,11 +99,14 @@ func (s *Settings) setDefaults() (err error) {
 	if s.context == nil {
 		s.context = context.Background()
 	}
-	if s.logFunc == nil {
-		s.logFunc = log.Verbose
+	if s.Debug == nil {
+		s.Debug = s.makeLogFunc(log.Debug)
 	}
-	if s.debugFunc == nil {
-		s.debugFunc = log.Debug
+	if s.Log == nil {
+		s.Log = s.makeLogFunc(log.Verbose)
+	}
+	if s.Loud == nil {
+		s.Loud = s.makeLogFunc(log.Info)
 	}
 	if s.stdout == nil {
 		s.stdout = os.Stderr

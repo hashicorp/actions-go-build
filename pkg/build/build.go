@@ -33,10 +33,11 @@ type core struct {
 }
 
 func newCore(name string, cfg Config, options ...Option) (*core, error) {
-	s, err := newSettings(name, options)
+	s, err := newSettings("build: "+name, options)
 	if err != nil {
 		return nil, err
 	}
+	s.Debug("Initialised")
 	return &core{
 		Settings: s,
 		config:   cfg,
@@ -98,7 +99,7 @@ func (b *core) Steps() []Step {
 		}),
 
 		newStep("creating zip file", func() error {
-			return zipper.ZipToFile(c.Paths.TargetDir, c.Paths.ZipPath, b.Settings.logFunc)
+			return zipper.ZipToFile(c.Paths.TargetDir, c.Paths.ZipPath, b.Settings.Log)
 		}),
 	}
 }

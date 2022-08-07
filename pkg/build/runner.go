@@ -13,26 +13,29 @@ import (
 // Runner is responsible for executing and logging build steps and
 // constructing the build Result.
 type Runner struct {
-	build     Build
-	result    Result
-	logFunc   func(string, ...any)
-	debugFunc func(string, ...any)
+	Settings
+	build  Build
+	result Result
 	// nowFunc is usually time.Now but can be overridden
 	// in tests.
 	nowFunc func() time.Time
 }
 
-func NewRunner(b Build, logFunc, debugFunc func(string, ...any)) *Runner {
+func NewRunner(b Build, opts ...Option) (*Runner, error) {
+	name := fmt.Sprintf("manager: %s", b.Kind())
+	s, err := newSettings(name, opts)
+	if err != nil {
+		return nil, err
+	}
 	return &Runner{
-		build: b,
+		Settings: s,
+		build:    b,
 		result: Result{
 			Config: b.Config(),
 			Env:    b.Env(),
 		},
-		logFunc:   logFunc,
-		debugFunc: debugFunc,
-		nowFunc:   time.Now,
-	}
+		nowFunc: time.Now,
+	}, nil
 }
 
 type StepFunc func() error
@@ -43,7 +46,7 @@ type Step struct {
 }
 
 func (br *Runner) Run() Result {
-	br.logFunc("Beginning build, rooted at %q", br.result.Config.Paths.WorkDir)
+	br.Log("Beginning build, rooted at %q", br.result.Config.Paths.WorkDir)
 	br.start()
 	for _, s := range br.build.Steps() {
 		if br.recordStep(s.desc, s.action); br.Failed() {
@@ -100,13 +103,13 @@ func (br *Runner) start() *Runner {
 }
 
 func (br *Runner) recordStep(desc string, step func() error) error {
-	br.debugFunc("Running build step: %s", desc)
+	br.Log("Running build step: %s", desc)
 	err := step()
 	if err == nil {
-		br.logFunc("OK: %s", desc)
+		br.Log("OK: %s", desc)
 		return nil
 	}
-	br.debugFunc("FAILED: %s", desc)
+	br.Loud("FAILED: %s", desc)
 	// Add the step description to the error.
 	err = fmt.Errorf("%s failed: %w", desc, err)
 	br.result.err = err

@@ -15,19 +15,21 @@ path and executing the build instructions there at least 5 seconds later.
 
 // lvbOpts is "local verification build options"
 type lvbOpts struct {
-	pbOpts
 	buildFlags
+	logOpts
+	output  outputOpts
+	primary pbOpts
 
 	buildConfig build.Config
 	staggerTime time.Duration
 }
 
 func (opts *lvbOpts) ReadEnv() error {
-	return cli.ReadEnvAll(&opts.pbOpts)
+	return cli.ReadEnvAll(&opts.primary)
 }
 
 func (opts *lvbOpts) Flags(fs *flag.FlagSet) {
-	cli.FlagFuncsAll(fs, opts.pbOpts.Flags, opts.ownFlags)
+	cli.FlagFuncsAll(fs, opts.logOpts.Flags, opts.primary.ownFlags, opts.output.ownFlags, opts.ownFlags)
 }
 
 // ownFlags is separated out to make it possible to reuse verification-build-specific flags
@@ -37,7 +39,9 @@ func (opts *lvbOpts) ownFlags(fs *flag.FlagSet) {
 }
 
 func (opts *lvbOpts) Init() error {
-	if err := opts.pbOpts.Init(); err != nil {
+	opts.output.logOpts = opts.logOpts
+	opts.primary.logOpts = opts.logOpts
+	if err := opts.primary.Init(); err != nil {
 		return err
 	}
 	var err error
@@ -63,7 +67,7 @@ var LVBuild = cli.LeafCommand("local-verification", "run the local verification 
 func (opts *lvbOpts) build() (*build.Manager, error) { return opts.verificationBuild() }
 
 func (opts *lvbOpts) verificationBuild() (*build.Manager, error) {
-	pb, err := opts.pbOpts.build()
+	pb, err := opts.primary.build()
 	if err != nil {
 		return nil, err
 	}

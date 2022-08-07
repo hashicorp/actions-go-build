@@ -5,7 +5,6 @@ import (
 	"testing"
 	"time"
 
-	"github.com/hashicorp/actions-go-build/internal/log"
 	"github.com/hashicorp/actions-go-build/pkg/crt"
 	"github.com/hashicorp/composite-action-framework-go/pkg/fs"
 	"github.com/hashicorp/composite-action-framework-go/pkg/git"
@@ -23,7 +22,11 @@ func TestRunner_Run_ok(t *testing.T) {
 
 	b := testBuild.(*core)
 	b.createTestProductRepo(t)
-	result := NewRunner(b, t.Logf, log.Debug).Run()
+	r, err := NewRunner(b)
+	if err != nil {
+		t.Fatal(err)
+	}
+	result := r.Run()
 	if err := result.Error(); err != nil {
 		t.Fatal(err)
 	}
@@ -42,7 +45,11 @@ func TestRunner_Run_err(t *testing.T) {
 
 	b := testBuild.(*core)
 	b.createTestProductRepo(t)
-	result := NewRunner(b, t.Logf, log.Debug).Run()
+	r, err := NewRunner(b)
+	if err != nil {
+		t.Fatal(err)
+	}
+	result := r.Run()
 	gotErr := result.Error()
 	want := "running build instructions failed: exit status 1"
 	if gotErr == nil {

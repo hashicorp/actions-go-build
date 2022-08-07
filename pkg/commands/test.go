@@ -43,11 +43,16 @@ func (opts *testOpts) Flags(fs *flag.FlagSet) {
 
 func (opts *testOpts) Init() error {
 	opts.output.logOpts = opts.logOpts
-	opts.primary.logOpts = opts.logOpts
-	opts.verification.pbOpts.logOpts = opts.logOpts
 
 	opts.primary.rebuild = opts.primary.rebuild || opts.rebuildAll
+	opts.primary.logOpts = opts.logOpts
+	opts.primary.output.logOpts = opts.logOpts
+
 	opts.verification.rebuild = opts.verification.rebuild || opts.rebuildAll
+	opts.verification.logOpts = opts.logOpts
+	opts.verification.output.logOpts = opts.logOpts
+	opts.verification.primary.logOpts = opts.logOpts
+	opts.verification.primary.output.logOpts = opts.logOpts
 
 	if err := cli.InitAll(&opts.primary, &opts.verification); err != nil {
 		return err

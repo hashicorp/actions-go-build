@@ -1,5 +1,9 @@
 package build
 
+import (
+	"fmt"
+)
+
 // Manager is responsible for orchestrating the running of builds.
 // By default it will return cached build results rather then re-running
 // a build that's already been done.
@@ -9,7 +13,8 @@ type Manager struct {
 }
 
 func NewManager(r *Runner, opts ...Option) (*Manager, error) {
-	s, err := newSettings("manager", opts)
+	name := fmt.Sprintf("manager: %s", r.build.Kind())
+	s, err := newSettings(name, opts)
 	if err != nil {
 		return nil, err
 	}

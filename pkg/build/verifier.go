@@ -39,7 +39,7 @@ func (v *Verifier) Verify() (*VerificationResult, error) {
 	}
 
 	if pr.Config.Product.IsDirty() {
-		v.Log("WARNING: Primary result is dirty: source hash != revision")
+		v.Loud("WARNING: Primary result is dirty: source hash != revision")
 	}
 
 	vr, err := v.loadResult("verification", v.verification)

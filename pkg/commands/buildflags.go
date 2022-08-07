@@ -75,7 +75,10 @@ func (flags *buildFlags) manager(b build.Build, err error) (*build.Manager, erro
 }
 
 func (flags *buildFlags) newManager(b build.Build) (*build.Manager, error) {
-	r := build.NewRunner(b, flags.logFunc(), flags.debugFunc())
+	r, err := build.NewRunner(b, flags.buildOptions()...)
+	if err != nil {
+		return nil, err
+	}
 	return build.NewManager(r, flags.buildOptions()...)
 }
 
