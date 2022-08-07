@@ -1,33 +1,22 @@
 package build
 
-import "log"
-
-type logFunc func(string, ...any)
-
 // Manager is responsible for orchestrating the running of builds.
 // By default it will return cached build results rather then re-running
 // a build that's already been done.
 type Manager struct {
-	runner       *Runner
-	forceRebuild bool
-	log, debug   logFunc
+	Settings
+	runner *Runner
 }
 
-type ManagerOption func(*Manager)
-
-func NewManager(r *Runner, opts ...ManagerOption) *Manager {
-	noopLogFunc := func(string, ...any) {}
-	bm := &Manager{runner: r, log: log.Printf, debug: noopLogFunc}
-	for _, o := range opts {
-		o(bm)
+func NewManager(r *Runner, opts ...Option) (*Manager, error) {
+	s, err := newSettings("manager", opts)
+	if err != nil {
+		return nil, err
 	}
-	return bm
-}
-
-func WithForceRebuild(on bool) ManagerOption           { return func(bm *Manager) { bm.forceRebuild = on } }
-func WithLogFunc(f func(string, ...any)) ManagerOption { return func(bm *Manager) { bm.log = f } }
-func WithDebugLogFunc(f func(string, ...any)) ManagerOption {
-	return func(bm *Manager) { bm.debug = f }
+	return &Manager{
+		Settings: s,
+		runner:   r,
+	}, nil
 }
 
 func (bm *Manager) Runner() *Runner {
@@ -39,7 +28,7 @@ func (bm *Manager) Build() Build {
 }
 
 func (bm *Manager) ResultFromCache() (Result, bool, error) {
-	bm.debug("Inspecting cache for build result.")
+	bm.Debug("Inspecting cache for build result.")
 	return bm.runner.build.CachedResult()
 }
 
@@ -49,24 +38,24 @@ func (bm *Manager) ResultFromCache() (Result, bool, error) {
 // to call the Result's Error method.
 func (bm *Manager) Result() (Result, error) {
 	if bm.forceRebuild {
-		bm.debug("Force-rebuild on, not inspecting cache.")
+		bm.Debug("Force-rebuild on, not inspecting cache.")
 	} else {
 		r, cached, err := bm.ResultFromCache()
 		if err != nil {
 			return r, err
 		}
 		if cached {
-			bm.debug("Loaded build result from cache.")
+			bm.Debug("Loaded build result from cache.")
 			return r, nil
 		}
-		bm.debug("No build result avilable in cache.")
+		bm.Debug("No build result avilable in cache.")
 	}
-	bm.debug("Running a fresh build...")
+	bm.Debug("Running a fresh build...")
 	result := bm.runner.Run()
 	cachePath, err := result.Save()
 	if err != nil {
 		return result, err
 	}
-	bm.debug("Saved result to cache: %q", cachePath)
+	bm.Debug("Saved result to cache: %q", cachePath)
 	return result, nil
 }

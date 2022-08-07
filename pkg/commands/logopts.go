@@ -4,6 +4,7 @@ import (
 	"flag"
 
 	"github.com/hashicorp/actions-go-build/internal/log"
+	"github.com/hashicorp/actions-go-build/pkg/build"
 )
 
 type logOpts struct {
@@ -31,11 +32,11 @@ func (opts *logOpts) debugFunc() log.Func {
 }
 
 func (opts *logOpts) logFunc() log.Func {
-	if opts.quietFlag {
-		return log.Discard
-	}
 	if opts.debugFlag || opts.verboseFlag {
 		return log.Info
+	}
+	if opts.quietFlag {
+		return log.Discard
 	}
 	return log.Verbose
 }
@@ -45,4 +46,11 @@ func (opts *logOpts) loudFunc() log.Func {
 		return log.Discard
 	}
 	return log.Info
+}
+
+func (opts *logOpts) buildOptions() []build.Option {
+	return []build.Option{
+		build.WithLogfunc(opts.logFunc()),
+		build.WithDebugfunc(opts.debugFunc()),
+	}
 }

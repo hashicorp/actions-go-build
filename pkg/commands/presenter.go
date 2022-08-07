@@ -13,24 +13,24 @@ import (
 	"github.com/hashicorp/actions-go-build/pkg/crt"
 )
 
-type presenter struct {
+type outputOpts struct {
 	logOpts
 	jsonStdErr bool
 	json       bool
 }
 
-func (p *presenter) ReadEnv() error {
+func (p *outputOpts) ReadEnv() error {
 	// Write result to stderr by default if not quiet and either verbose or term.
 	p.jsonStdErr = !p.logOpts.quietFlag && (p.logOpts.verboseFlag || log.IsVerbose())
 	return nil
 }
 
-func (p *presenter) Flags(fs *flag.FlagSet) {
+func (p *outputOpts) Flags(fs *flag.FlagSet) {
 	p.logOpts.Flags(fs)
 	p.ownFlags(fs)
 }
 
-func (p *presenter) ownFlags(fs *flag.FlagSet) {
+func (p *outputOpts) ownFlags(fs *flag.FlagSet) {
 	fs.BoolVar(&p.json, "json", p.json, "print the result json to stdout")
 }
 
@@ -38,7 +38,7 @@ type Result interface {
 	Error() error
 }
 
-func (p *presenter) result(what string, r Result) error {
+func (p *outputOpts) result(what string, r Result) error {
 	resultErr := r.Error()
 	dumped, err := p.maybeDumpJSON(r)
 	if err != nil {
@@ -56,7 +56,7 @@ func (p *presenter) result(what string, r Result) error {
 	return resultErr
 }
 
-func (p *presenter) maybeDumpJSON(v any) (bool, error) {
+func (p *outputOpts) maybeDumpJSON(v any) (bool, error) {
 	if p.json {
 		return true, dumpJSON(os.Stdout, v)
 	}
@@ -66,7 +66,7 @@ func (p *presenter) maybeDumpJSON(v any) (bool, error) {
 	return false, nil
 }
 
-func (p *presenter) productInfo(product crt.Product) error {
+func (p *outputOpts) productInfo(product crt.Product) error {
 	if dumped, err := p.maybeDumpJSON(product); dumped || err != nil {
 		return err
 	}

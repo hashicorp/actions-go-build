@@ -4,7 +4,6 @@ import (
 	"fmt"
 
 	"github.com/google/go-cmp/cmp"
-	"github.com/hashicorp/actions-go-build/internal/log"
 	"github.com/hashicorp/actions-go-build/pkg/crt"
 )
 
@@ -13,17 +12,20 @@ type ResultSource interface {
 }
 
 type Verifier struct {
+	Settings
 	primary, verification ResultSource
-	log, debug            log.Func
 }
 
-func NewVerifier(primary, verification ResultSource, logFunc, debugFunc log.Func) *Verifier {
+func NewVerifier(primary, verification ResultSource, opts ...Option) (*Verifier, error) {
+	s, err := newSettings("verifier", opts)
+	if err != nil {
+		return nil, err
+	}
 	return &Verifier{
+		Settings:     s,
 		primary:      primary,
 		verification: verification,
-		log:          logFunc,
-		debug:        debugFunc,
-	}
+	}, nil
 }
 
 // Verify returns a VerificationResult which may or may not be affirmative.
@@ -35,6 +37,11 @@ func (v *Verifier) Verify() (*VerificationResult, error) {
 	if err != nil {
 		return nil, err
 	}
+
+	if pr.Config.Product.IsDirty() {
+		v.Log("WARNING: Primary result is dirty: source hash != revision")
+	}
+
 	vr, err := v.loadResult("verification", v.verification)
 	if err != nil {
 		return nil, err
@@ -43,7 +50,7 @@ func (v *Verifier) Verify() (*VerificationResult, error) {
 }
 
 func (v *Verifier) loadResult(name string, rs ResultSource) (*Result, error) {
-	v.debug("Getting %s build result", name)
+	v.Debug("Getting %s build result", name)
 	r, err := rs.Result()
 	if err != nil {
 		return nil, fmt.Errorf("failed to get %s build result: %w", name, err)
@@ -55,7 +62,7 @@ func (v *Verifier) loadResult(name string, rs ResultSource) (*Result, error) {
 }
 
 func (v *Verifier) verificationResult(pr, vr *Result) (*VerificationResult, error) {
-	v.debug("Returning verification result.")
+	v.Debug("Returning verification result.")
 	// Exit early if we're comparing apples with oranges.
 	if diff := cmp.Diff(pr.Config.Product, vr.Config.Product); diff != "" {
 		return nil, fmt.Errorf("product details are not identical: %s", diff)
@@ -90,7 +97,7 @@ func (v *Verifier) verificationResult(pr, vr *Result) (*VerificationResult, erro
 }
 
 func (v *Verifier) fileHashes(desc string, pf, vf crt.File) (crt.FileHashes, error) {
-	v.debug("Comparing primary and verification versions of %s file: %s", desc, pf.Name)
+	v.Debug("Comparing primary and verification versions of %s file: %s", desc, pf.Name)
 	match := pf.SHA256Sum == vf.SHA256Sum
 	var err error
 	if pf.Name != vf.Name {

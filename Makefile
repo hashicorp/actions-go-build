@@ -27,6 +27,9 @@ endif
 CURR_REVISION    := $(DIRTY)$(CURR_REVISION)
 PRODUCT_REVISION ?= $(CURR_REVISION)
 
+build:
+	go build ./...
+
 test: test/go
 
 cover: GO_TEST_FLAGS := -coverprofile=coverage.profile

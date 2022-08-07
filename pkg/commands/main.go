@@ -17,7 +17,7 @@ var Main = cli.RootCommand("go-build", "go build and related functions",
 	Build, Test, Config)
 
 var Build = cli.RootCommand("build", "run builds and inspect the build env",
-	BuildPrimary, BuildVerification, BuildEnv)
+	PrimaryBuild, LVBuild, BuildEnv)
 
 var BuildEnv = cli.RootCommand("env", "inspect the build environment",
 	BuildEnvDescribe, BuildEnvDump)

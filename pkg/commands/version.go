@@ -10,16 +10,16 @@ import (
 )
 
 type versionOpts struct {
-	present presenter
+	output  outputOpts
 	notrunc bool
 	full    bool
 	short   bool
 }
 
-func (opts *versionOpts) ReadEnv() error { return cli.ReadEnvAll(&opts.present) }
+func (opts *versionOpts) ReadEnv() error { return cli.ReadEnvAll(&opts.output) }
 
 func (opts *versionOpts) Flags(fs *flag.FlagSet) {
-	cli.FlagsAll(fs, &opts.present)
+	cli.FlagsAll(fs, &opts.output)
 	fs.BoolVar(&opts.notrunc, "no-trunc", false, "don't truncate the revision SHA")
 	fs.BoolVar(&opts.full, "full", false, "print detailed version info")
 	fs.BoolVar(&opts.short, "short", false, "print just the unadorned version")
@@ -48,7 +48,7 @@ func MakeVersionCommand(p crt.Product) (*cli.Command, string) {
 			return fmt.Errorf("both -short and -full specified")
 		}
 		if opts.full {
-			if err = opts.present.productInfo(p); err != nil {
+			if err = opts.output.productInfo(p); err != nil {
 				return err
 			}
 			if p.IsDirty() {
@@ -56,7 +56,7 @@ func MakeVersionCommand(p crt.Product) (*cli.Command, string) {
 			}
 			return err
 		}
-		if opts.present.json {
+		if opts.output.json {
 			return fmt.Errorf("json output only available when using -full")
 		}
 		if opts.short {

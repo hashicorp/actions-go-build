@@ -24,44 +24,49 @@ new and changed files.
 type testOpts struct {
 	logOpts
 	rebuildAll     bool
-	present        presenter
-	pOpts          pBuildOpts
-	vOpts          vBuildOpts
+	output         outputOpts
+	primary        pbOpts
+	verification   lvbOpts
 	pBuild, vBuild *build.Manager
 }
 
 func (opts *testOpts) ReadEnv() error {
-	return cli.ReadEnvAll(&opts.present, &opts.pOpts, &opts.vOpts)
+	return cli.ReadEnvAll(&opts.output, &opts.primary, &opts.verification)
 }
 
 func (opts *testOpts) Flags(fs *flag.FlagSet) {
-	opts.vOpts.ownFlags(fs)
-	opts.present.ownFlags(fs)
+	opts.verification.ownFlags(fs)
+	opts.output.ownFlags(fs)
 	opts.logOpts.Flags(fs)
-	fs.BoolVar(&opts.pOpts.rebuild, "rebuild-p", false, "re-run the primary build even if cached")
-	fs.BoolVar(&opts.vOpts.rebuild, "rebuild-v", false, "re-run the verification build even if cached")
+	fs.BoolVar(&opts.primary.rebuild, "rebuild-p", false, "re-run the primary build even if cached")
+	fs.BoolVar(&opts.verification.rebuild, "rebuild-v", false, "re-run the verification build even if cached")
 	fs.BoolVar(&opts.rebuildAll, "rebuild", false, "re-run both builds, ignoring the cache")
 }
 
 func (opts *testOpts) Init() error {
-	opts.present.logOpts = opts.logOpts
-	opts.pOpts.logOpts = opts.logOpts
-	opts.vOpts.logOpts = opts.logOpts
-	opts.pOpts.rebuild = opts.pOpts.rebuild || opts.rebuildAll
-	opts.vOpts.rebuild = opts.vOpts.rebuild || opts.rebuildAll
+	opts.output.logOpts = opts.logOpts
+	opts.primary.logOpts = opts.logOpts
+	opts.verification.pbOpts.logOpts = opts.logOpts
+	opts.primary.rebuild = opts.primary.rebuild || opts.rebuildAll
+	opts.verification.rebuild = opts.verification.rebuild || opts.rebuildAll
 	var err error
-	if opts.pBuild, err = opts.pOpts.primaryBuild(); err != nil {
+	if opts.pBuild, err = opts.primary.build(); err != nil {
 		return err
 	}
-	opts.vBuild, err = opts.vOpts.verificationBuild()
+	opts.vBuild, err = opts.verification.verificationBuild()
 	return err
 }
 
 var Test = cli.LeafCommand("test", "test reproducibility of current worktree + config", func(opts *testOpts) error {
-	verifier := build.NewVerifier(opts.pBuild, opts.vBuild, opts.logFunc(), opts.debugFunc())
+	verifier, err := build.NewVerifier(opts.pBuild, opts.vBuild,
+		build.WithLogfunc(opts.logFunc()),
+		build.WithDebugfunc(opts.debugFunc()))
+	if err != nil {
+		return err
+	}
 	result, err := verifier.Verify()
 	if err != nil {
 		return err
 	}
-	return opts.present.result("Reproducibility test", result)
+	return opts.output.result("Reproducibility test", result)
 }).WithHelp(testHelp)

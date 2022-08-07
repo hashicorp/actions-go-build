@@ -42,8 +42,8 @@ func printList(list []string) error {
 
 type envOpts struct {
 	verification bool
-	p            pBuildOpts
-	v            vBuildOpts
+	p            pbOpts
+	v            lvbOpts
 }
 
 func (opts *envOpts) ReadEnv() error {

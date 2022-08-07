@@ -45,9 +45,9 @@ func (opts *buildOpts) primaryBuild() (*build.Manager, error) {
 	if err != nil {
 		return nil, err
 	}
-	b, err := build.NewPrimary(pc, opts.buildOpts()...)
+	b, err := build.NewPrimary(pc, opts.buildOptions()...)
 	if err != nil {
 		return nil, err
 	}
-	return opts.newManager(b), nil
+	return opts.newManager(b)
 }

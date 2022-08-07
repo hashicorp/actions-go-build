@@ -24,21 +24,21 @@ a verification result is produced (use the -json flag to print the result to std
 type verifyOpts struct {
 	logOpts
 	buildFlags
-	present    presenter
+	output     outputOpts
 	resultFile string
 }
 
-func (opts *verifyOpts) ReadEnv() error { return cli.ReadEnvAll(&opts.present) }
+func (opts *verifyOpts) ReadEnv() error { return cli.ReadEnvAll(&opts.output) }
 
 func (opts *verifyOpts) Flags(fs *flag.FlagSet) {
 	opts.logOpts.Flags(fs)
 	opts.buildFlags.ownFlags(fs)
-	opts.present.ownFlags(fs)
+	opts.output.ownFlags(fs)
 }
 
 func (opts *verifyOpts) Init() error {
 	opts.buildFlags.logOpts = opts.logOpts
-	opts.present.logOpts = opts.logOpts
+	opts.output.logOpts = opts.logOpts
 	return nil
 }
 
@@ -56,7 +56,7 @@ func (opts *verifyOpts) ParseArgs(args []string) error {
 var Verify = cli.LeafCommand("verify", "verify a build result's reproducibility", func(opts *verifyOpts) error {
 
 	if opts.resultFile == "" {
-		return fmt.Errorf("verify requires the -result flag to be set")
+		return fmt.Errorf("result file argument is empty")
 	}
 
 	br, err := json.ReadFile[build.Result](opts.resultFile)
@@ -64,25 +64,27 @@ var Verify = cli.LeafCommand("verify", "verify a build result's reproducibility"
 		return err
 	}
 
-	if br.Config.Product.IsDirty() {
-		opts.log("WARNING: Result is dirty: source hash != revision")
-	}
-
 	sourceURL := fmt.Sprintf("https://github.com/%s/archive/%s.zip", br.Config.Product.Repository, br.Config.Product.Revision)
 
-	b, err := build.NewRemoteVerification(sourceURL, br.Config, opts.buildFlags.buildOpts()...)
+	b, err := opts.newRemoteVerification(sourceURL, br.Config)
 	if err != nil {
 		return err
 	}
-	m := opts.buildFlags.newManager(b)
+	m, err := opts.buildFlags.newManager(b)
+	if err != nil {
+		return err
+	}
 
-	verifier := build.NewVerifier(br, m, opts.logFunc(), opts.debugFunc())
+	verifier, err := build.NewVerifier(br, m, opts.buildFlags.buildOptions()...)
+	if err != nil {
+		return err
+	}
 
 	result, err := verifier.Verify()
 	if err != nil {
 		return err
 	}
 
-	return opts.present.result("Verification result", result)
+	return opts.output.result("Verification result", result)
 
 }).WithHelp(verifyHelp)

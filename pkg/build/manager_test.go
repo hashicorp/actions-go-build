@@ -20,7 +20,7 @@ func assertResultsEqual(t *testing.T, got, want Result) {
 	t.Errorf("got result %q; want %q", got.ErrorMessage, want.ErrorMessage)
 }
 
-func makeOpts(opts ...ManagerOption) []ManagerOption { return opts }
+func makeOpts(opts ...Option) []Option { return opts }
 
 var e = errors.New
 
@@ -32,12 +32,12 @@ var e = errors.New
 //
 // The current shape of these tests is caused by refactoring the main codebase
 // but not the tests at the same time.
-func TestResultManager_ok(t *testing.T) {
+func TestManager_ok(t *testing.T) {
 
 	cases := []struct {
 		desc  string
 		build *mockBuild
-		opts  []ManagerOption
+		opts  []Option
 		want  *Result
 	}{
 		{
@@ -76,7 +76,10 @@ func TestResultManager_ok(t *testing.T) {
 		build, opts, want := c.build, c.opts, c.want
 		t.Run(c.desc, func(t *testing.T) {
 			runner := NewRunner(build, t.Logf, log.Debug)
-			m := NewManager(runner, opts...)
+			m, err := NewManager(runner, opts...)
+			if err != nil {
+				t.Fatal(err)
+			}
 			got, err := m.Result()
 			if err != nil {
 				t.Fatal(err)
@@ -90,7 +93,7 @@ func TestManager_err(t *testing.T) {
 	cases := []struct {
 		desc    string
 		build   *mockBuild
-		opts    []ManagerOption
+		opts    []Option
 		wantErr error
 	}{
 		{
@@ -105,7 +108,10 @@ func TestManager_err(t *testing.T) {
 		build, opts, wantErr := c.build, c.opts, c.wantErr
 		t.Run(c.desc, func(t *testing.T) {
 			runner := NewRunner(build, t.Logf, log.Debug)
-			m := NewManager(runner, opts...)
+			m, err := NewManager(runner, opts...)
+			if err != nil {
+				t.Fatal(err)
+			}
 			_, gotErr := m.Result()
 			if gotErr == nil {
 				t.Fatalf("got nil error; want %q", wantErr)

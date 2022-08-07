@@ -86,7 +86,7 @@ func (c Config) PrimaryBuildConfig() (build.Config, error) {
 	return c.buildConfig(c.PrimaryBuildRoot)
 }
 
-// VerificationBuildConfig returns the config for the verification build.
+// VerificationBuildConfig returns the config for a verification build.
 func (c Config) VerificationBuildConfig() (build.Config, error) {
 	return c.buildConfig(c.VerificationBuildRoot)
 }

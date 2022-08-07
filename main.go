@@ -41,8 +41,8 @@ func makeCLI(thisTool crt.Product, args []string) *cli.CLI {
 
 	c.Commands = map[string]cli.CommandFactory{
 		"test":               makeCommand(commands.Test),
-		"build primary":      makeCommand(commands.BuildPrimary),
-		"build verification": makeCommand(commands.BuildVerification),
+		"build primary":      makeCommand(commands.PrimaryBuild),
+		"build verification": makeCommand(commands.LVBuild),
 		"build env describe": makeCommand(commands.BuildEnvDescribe),
 		"build env dump":     makeCommand(commands.BuildEnvDump),
 		"verify":             makeCommand(commands.Verify),
