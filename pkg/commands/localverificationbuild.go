@@ -23,7 +23,7 @@ type lvbOpts struct {
 }
 
 func (opts *lvbOpts) ReadEnv() error {
-	return cli.ReadEnvAll(&opts.output, &opts.pbOpts)
+	return cli.ReadEnvAll(&opts.pbOpts)
 }
 
 func (opts *lvbOpts) Flags(fs *flag.FlagSet) {
@@ -32,8 +32,17 @@ func (opts *lvbOpts) Flags(fs *flag.FlagSet) {
 
 // ownFlags is separated out to make it possible to reuse verification-build-specific flags
 // from other places that need to be able to perform verification builds.
-func (opts lvbOpts) ownFlags(fs *flag.FlagSet) {
+func (opts *lvbOpts) ownFlags(fs *flag.FlagSet) {
 	fs.DurationVar(&opts.staggerTime, "staggertime", 5*time.Second, "minimum time to wait after start of primary build")
+}
+
+func (opts *lvbOpts) Init() error {
+	if err := opts.pbOpts.Init(); err != nil {
+		return err
+	}
+	var err error
+	opts.buildConfig, err = opts.buildFlags.localVerificationBuildConfig()
+	return err
 }
 
 // LVBuild runs the local verification build, first copying the primary build

@@ -24,8 +24,11 @@ func (opts *pbOpts) ReadEnv() error {
 }
 
 func (opts *pbOpts) Flags(fs *flag.FlagSet) {
-	cli.FlagFuncsAll(fs, opts.logOpts.Flags, opts.output.ownFlags)
+	cli.FlagFuncsAll(fs, opts.logOpts.Flags, opts.buildFlags.ownFlags, opts.output.ownFlags)
 }
+
+// ownFlags does nothing but marks pbOpts as not definining any of its own flags.
+func (opts *pbOpts) ownFlags(fs *flag.FlagSet) {}
 
 func (opts *pbOpts) Init() error {
 	opts.buildFlags.logOpts = opts.logOpts

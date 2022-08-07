@@ -17,6 +17,10 @@ func (opts *logOpts) Flags(fs *flag.FlagSet) {
 	fs.BoolVar(&opts.quietFlag, "q", false, "quiet logging")
 }
 
+func (opts *logOpts) newVerifier(primary, verification build.ResultSource) (*build.Verifier, error) {
+	return build.NewVerifier(primary, verification, opts.buildOptions()...)
+}
+
 func (opts *logOpts) log(f string, a ...any)   { opts.logFunc()(f, a...) }
 func (opts *logOpts) debug(f string, a ...any) { opts.debugFunc()(f, a...) }
 func (opts *logOpts) loud(f string, a ...any)  { opts.loudFunc()(f, a...) }

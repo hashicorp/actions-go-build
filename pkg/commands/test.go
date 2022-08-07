@@ -35,9 +35,7 @@ func (opts *testOpts) ReadEnv() error {
 }
 
 func (opts *testOpts) Flags(fs *flag.FlagSet) {
-	opts.verification.ownFlags(fs)
-	opts.output.ownFlags(fs)
-	opts.logOpts.Flags(fs)
+	cli.FlagFuncsAll(fs, opts.logOpts.Flags, opts.output.ownFlags, opts.primary.ownFlags, opts.verification.ownFlags)
 	fs.BoolVar(&opts.primary.rebuild, "rebuild-p", false, "re-run the primary build even if cached")
 	fs.BoolVar(&opts.verification.rebuild, "rebuild-v", false, "re-run the verification build even if cached")
 	fs.BoolVar(&opts.rebuildAll, "rebuild", false, "re-run both builds, ignoring the cache")
@@ -47,20 +45,24 @@ func (opts *testOpts) Init() error {
 	opts.output.logOpts = opts.logOpts
 	opts.primary.logOpts = opts.logOpts
 	opts.verification.pbOpts.logOpts = opts.logOpts
+
 	opts.primary.rebuild = opts.primary.rebuild || opts.rebuildAll
 	opts.verification.rebuild = opts.verification.rebuild || opts.rebuildAll
+
+	if err := cli.InitAll(&opts.primary, &opts.verification); err != nil {
+		return err
+	}
+
 	var err error
 	if opts.pBuild, err = opts.primary.build(); err != nil {
 		return err
 	}
-	opts.vBuild, err = opts.verification.verificationBuild()
+	opts.vBuild, err = opts.verification.build()
 	return err
 }
 
 var Test = cli.LeafCommand("test", "test reproducibility of current worktree + config", func(opts *testOpts) error {
-	verifier, err := build.NewVerifier(opts.pBuild, opts.vBuild,
-		build.WithLogfunc(opts.logFunc()),
-		build.WithDebugfunc(opts.debugFunc()))
+	verifier, err := opts.newVerifier(opts.pBuild, opts.vBuild)
 	if err != nil {
 		return err
 	}
