@@ -18,16 +18,30 @@ var BuildEnvDescribe = cli.LeafCommand("describe", "describe the build environme
 	})
 })
 
-var BuildEnvDump = cli.LeafCommand("dump", "print the current build environment", func(opts *envOpts) error {
+type envDumpOpts struct {
+	showVerification bool
+	primary          pbOpts
+	verification     lvbOpts
+}
+
+func (opts *envDumpOpts) ReadEnv() error {
+	return cli.ReadEnvAll(&opts.primary, &opts.verification)
+}
+
+func (opts *envDumpOpts) Flags(fs *flag.FlagSet) {
+	fs.BoolVar(&opts.showVerification, "verification", false, "show the env for a verification build")
+}
+
+var BuildEnvDump = cli.LeafCommand("dump", "print the current build environment", func(opts *envDumpOpts) error {
 	var b build.Build
-	if opts.verification {
-		m, err := opts.v.build()
+	if opts.showVerification {
+		m, err := opts.verification.build()
 		if err != nil {
 			return err
 		}
 		b = m.Build()
 	} else {
-		m, err := opts.p.build()
+		m, err := opts.primary.build()
 		if err != nil {
 			return err
 		}
@@ -38,18 +52,4 @@ var BuildEnvDump = cli.LeafCommand("dump", "print the current build environment"
 
 func printList(list []string) error {
 	return cli.TabWrite(stdout, list, func(s string) string { return s })
-}
-
-type envOpts struct {
-	verification bool
-	p            pbOpts
-	v            lvbOpts
-}
-
-func (opts *envOpts) ReadEnv() error {
-	return cli.ReadEnvAll(&opts.p, &opts.v)
-}
-
-func (opts *envOpts) Flags(fs *flag.FlagSet) {
-	fs.BoolVar(&opts.verification, "verification", false, "show the env for the local verification build")
 }
