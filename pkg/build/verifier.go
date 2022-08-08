@@ -18,11 +18,16 @@ type Verifier struct {
 
 func NewVerifier(primary, verification ResultSource, opts ...Option) (*Verifier, error) {
 	s, err := newSettings("verifier", opts)
-	return &Verifier{
+	if err != nil {
+		return nil, err
+	}
+	v := &Verifier{
 		Settings:     s,
 		primary:      primary,
 		verification: verification,
-	}, err
+	}
+	v.Debug("initialised")
+	return v, nil
 }
 
 // Verify returns a VerificationResult which may or may not be affirmative.
@@ -30,10 +35,12 @@ func NewVerifier(primary, verification ResultSource, opts ...Option) (*Verifier,
 // when the result itself says that the reproduction didn't work.
 // You still need to query the result to find out if it was successful.
 func (v *Verifier) Verify() (*VerificationResult, error) {
+	v.Debug("beginning verification")
 	pr, err := v.loadResult("primary", v.primary)
 	if err != nil {
 		return nil, err
 	}
+	v.Debug("got primary build result")
 
 	if pr.Config.Product.IsDirty() {
 		v.Loud("WARNING: Primary result is dirty: source hash != revision")
@@ -43,6 +50,7 @@ func (v *Verifier) Verify() (*VerificationResult, error) {
 	if err != nil {
 		return nil, err
 	}
+	v.Debug("got verification build result")
 	return v.verificationResult(pr, vr)
 }
 

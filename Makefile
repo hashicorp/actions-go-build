@@ -94,13 +94,13 @@ $(BIN_PATH):
 	# First build:   Plain go build...
 	@$(MAKE) $(TMP_BUILD)
 	# Second build:  Using first build to build self...
-	@$(TMP_BUILD) build primary -rebuild -q
+	@$(TMP_BUILD) build -rebuild
 	@mv "dist/$(CLINAME)" "$@"
 	# Third build:   Using second (self-built) build to build self...
-	@"$@" build primary -rebuild -q
+	@"$@" build -rebuild
 	@mv "dist/$(CLINAME)" "$@"
 	# Verifying reproducibility of self...
-	@./$@ test -q
+	@./$@ verify -v
 
 cli: $(BIN_PATH)
 	@echo "Build successful."

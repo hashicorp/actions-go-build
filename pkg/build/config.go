@@ -3,6 +3,7 @@ package build
 import (
 	"fmt"
 	"log"
+	"os"
 	"path/filepath"
 
 	"github.com/hashicorp/actions-go-build/pkg/crt"
@@ -47,4 +48,15 @@ func (c Config) ChangeRoot(dir string) (Config, error) {
 	var err error
 	c.Paths, err = NewBuildPaths(dir, c.Product.ExecutableName, c.Parameters.ZipName)
 	return c, err
+}
+
+func (c Config) ChangeToVerificationRoot() (Config, error) {
+	return c.ChangeRoot(c.VerificationRoot())
+}
+
+func (c Config) VerificationRoot() string {
+	if c.Product.SourceHash == "" {
+		panic("can't determine verification root, SourceHash is empty")
+	}
+	return filepath.Join(os.TempDir(), "actions-go-build", "verification", c.Product.Repository, c.Product.SourceHash)
 }

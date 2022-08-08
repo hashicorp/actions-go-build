@@ -46,7 +46,7 @@ type Step struct {
 }
 
 func (br *Runner) Run() Result {
-	br.Log("Beginning build, rooted at %q", br.result.Config.Paths.WorkDir)
+	br.Log("Beginning build, rooted at %q", br.build.Config().Paths.WorkDir)
 	br.start()
 	for _, s := range br.build.Steps() {
 		if br.recordStep(s.desc, s.action); br.Failed() {

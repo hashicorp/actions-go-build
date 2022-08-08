@@ -136,9 +136,10 @@ type mockBuild struct {
 	cacheErr      error
 }
 
-func (m *mockBuild) Env() []string           { return nil }
-func (m *mockBuild) ChangeRoot(string) error { return nil }
-func (m *mockBuild) Kind() string            { return "mock" }
+func (m *mockBuild) Env() []string                   { return nil }
+func (m *mockBuild) ChangeRoot(string) error         { return nil }
+func (m *mockBuild) ChangeToVerificationRoot() error { return nil }
+func (m *mockBuild) Kind() string                    { return "mock" }
 
 func (m *mockBuild) Config() Config {
 	return Config{

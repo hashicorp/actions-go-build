@@ -34,8 +34,8 @@
 	actions-go-build build-env buildresult.json         (build env for that result)
 	actions-go-build build-env verificationresult.json  (build env for that result)
 	actions-go-build build-env http://xyx/result.json   (build env for that result)
-	actions-go-build config           [source-tree]
-	actions-go-build config -export   [source-tree]
+	actions-go-build config           [configish]
+	actions-go-build config -export   [configish]
 
 
 [build-ish] is anything that could be considered a build, e.g. a directory containing

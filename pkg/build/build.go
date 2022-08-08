@@ -21,6 +21,7 @@ type Build interface {
 	Steps() []Step
 	Kind() string
 	ChangeRoot(string) error
+	ChangeToVerificationRoot() error
 }
 
 func New(name string, cfg Config, options ...Option) (Build, error) {
@@ -54,6 +55,10 @@ func (b *core) ChangeRoot(dir string) error {
 	var err error
 	b.config, err = b.config.ChangeRoot(dir)
 	return err
+}
+
+func (b *core) ChangeToVerificationRoot() error {
+	return b.ChangeRoot(b.config.VerificationRoot())
 }
 
 func (b *core) CachedResult() (Result, bool, error) {

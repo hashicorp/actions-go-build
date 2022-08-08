@@ -1,6 +1,7 @@
 package commands
 
 import (
+	"flag"
 	"os"
 
 	"github.com/hashicorp/composite-action-framework-go/pkg/cli"
@@ -14,10 +15,28 @@ var stderr = os.Stderr
 // when this CLI is incorporated into a parent CLI, the commands within will be
 // rooted at "go". E.g. "go-build", "go-build primary", "go-build verification".
 var Main = cli.RootCommand("go-build", "go build and related functions",
-	Build, Test, Config)
+	Build, Verify2, BuildEnv, Config)
 
-var Build = cli.RootCommand("build", "run builds and inspect the build env",
-	PrimaryBuild, LVBuild, BuildEnv)
+type buildOpts struct {
+	buildish
+	verification bool
+}
 
-var BuildEnv = cli.RootCommand("env", "inspect the build environment",
+func (opts *buildOpts) Flags(fs *flag.FlagSet) {
+	opts.buildish.Flags(fs)
+	fs.BoolVar(&opts.verification, "verification", false, "force a verification build")
+}
+
+var Build = cli.LeafCommand("build", "run a build", func(b *buildOpts) error {
+	return b.runBuild(b.verification)
+})
+
+var Verify2 = cli.LeafCommand("verify", "verify a build's reproducibility", func(v *verifyish) error {
+	return v.runVerification()
+})
+
+//var Build = cli.RootCommand("build", "run builds and inspect the build env",
+//	PrimaryBuild, LVBuild, BuildEnv)
+
+var BuildEnv = cli.RootCommand("build-env", "inspect the build environment",
 	BuildEnvDescribe, BuildEnvDump)
