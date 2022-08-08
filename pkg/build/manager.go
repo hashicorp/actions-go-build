@@ -18,6 +18,7 @@ func NewManager(r *Runner, opts ...Option) (*Manager, error) {
 	if err != nil {
 		return nil, err
 	}
+	s.Debug("Initialised")
 	return &Manager{
 		Settings: s,
 		runner:   r,
@@ -33,7 +34,6 @@ func (bm *Manager) Build() Build {
 }
 
 func (bm *Manager) ResultFromCache() (Result, bool, error) {
-	bm.Debug("Inspecting cache for build result.")
 	return bm.runner.build.CachedResult()
 }
 
@@ -42,20 +42,23 @@ func (bm *Manager) ResultFromCache() (Result, bool, error) {
 // from the attempt to load from cache, so to check if the build failed or not you still need
 // to call the Result's Error method.
 func (bm *Manager) Result() (Result, error) {
+	bm.Debug("getting result")
 	if bm.forceRebuild {
 		bm.Debug("Force-rebuild on, not inspecting cache.")
 	} else {
+		bm.Debug("Inspecting cache.")
 		r, cached, err := bm.ResultFromCache()
 		if err != nil {
+			bm.Log("Error inspecting cache: %s", err)
 			return r, err
 		}
 		if cached {
-			bm.Debug("Loaded build result from cache.")
+			bm.Log("Loaded build result from cache.")
 			return r, nil
 		}
 		bm.Debug("No build result avilable in cache.")
 	}
-	bm.Debug("Running a fresh build...")
+	bm.Log("Running a fresh %s build...", bm.runner.build.Kind())
 	result := bm.runner.Run()
 	cachePath, err := result.Save()
 	if err != nil {

@@ -1,6 +1,5 @@
 
 
-- Ensure debug logs print for verification build when running test command.
 - Add GitHub Auth when downloading source for verification.
   - If GITHUB_TOKEN is set, always use it.
   - Add help text to error when auth is needed but not provided.

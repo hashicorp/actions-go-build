@@ -54,7 +54,8 @@ func (opts *logOpts) loudFunc() log.Func {
 
 func (opts *logOpts) buildOptions() []build.Option {
 	return []build.Option{
-		build.WithLogfunc(opts.logFunc()),
 		build.WithDebugfunc(opts.debugFunc()),
+		build.WithLogfunc(opts.logFunc()),
+		build.WithLoudfunc(opts.loudFunc()),
 	}
 }

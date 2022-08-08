@@ -103,13 +103,13 @@ func (br *Runner) start() *Runner {
 }
 
 func (br *Runner) recordStep(desc string, step func() error) error {
-	br.Log("Running build step: %s", desc)
+	br.Debug("%s: starting", desc)
 	err := step()
 	if err == nil {
-		br.Log("OK: %s", desc)
+		br.Log("%s: ok", desc)
 		return nil
 	}
-	br.Loud("FAILED: %s", desc)
+	br.Loud("%s: failed: %s", desc, err)
 	// Add the step description to the error.
 	err = fmt.Errorf("%s failed: %w", desc, err)
 	br.result.err = err

@@ -46,10 +46,12 @@ func (opts *testOpts) Init() error {
 
 	opts.primary.rebuild = opts.primary.rebuild || opts.rebuildAll
 	opts.primary.logOpts = opts.logOpts
+	opts.primary.buildFlags.logOpts = opts.logOpts
 	opts.primary.output.logOpts = opts.logOpts
 
 	opts.verification.rebuild = opts.verification.rebuild || opts.rebuildAll
 	opts.verification.logOpts = opts.logOpts
+	opts.verification.buildFlags.logOpts = opts.logOpts
 	opts.verification.output.logOpts = opts.logOpts
 	opts.verification.primary.logOpts = opts.logOpts
 	opts.verification.primary.output.logOpts = opts.logOpts
@@ -62,7 +64,7 @@ func (opts *testOpts) Init() error {
 	if opts.pBuild, err = opts.primary.build(); err != nil {
 		return err
 	}
-	opts.vBuild, err = opts.verification.build()
+	opts.vBuild, err = opts.verification.verificationBuild()
 	return err
 }
 

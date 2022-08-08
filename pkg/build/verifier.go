@@ -18,14 +18,11 @@ type Verifier struct {
 
 func NewVerifier(primary, verification ResultSource, opts ...Option) (*Verifier, error) {
 	s, err := newSettings("verifier", opts)
-	if err != nil {
-		return nil, err
-	}
 	return &Verifier{
 		Settings:     s,
 		primary:      primary,
 		verification: verification,
-	}, nil
+	}, err
 }
 
 // Verify returns a VerificationResult which may or may not be affirmative.

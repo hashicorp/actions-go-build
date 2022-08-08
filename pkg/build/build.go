@@ -106,7 +106,6 @@ func (b *core) Steps() []Step {
 
 func (b *core) createDirectories() error {
 	c := b.config
-	b.Log("Creating output directories.")
 	return fs.Mkdirs(c.Paths.TargetDir, c.Paths.ZipDir(), c.Paths.MetaDir)
 }
 
@@ -145,7 +144,7 @@ func (b *core) runInstructions() error {
 
 	b.listInstructions()
 
-	b.Log("Running build instructions with environment:")
+	b.Log("build environment:")
 	env := b.Env()
 	for _, e := range b.Env() {
 		b.Log(e)
@@ -159,11 +158,9 @@ func (b *core) runInstructions() error {
 // writeInstructions writes the build instructions to a temporary file
 // and returns its path, or an error if writing fails.
 func (b *core) writeInstructions() (path string, err error) {
-	b.Log("Writing build instructions to temp file.")
 	return fs.WriteTempFile("actions-go-build.instructions", b.config.Parameters.Instructions)
 }
 
 func (b *core) listInstructions() {
-	b.Log("Listing build instructions...")
 	b.Log(b.config.Parameters.Instructions)
 }

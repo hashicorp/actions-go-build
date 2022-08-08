@@ -38,6 +38,12 @@ func (bp Parameters) setDefaults(p crt.Product) (Parameters, error) {
 	if bp.GoVersion == "" {
 		bp.GoVersion = strings.TrimPrefix(runtime.Version(), "go")
 	}
+	if bp.OS == "" {
+		bp.OS = runtime.GOOS
+	}
+	if bp.Arch == "" {
+		bp.Arch = runtime.GOARCH
+	}
 	if bp.ZipName == "" {
 		bp.ZipName = bp.defaultZipName(p)
 	}
@@ -47,12 +53,6 @@ func (bp Parameters) setDefaults(p crt.Product) (Parameters, error) {
 		if err != nil {
 			return bp, err
 		}
-	}
-	if bp.OS == "" {
-		bp.OS = runtime.GOOS
-	}
-	if bp.Arch == "" {
-		bp.Arch = runtime.GOARCH
 	}
 	return bp, nil
 }
