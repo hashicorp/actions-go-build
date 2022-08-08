@@ -30,7 +30,7 @@ func (bp Parameters) Init(p crt.Product) (Parameters, error) {
 }
 
 func (bp Parameters) trimSpace() Parameters {
-	trim(&bp.GoVersion, &bp.Instructions, &bp.OS, &bp.Arch)
+	trim(&bp.GoVersion, &bp.Instructions, &bp.OS, &bp.Arch, &bp.ZipName)
 	return bp
 }
 
