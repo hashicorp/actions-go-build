@@ -17,7 +17,7 @@ func (c *configOpts) Flags(fs *flag.FlagSet) {
 }
 
 var Config = cli.LeafCommand("config", "print config and export to GITHUB_ENV if set", func(opts *configOpts) error {
-	cfg, err := config.FromEnvironment(tool)
+	cfg, err := config.FromEnvironment(tool, wd)
 	if err != nil {
 		return err
 	}

@@ -2,6 +2,7 @@ package commands
 
 import (
 	"flag"
+	"os"
 	"time"
 
 	"github.com/hashicorp/actions-go-build/internal/config"
@@ -14,8 +15,16 @@ type buildFlags struct {
 	rebuild bool
 }
 
+var wd = func() string {
+	w, err := os.Getwd()
+	if err != nil {
+		panic(err)
+	}
+	return w
+}()
+
 func (flags *buildFlags) primaryBuildConfig() (build.Config, error) {
-	c, err := config.FromEnvironment(tool)
+	c, err := config.FromEnvironment(tool, wd)
 	if err != nil {
 		return build.Config{}, err
 	}
@@ -23,7 +32,7 @@ func (flags *buildFlags) primaryBuildConfig() (build.Config, error) {
 }
 
 func (flags *buildFlags) localVerificationBuildConfig() (build.Config, error) {
-	c, err := config.FromEnvironment(tool)
+	c, err := config.FromEnvironment(tool, wd)
 	if err != nil {
 		return build.Config{}, err
 	}

@@ -6,6 +6,7 @@
 - Install needed Go version if not already present on system.
 - Add a shim so that 'go' for the build is the correct go version.
 - Move config package to pkg/
+- Extract Product package to its own place for import by other products.
 
 
 - Change CLI:
@@ -16,8 +17,6 @@
 	actions-go-build build buildresult.json        (remote verification build)
 	actions-go-build build verificationresult.json (remote verification build)
 	actions-go-build build http://xyx/result.json  (remote verification build)
-
-	actions-go-build test [source-tree] (same as current test command)
 
 	actions-go-build verify             (local verification build, current dir)
 	actions-go-build verify .           (local verification build, current dir)

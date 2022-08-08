@@ -51,19 +51,14 @@ type Config struct {
 
 // FromEnvironment creates a new Config from environment variables
 // and repository context in the current working directory.
-func FromEnvironment(creator crt.Tool) (Config, error) {
+func FromEnvironment(creator crt.Tool, dir string) (Config, error) {
 	var c Config
 	ctx := context.Background()
 	if err := envconfig.Process(ctx, &c); err != nil {
 		return c, err
 	}
 
-	wd, err := os.Getwd()
-	if err != nil {
-		return c, err
-	}
-
-	rc, err := crt.GetRepoContext(wd, build.Dirs.List())
+	rc, err := crt.GetRepoContext(dir, build.Dirs.List())
 	if err != nil {
 		return c, err
 	}
