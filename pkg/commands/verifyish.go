@@ -90,9 +90,8 @@ func (v *verifyish) configureLocalVerificationBuild(dir string, startAfter time.
 }
 
 func (v *verifyish) configureRemoteVerificationBuild(c build.Config) error {
-	sourceURL := fmt.Sprintf("https://github.com/%s/archive/%s.zip", c.Product.Repository, c.Product.Revision)
 	var err error
-	v.verification, err = v.buildish.buildFlags.newRemoteVerificationManager(sourceURL, c)
+	v.verification, err = v.buildish.buildFlags.newRemoteVerificationManager(c)
 	return err
 }
 

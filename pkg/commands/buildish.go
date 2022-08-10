@@ -1,19 +1,18 @@
 package commands
 
 import (
-	"bytes"
 	"flag"
 	"fmt"
 	"io"
 	"net/http"
 	"net/url"
 	"os"
+	"path"
 	"path/filepath"
 	"reflect"
 	"time"
 
 	"github.com/hashicorp/actions-go-build/internal/config"
-	"github.com/hashicorp/actions-go-build/internal/log"
 	"github.com/hashicorp/actions-go-build/pkg/build"
 	"github.com/hashicorp/composite-action-framework-go/pkg/cli"
 	"github.com/hashicorp/composite-action-framework-go/pkg/fs"
@@ -33,7 +32,7 @@ type buildish struct {
 	desc string
 	logOpts
 	buildFlags buildFlags
-	output     outputOpts
+	output     output
 
 	// target is the only arg
 	target string
@@ -54,16 +53,8 @@ func (b *buildish) Flags(fs *flag.FlagSet) {
 	cli.FlagFuncsAll(fs, b.logOpts.Flags, b.buildFlags.ownFlags, b.output.ownFlags)
 }
 
-func (b *buildish) ParseArgs(args []string) error {
-	switch len(args) {
-	default:
-		return fmt.Errorf("at most 1 argument required")
-	case 0:
-		b.target = defaultTarget
-	case 1:
-		b.target = args[0]
-	}
-	return nil
+func (b *buildish) Args(args *cli.ArgList) {
+	args.Optional(&b.target, "target", ".")
 }
 
 func (b *buildish) Init() error {
@@ -102,19 +93,20 @@ func (b *buildish) getBuildFunc(forceVerification bool) (buildFunc, error) {
 		err   error
 		build buildFunc
 	)
+	b.debug("Resolving buildish %q", b.target)
+	b.desc = "Build"
 	if build, done, err = b.urlConfigSource(b.target); done {
-		b.desc = fmt.Sprintf("building using config from %s", b.target)
+		b.log("Using config from %s", b.target)
 	} else if build, done, err = b.localDirConfigSource(b.target, forceVerification); done {
-		b.desc = fmt.Sprintf("building using config and source code from %s", b.target)
+		b.log("Using config and source code from %s", b.target)
 	} else if build, done, err = b.localFileConfigSource(b.target); done {
-		b.desc = fmt.Sprintf("building using config from %s", b.target)
+		b.log("Using config from %s", b.target)
 	} else {
 		err = fmt.Errorf("could not load build config from %q", b.target)
 	}
 	if err != nil {
 		b.debug("error getting build: %s", err)
 	}
-	b.log(b.desc)
 	return build, err
 }
 
@@ -133,7 +125,7 @@ func (b *buildish) urlConfigSource(maybeURL string) (buildFunc, bool, error) {
 }
 
 func (b *buildish) localFileConfigSource(maybeFile string) (buildFunc, bool, error) {
-	maybeFile, exists, err := b.resolvePath("dir", maybeFile, fs.FileExists)
+	maybeFile, exists, err := b.resolvePath("file", maybeFile, fs.FileExists)
 	return b.configSourceFromReadCloser(maybeFile, func() (io.ReadCloser, error) {
 		return os.Open(maybeFile)
 	}), exists, err
@@ -172,12 +164,14 @@ func (b *buildish) resolvePath(kind, maybePath string, existsFunc func(string) (
 	if err != nil {
 		return maybePath, false, err
 	}
-	exists, err := fs.DirExists(maybePath)
+	exists, err := existsFunc(maybePath)
 	if err != nil {
 		b.loud("unable to check if %s %q exists: %s", kind, err)
 	}
 	if !exists {
 		b.debug("%s doesn't exist: %s", kind, maybePath)
+	} else {
+		b.debug("%s exists: %s", kind, maybePath)
 	}
 	return maybePath, exists, err
 }
@@ -195,27 +189,33 @@ func (b *buildish) configSourceFromReadCloser(location string, rcFunc func() (io
 		if err != nil {
 			return nil, fmt.Errorf("unable to read build config from %q: %w", location, err)
 		}
-		b, err := b.buildFlags.newRemoteVerificationManager(location, c)
+
+		bm, err := b.buildFlags.newRemoteVerificationManager(c)
 		if err != nil {
 			return nil, err
 		}
-		return b, closeErr
+		return bm, closeErr
 	}
 }
 
 func (b *buildish) readConfig(r io.Reader) (build.Config, error) {
-	if c, ok := tryUnmarshalJSON[build.Config](b.debug, r); ok {
+	data, err := io.ReadAll(r)
+	if err != nil {
+		return build.Config{}, err
+	}
+	if c, ok := tryUnmarshalJSON[build.Config](b, data); ok {
+		b.debug("%s is build config", b.target)
 		b.buildConfig = &c
 		return c, nil
 	}
-	if br, ok := tryUnmarshalJSON[build.Result](b.debug, r); ok {
-		b.log("Using build config from build result.")
+	if br, ok := tryUnmarshalJSON[build.Result](b, data); ok {
+		b.debug("%s is a build result", b.target)
 		b.buildResult = &br
 		b.buildConfig = &br.Config
 		return br.Config, nil
 	}
-	if vr, ok := tryUnmarshalJSON[build.VerificationResult](b.debug, r); ok {
-		b.log("Using primary build config from verification result.")
+	if vr, ok := tryUnmarshalJSON[build.VerificationResult](b, data); ok {
+		b.debug("%s is a verification result", b.target)
 		b.verificationResult = &vr
 		b.buildResult = vr.Primary
 		b.buildConfig = &vr.Primary.Config
@@ -224,15 +224,14 @@ func (b *buildish) readConfig(r io.Reader) (build.Config, error) {
 	return build.Config{}, fmt.Errorf("not a build config, build result, or verification result")
 }
 
-func tryUnmarshalJSON[T any](debug log.Func, r io.Reader) (T, bool) {
-	var buf bytes.Buffer
-	r = io.TeeReader(r, &buf)
+func tryUnmarshalJSON[T any](b *buildish, data []byte) (T, bool) {
 	t := reflect.TypeOf(*(new(T)))
-	a, err := json.Read[T](&buf)
+	a, err := json.ReadBytes[T](data)
+	what := fmt.Sprintf("%s.%s", path.Base(t.PkgPath()), t.Name())
 	if err != nil {
-		debug("not a valid %s: %s", t.Name(), err)
+		b.debug("%s is not a valid %s: %s", b.target, what, err)
 	} else {
-		debug("is a valid %s", t.Name())
+		b.debug("%s is is a valid %s", b.target, what)
 	}
 	return a, err == nil
 }

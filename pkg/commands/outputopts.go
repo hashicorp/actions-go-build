@@ -13,50 +13,54 @@ import (
 	"github.com/hashicorp/actions-go-build/pkg/crt"
 )
 
-type outputOpts struct {
+type output struct {
 	logOpts
 	jsonStdErr bool
 	json       bool
 }
 
-func (p *outputOpts) ReadEnv() error {
+func (p *output) ReadEnv() error {
 	// Write result to stderr by default if not quiet and either verbose or term.
 	p.jsonStdErr = !p.logOpts.quietFlag && (p.logOpts.verboseFlag || log.IsVerbose())
 	return nil
 }
 
-func (p *outputOpts) Flags(fs *flag.FlagSet) {
+func (p *output) Flags(fs *flag.FlagSet) {
 	p.logOpts.Flags(fs)
 	p.ownFlags(fs)
 }
 
-func (p *outputOpts) ownFlags(fs *flag.FlagSet) {
+func (p *output) ownFlags(fs *flag.FlagSet) {
 	fs.BoolVar(&p.json, "json", p.json, "print the result json to stdout")
 }
 
 type Result interface {
 	Error() error
+	IsFromCache() bool
 }
 
-func (p *outputOpts) result(what string, r Result) error {
-	resultErr := r.Error()
-	dumped, err := p.maybeDumpJSON(r)
-	if err != nil {
+func (p *output) result(what string, r Result) error {
+	// For all failure cases just return an error, which
+	// will always be shown to the user.
+	if dumped, err := p.maybeDumpJSON(r); err != nil {
 		return err
-	}
-	if dumped {
-		return resultErr
+	} else if dumped {
+		return r.Error()
 	}
 
-	resultStatus := "succeeded"
-	if resultErr != nil {
-		resultStatus = "failed"
+	var cached string
+	if r.IsFromCache() {
+		cached = fmt.Sprintf(" (cached)")
 	}
-	p.loud("%s %s; use the -json flag to see the full result.", what, resultStatus)
-	return resultErr
+	if err := r.Error(); err != nil {
+		return fmt.Errorf("%s failed%s: %w", what, cached, err)
+	}
+	// For the success case, log immediately.
+	p.loud("%s succeeded%s; use the -json flag to see the full result.", what, cached)
+	return nil
 }
 
-func (p *outputOpts) maybeDumpJSON(v any) (bool, error) {
+func (p *output) maybeDumpJSON(v any) (bool, error) {
 	if p.json {
 		return true, dumpJSON(os.Stdout, v)
 	}
@@ -66,7 +70,7 @@ func (p *outputOpts) maybeDumpJSON(v any) (bool, error) {
 	return false, nil
 }
 
-func (p *outputOpts) productInfo(product crt.Product) error {
+func (p *output) productInfo(product crt.Product) error {
 	if dumped, err := p.maybeDumpJSON(product); dumped || err != nil {
 		return err
 	}

@@ -52,6 +52,7 @@ func (b *core) Config() Config {
 func (b *core) Kind() string { return "unknown" }
 
 func (b *core) ChangeRoot(dir string) error {
+	b.Debug("changing root to %s", dir)
 	var err error
 	b.config, err = b.config.ChangeRoot(dir)
 	return err
@@ -75,6 +76,7 @@ func (b *core) CachedResult() (Result, bool, error) {
 	}
 	b.Debug("Cache hit: %s", path)
 	r, err = json.ReadFile[Result](path)
+	r.loadedFromCache = true
 	return r, err == nil, err
 }
 
@@ -103,7 +105,7 @@ func (b *core) Steps() []Step {
 			return fs.SetMtimes(c.Paths.TargetDir, productRevisionTimestamp)
 		}),
 
-		newStep("creating zip file", func() error {
+		newStep(fmt.Sprintf("creating zip file %q", c.Paths.ZipPath), func() error {
 			return zipper.ZipToFile(c.Paths.TargetDir, c.Paths.ZipPath, b.Settings.Log)
 		}),
 	}

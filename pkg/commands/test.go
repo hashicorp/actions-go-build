@@ -24,7 +24,7 @@ new and changed files.
 type testOpts struct {
 	logOpts
 	rebuildAll     bool
-	output         outputOpts
+	output         output
 	primary        pbOpts
 	verification   lvbOpts
 	pBuild, vBuild *build.Manager

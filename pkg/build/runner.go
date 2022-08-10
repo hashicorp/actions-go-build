@@ -30,11 +30,8 @@ func NewRunner(b Build, opts ...Option) (*Runner, error) {
 	return &Runner{
 		Settings: s,
 		build:    b,
-		result: Result{
-			Config: b.Config(),
-			Env:    b.Env(),
-		},
-		nowFunc: time.Now,
+		result:   Result{},
+		nowFunc:  time.Now,
 	}, nil
 }
 
@@ -55,10 +52,10 @@ func (br *Runner) Run() Result {
 	}
 	if !br.Failed() {
 		br.recordStep("recording executable file details", func() error {
-			return br.RecordBin(br.result.Config.Paths.BinPath)
+			return br.RecordBin(br.build.Config().Paths.BinPath)
 		})
 		br.recordStep("recording zip file details", func() error {
-			return br.RecordZip(br.result.Config.Paths.ZipPath)
+			return br.RecordZip(br.build.Config().Paths.ZipPath)
 		})
 	}
 	return br.Result()
@@ -70,6 +67,8 @@ func (br *Runner) isFinished() bool {
 
 func (br *Runner) finish() {
 	if !br.isFinished() {
+		br.result.Config = br.build.Config()
+		br.result.Env = br.build.Env()
 		br.result.Meta.Finish = br.nowFunc()
 		br.result.Meta.Duration = br.result.Meta.Finish.Sub(br.result.Meta.Start).String()
 		br.result.Successful = br.result.err == nil
@@ -109,9 +108,8 @@ func (br *Runner) recordStep(desc string, step func() error) error {
 		br.Log("%s: ok", desc)
 		return nil
 	}
-	br.Loud("%s: failed: %s", desc, err)
 	// Add the step description to the error.
-	err = fmt.Errorf("%s failed: %w", desc, err)
+	err = fmt.Errorf("%s: %w", desc, err)
 	br.result.err = err
 	br.result.ErrorMessage = err.Error()
 	return err

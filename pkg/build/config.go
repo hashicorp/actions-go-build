@@ -37,6 +37,9 @@ func (c Config) buildResultCachePath() string {
 	if c.Product.SourceHash == "" {
 		// It's the maintainers' jobs to make sure we don't hit this panic.
 		// It's here to avoid writing undiscoverable files to the cache.
+		if (c == Config{}) {
+			log.Panicf("SourceHash is empty; Config is empty.")
+		}
 		log.Panicf("SourceHash is empty; Config looks like this: % #v", c)
 	}
 	filename := fmt.Sprintf("buildresult-%s.json", c.Product.SourceHash)

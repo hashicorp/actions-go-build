@@ -20,6 +20,9 @@ func NewLocalVerification(primaryRoot string, startAfter time.Time, cfg Config, 
 	if err != nil {
 		return nil, err
 	}
+	if err := core.ChangeToVerificationRoot(); err != nil {
+		return nil, err
+	}
 	return &LocalVerification{
 		core:        core,
 		primaryRoot: primaryRoot,

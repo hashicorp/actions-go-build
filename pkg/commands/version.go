@@ -10,7 +10,7 @@ import (
 )
 
 type versionOpts struct {
-	output  outputOpts
+	output
 	notrunc bool
 	full    bool
 	short   bool

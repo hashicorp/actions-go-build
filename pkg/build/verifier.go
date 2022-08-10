@@ -43,7 +43,8 @@ func (v *Verifier) Verify() (*VerificationResult, error) {
 	v.Debug("got primary build result")
 
 	if pr.Config.Product.IsDirty() {
-		v.Loud("WARNING: Primary result is dirty: source hash != revision")
+		v.Loud("WARNING: Primary result is dirty: source hash (%s...) != revision (%s...)",
+			pr.Config.Product.SourceHash[:8], pr.Config.Product.Revision[:8])
 	}
 
 	vr, err := v.loadResult("verification", v.verification)

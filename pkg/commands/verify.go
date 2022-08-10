@@ -24,7 +24,7 @@ a verification result is produced (use the -json flag to print the result to std
 type verifyOpts struct {
 	logOpts
 	buildFlags
-	output     outputOpts
+	output     output
 	resultFile string
 }
 
@@ -64,9 +64,7 @@ var Verify = cli.LeafCommand("verify", "verify a build result's reproducibility"
 		return err
 	}
 
-	sourceURL := fmt.Sprintf("https://github.com/%s/archive/%s.zip", br.Config.Product.Repository, br.Config.Product.Revision)
-
-	b, err := opts.newRemoteVerification(sourceURL, br.Config)
+	b, err := opts.newRemoteVerification(br.Config)
 	if err != nil {
 		return err
 	}

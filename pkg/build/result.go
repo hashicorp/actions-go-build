@@ -20,15 +20,18 @@ type Inputs struct {
 // Note that the Config will be different for each of
 // them because it contains build-host-specific paths.
 type Result struct {
-	Config       Config
-	Env          []string
-	Meta         Meta
-	Zip          crt.File
-	Executable   crt.File
-	err          error
-	ErrorMessage string `json:",omitempty"`
-	Successful   bool
+	Config          Config
+	Env             []string
+	Meta            Meta
+	Zip             crt.File
+	Executable      crt.File
+	err             error
+	ErrorMessage    string `json:",omitempty"`
+	Successful      bool
+	loadedFromCache bool
 }
+
+func (br Result) IsFromCache() bool { return br.loadedFromCache }
 
 func (br Result) Error() error {
 	return br.err

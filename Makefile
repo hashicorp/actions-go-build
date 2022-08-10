@@ -100,7 +100,7 @@ $(BIN_PATH):
 	@"$@" build -rebuild
 	@mv "dist/$(CLINAME)" "$@"
 	# Verifying reproducibility of self...
-	@./$@ verify -v
+	@./$@ verify
 
 cli: $(BIN_PATH)
 	@echo "Build successful."

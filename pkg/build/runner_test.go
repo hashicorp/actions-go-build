@@ -51,7 +51,7 @@ func TestRunner_Run_err(t *testing.T) {
 	}
 	result := r.Run()
 	gotErr := result.Error()
-	want := "running build instructions failed: exit status 1"
+	want := "running build instructions: exit status 1"
 	if gotErr == nil {
 		t.Fatalf("got nil error; want %q", want)
 	}

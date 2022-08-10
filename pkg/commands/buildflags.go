@@ -64,12 +64,12 @@ func (flags *buildFlags) newLocalVerificationManager(primaryRoot string, startAf
 	return flags.manager(flags.newLocalVerification(primaryRoot, startAfter, c))
 }
 
-func (flags *buildFlags) newRemoteVerification(sourceURL string, c build.Config) (build.Build, error) {
-	return build.NewRemoteVerification(sourceURL, c, flags.buildOptions()...)
+func (flags *buildFlags) newRemoteVerification(c build.Config) (build.Build, error) {
+	return build.NewRemoteVerification(c, flags.buildOptions()...)
 }
 
-func (flags *buildFlags) newRemoteVerificationManager(sourceURL string, c build.Config) (*build.Manager, error) {
-	return flags.manager(flags.newRemoteVerification(sourceURL, c))
+func (flags *buildFlags) newRemoteVerificationManager(c build.Config) (*build.Manager, error) {
+	return flags.manager(flags.newRemoteVerification(c))
 }
 
 func (flags *buildFlags) newVerifier(primary, verification build.ResultSource) (*build.Verifier, error) {

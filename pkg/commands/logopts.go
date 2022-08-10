@@ -17,6 +17,10 @@ func (opts *logOpts) Flags(fs *flag.FlagSet) {
 	fs.BoolVar(&opts.quietFlag, "q", false, "quiet logging")
 }
 
+func (opts *logOpts) HideFlags() []string {
+	return []string{"debug", "v", "q"}
+}
+
 func (opts *logOpts) newVerifier(primary, verification build.ResultSource) (*build.Verifier, error) {
 	return build.NewVerifier(primary, verification, opts.buildOptions()...)
 }

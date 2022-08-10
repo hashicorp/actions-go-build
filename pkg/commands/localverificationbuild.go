@@ -17,7 +17,7 @@ path and executing the build instructions there at least 5 seconds later.
 type lvbOpts struct {
 	buildFlags
 	logOpts
-	output  outputOpts
+	output  output
 	primary pbOpts
 
 	buildConfig build.Config

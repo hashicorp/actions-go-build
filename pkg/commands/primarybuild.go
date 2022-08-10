@@ -16,7 +16,7 @@ type pbOpts struct {
 	logOpts
 	buildFlags
 	buildConfig build.Config
-	output      outputOpts
+	output      output
 }
 
 func (opts *pbOpts) ReadEnv() error {

@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"io"
 	"net/http"
-	"net/url"
 	"os"
 	"path"
 	"path/filepath"
@@ -21,55 +20,45 @@ type RemoteVerification struct {
 	cacheID   string
 }
 
-func NewRemoteVerification(sourceURL string, cfg Config, options ...Option) (Build, error) {
-	core, err := newCore("remote-verification-build", cfg, options...)
+func NewRemoteVerification(c Config, options ...Option) (Build, error) {
+
+	sourceURL := fmt.Sprintf("https://github.com/%s/archive/%s.zip", c.Product.Repository, c.Product.Revision)
+
+	core, err := newCore("remote-verification-build", c, options...)
 	if err != nil {
 		return nil, err
 	}
-	u, err := url.Parse(sourceURL)
-	if err != nil {
+
+	if err := core.ChangeToVerificationRoot(); err != nil {
 		return nil, err
 	}
-	if u.Host != "github.com" {
-		// We only support GitHub for now because the logic for extracting GitHub flavoured
-		// source zips is baked in here. We could add handling for other sources pretty trivially.
-		return nil, fmt.Errorf("currently only source code hosted on GitHub is supported")
-	}
+
 	return &RemoteVerification{
 		core:      core,
 		sourceURL: sourceURL,
 	}, nil
 }
 
-func (lv *RemoteVerification) Kind() string { return "local verification" }
+func (lv *RemoteVerification) Kind() string { return "verification" }
 
 func (lv *RemoteVerification) Steps() []Step {
 
-	c := lv.core.Config()
-
-	tmpDir := filepath.Join(os.TempDir(), "actions-go-build", "remote-verification", c.Product.Name, c.Product.Revision)
-	fileName := fmt.Sprintf("%s-%s.zip", c.Product.Name, c.Product.Revision)
-	destFilePath := filepath.Join(tmpDir, fileName)
-
-	// This innerDirName is GitHub-specific.
-	innerDirName := fmt.Sprintf("%s-%s", path.Base(c.Product.Repository), c.Product.Revision)
-	sourcePath := filepath.Join(tmpDir, innerDirName)
+	var sourceDLDir, sourceArchivePath string
 
 	pre := []Step{
-		newStep("creating temporary directory to run build in", func() error {
-			exists, err := fs.DirExists(tmpDir)
-			if err != nil {
-				return err
-			}
-			if exists {
-				if err := os.RemoveAll(tmpDir); err != nil {
-					return err
-				}
-			}
-			return fs.Mkdir(tmpDir)
+		newStep("change build root to temporary directory", func() error {
+			return lv.ChangeToVerificationRoot()
 		}),
-		newStep(fmt.Sprintf("downloading source code from %s", lv.sourceURL), func() error {
-			destFile, err := os.Create(destFilePath)
+		newStep("create temporary paths", func() error {
+			c := lv.Config()
+			sourceDLDir = filepath.Join(os.TempDir(), "actions-go-build", "rv", c.Product.Name, c.Product.Revision)
+			return fs.MkdirEmpty(sourceDLDir)
+		}),
+		newStep(fmt.Sprintf("get %s", lv.sourceURL), func() error {
+			c := lv.Config()
+			sourceArchiveName := fmt.Sprintf("%s-%s.zip", c.Product.Name, c.Product.Revision)
+			sourceArchivePath = filepath.Join(sourceDLDir, sourceArchiveName)
+			destFile, err := os.Create(sourceArchivePath)
 			if err != nil {
 				return err
 			}
@@ -80,7 +69,7 @@ func (lv *RemoteVerification) Steps() []Step {
 				return err
 			}
 			if response.StatusCode != http.StatusOK {
-				return fmt.Errorf("unable to download source code: %s", response.Status)
+				return fmt.Errorf("%s", response.Status)
 			}
 			var bodyCloseErr error
 			defer func() { bodyCloseErr = response.Body.Close() }()
@@ -92,15 +81,18 @@ func (lv *RemoteVerification) Steps() []Step {
 			}
 			return bodyCloseErr
 		}),
-		newStep("extracting source code to temporary directory", func() error {
+		newStep("extract source code to temporary directory", func() error {
 			// Extract the downloaded zip file directly in the same dir as the zip.
 			// These zips contain a directory that contains all the code, so we'll
 			// use that directory as the build root.
-			return unzip.New(destFilePath, tmpDir).Extract()
+			return unzip.New(sourceArchivePath, sourceDLDir).Extract()
 		}),
-		newStep("changing build root to temporary directory", func() error {
-			// Change our build root to the downloaded source dir.
-			return lv.core.ChangeRoot(sourcePath)
+		newStep("move source code to verification root", func() error {
+			c := lv.Config()
+			// This innerDirName is GitHub-specific.
+			innerDirName := fmt.Sprintf("%s-%s", path.Base(c.Product.Repository), c.Product.Revision)
+			sourcePath := filepath.Join(sourceDLDir, innerDirName)
+			return fs.Move(sourcePath, lv.Config().Paths.WorkDir)
 		}),
 	}
 

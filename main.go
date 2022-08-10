@@ -40,27 +40,20 @@ func makeCLI(thisTool crt.Product, args []string) *cli.CLI {
 	c.Args = args
 
 	c.Commands = map[string]cli.CommandFactory{
-		"build":  makeCommand(commands.Build),
-		"verify": makeCommand(commands.Verify2),
-
-		"old build verification": makeCommand(commands.LVBuild),
-		"old build env describe": makeCommand(commands.BuildEnvDescribe),
-		"old build env dump":     makeCommand(commands.BuildEnvDump),
-		"old verify":             makeCommand(commands.Verify),
-		"old config":             makeCommand(commands.Config),
-		"old version":            makeCommand(versionCommand),
+		"build":   makeCommand(commands.Build),
+		"verify":  makeCommand(commands.Verify2),
+		"config":  makeCommand(commands.Config),
+		"version": makeCommand(versionCommand),
 	}
 
 	return c
 }
 
 type cmd struct {
-	help, synopsis string
-	run            func([]string) error
+	*actioncli.Command
+	run func([]string) error
 }
 
-func (c *cmd) Help() string     { return c.help }
-func (c *cmd) Synopsis() string { return c.synopsis }
 func (c *cmd) Run(args []string) int {
 	if err := c.run(append([]string{""}, args...)); err != nil {
 		log.Info("%s", err)
@@ -72,9 +65,8 @@ func (c *cmd) Run(args []string) int {
 func makeCommand(command *actioncli.Command) cli.CommandFactory {
 	return func() (cli.Command, error) {
 		return &cmd{
-			help:     command.Help(),
-			synopsis: command.Description(),
-			run:      command.Execute,
+			Command: command,
+			run:     command.Execute,
 		}, nil
 	}
 }

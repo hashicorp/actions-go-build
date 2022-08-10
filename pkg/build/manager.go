@@ -44,21 +44,25 @@ func (bm *Manager) ResultFromCache() (Result, bool, error) {
 func (bm *Manager) Result() (Result, error) {
 	bm.Debug("getting result")
 	if bm.forceRebuild {
-		bm.Debug("Force-rebuild on, not inspecting cache.")
-	} else {
-		bm.Debug("Inspecting cache.")
-		r, cached, err := bm.ResultFromCache()
-		if err != nil {
-			bm.Log("Error inspecting cache: %s", err)
-			return r, err
-		}
-		if cached {
-			bm.Log("Loaded build result from cache.")
-			return r, nil
-		}
-		bm.Debug("No build result avilable in cache.")
+		bm.Log("Force-rebuild on, running a fresh build...")
+		return bm.runBuild()
 	}
-	bm.Log("Running a fresh %s build...", bm.runner.build.Kind())
+	bm.Debug("Inspecting cache.")
+	r, cached, err := bm.ResultFromCache()
+	if err != nil {
+		bm.Log("Error inspecting cache: %s", err)
+		return r, err
+	}
+	if cached {
+		bm.Log("Loaded build result from cache.")
+		return r, nil
+	}
+	bm.Debug("No build result avilable in cache.")
+	bm.Loud("Running a fresh build...")
+	return bm.runBuild()
+}
+
+func (bm *Manager) runBuild() (Result, error) {
 	result := bm.runner.Run()
 	cachePath, err := result.Save()
 	if err != nil {

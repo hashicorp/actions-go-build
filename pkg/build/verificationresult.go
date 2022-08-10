@@ -24,6 +24,8 @@ func (vr *VerificationResult) Error() error {
 	return errors.New(vr.ErrorMessage)
 }
 
+func (vr *VerificationResult) IsFromCache() bool { return false }
+
 // NewVerificationResult constructs a new VerificationResult ready for
 // serialisation.
 func NewVerificationResult(primary, verification Result) (*VerificationResult, error) {
