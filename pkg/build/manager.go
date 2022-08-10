@@ -50,15 +50,13 @@ func (bm *Manager) Result() (Result, error) {
 	bm.Debug("Inspecting cache.")
 	r, cached, err := bm.ResultFromCache()
 	if err != nil {
-		bm.Log("Error inspecting cache: %s", err)
-		return r, err
+		return r, fmt.Errorf("inspecting cache: %w", err)
 	}
 	if cached {
 		bm.Log("Loaded build result from cache.")
 		return r, nil
 	}
-	bm.Debug("No build result avilable in cache.")
-	bm.Loud("Running a fresh build...")
+	bm.Log("No build result avilable in cache; Running a fresh build...")
 	return bm.runBuild()
 }
 

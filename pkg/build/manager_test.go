@@ -101,9 +101,9 @@ func TestManager_err(t *testing.T) {
 	}{
 		{
 			desc:    "default return cache err",
-			build:   &mockBuild{cached: result("cached"), cacheErr: e("cache err")},
+			build:   &mockBuild{cached: result("cached"), cacheErr: e("cache err1")},
 			opts:    nil,
-			wantErr: e("cache err"),
+			wantErr: e("inspecting cache: cache err1"),
 		},
 	}
 
