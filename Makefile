@@ -168,8 +168,11 @@ test/go/update: export UPDATE_TESTDATA := true
 test/go/update: test/go
 	@echo "Test data updated."
 
-test/go: 
+compile:
 	@$(CLEAR)
+	@go build ./...
+
+test/go: compile
 	@go test $(GO_TEST_FLAGS) ./...
 
 .PHONY: docs
