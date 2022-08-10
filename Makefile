@@ -2,6 +2,14 @@ SHELL := /usr/bin/env bash -euo pipefail -c
 
 PRODUCT_NAME := actions-go-build
 
+# Default to clearing before running if connected to a terminal.
+CLEAR ?= 0
+ifneq ($(CLEAR),0)
+	CLEAR := clear
+else
+	CLEAR :=
+endif
+
 default: test
 
 # Always just install the git hooks.
@@ -89,6 +97,7 @@ $(TMP_BUILD):
 # Thus, each version of actions-go-build is built using itself.
 .PHONY: $(BIN_PATH)
 $(BIN_PATH):
+	@$(CLEAR)
 	# Running tests...
 	@$(MAKE) test > /dev/null 2>&1 || { echo "Tests failed, please run 'make test'."; exit 1; }
 	# First build:   Plain go build...
@@ -113,6 +122,7 @@ install: $(BIN_PATH)
 	$(CLINAME) --version
 else
 install: $(BIN_PATH)
+	@$(CLEAR)
 	@mv "$<" /usr/local/bin/
 	@V="$$($(CLINAME) version -short)" && \
 		echo "# $(CLINAME) v$$V installed to /usr/local/bin"
