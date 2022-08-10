@@ -17,7 +17,7 @@ var stderr = os.Stderr
 // when this CLI is incorporated into a parent CLI, the commands within will be
 // rooted at "go". E.g. "go-build", "go-build primary", "go-build verification".
 var Main = cli.RootCommand("go-build", "go build and related functions",
-	Build, Verify2, BuildEnv, Config)
+	Build, Verify, Config)
 
 type buildOpts struct {
 	buildish
@@ -30,7 +30,7 @@ func (opts *buildOpts) Flags(fs *flag.FlagSet) {
 }
 
 var Build = cli.LeafCommand("build", "run a build", func(opts *buildOpts) error {
-	return opts.runBuild(opts.verification)
+	return opts.runBuild("Running build", opts.verification)
 })
 
 type inspectOpts struct {
@@ -44,7 +44,7 @@ func (opts *inspectOpts) Flags(fs *flag.FlagSet) {
 }
 
 var Inspect = cli.LeafCommand("inspect", "inspect things", func(opts *inspectOpts) error {
-	b, err := opts.Build(opts.verification)
+	b, err := opts.Build("Inspecting build", opts.verification)
 	if err != nil {
 		return err
 	}
@@ -77,12 +77,6 @@ func printList(list []string) error {
 	return cli.TabWrite(stdout, list, func(s string) string { return s })
 }
 
-var Verify2 = cli.LeafCommand("verify", "verify a build's reproducibility", func(v *verifyish) error {
+var Verify = cli.LeafCommand("verify", "verify a build's reproducibility", func(v *verifyish) error {
 	return v.runVerification()
 })
-
-//var Build = cli.RootCommand("build", "run builds and inspect the build env",
-//	PrimaryBuild, LVBuild, BuildEnv)
-
-var BuildEnv = cli.RootCommand("build-env", "inspect the build environment",
-	BuildEnvDescribe, BuildEnvDump)

@@ -56,10 +56,10 @@ func (opts *logOpts) loudFunc() log.Func {
 	return log.Info
 }
 
-func (opts *logOpts) buildOptions() []build.Option {
-	return []build.Option{
+func (opts *logOpts) buildOptions(extraOpts ...build.Option) []build.Option {
+	return append([]build.Option{
 		build.WithDebugfunc(opts.debugFunc()),
 		build.WithLogfunc(opts.logFunc()),
 		build.WithLoudfunc(opts.loudFunc()),
-	}
+	}, extraOpts...)
 }

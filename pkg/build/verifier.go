@@ -17,7 +17,7 @@ type Verifier struct {
 }
 
 func NewVerifier(primary, verification ResultSource, opts ...Option) (*Verifier, error) {
-	s, err := newSettings("verifier", opts)
+	s, err := newSettings(opts)
 	if err != nil {
 		return nil, err
 	}

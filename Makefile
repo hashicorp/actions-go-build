@@ -13,6 +13,9 @@ endif
 
 default: run
 
+
+RUN_TESTS_QUIET := @$(MAKE) test > /dev/null 2>&1 || { echo "Tests failed, please run 'make test'."; exit 1; }
+
 # Always just install the git hooks.
 _ := $(shell cd .git/hooks && ln -fs ../../dev/git_hooks/* .)
 
@@ -83,6 +86,8 @@ env:
 
 .PHONY: $(TMP_BUILD)
 $(TMP_BUILD):
+	# Running tests
+	@$(RUN_TESTS_QUIET)
 	# Creating temporary build.
 	@rm -f "$(TMP_BUILD)"
 	@mkdir -p "$(dir $(TMP_BUILD))"
@@ -101,7 +106,7 @@ $(TMP_BUILD):
 $(BIN_PATH):
 	@$(CLEAR)
 	# Running tests...
-	@$(MAKE) test > /dev/null 2>&1 || { echo "Tests failed, please run 'make test'."; exit 1; }
+	@$(RUN_TESTS_QUIET)
 	# First build:   Plain go build...
 	@$(MAKE) $(TMP_BUILD)
 	# Second build:  Using first build to build self...
@@ -139,7 +144,7 @@ mod/framework/update:
 
 run: $(TMP_BUILD)
 	@$(CLEAR)
-	@echo "Running: $(notdir $<) $(RUN)"
+	@echo "\$$ $(notdir $<) $(RUN)"
 	$(RUNCLI) $(RUN)
 
 run/config: $(TMP_BUILD)

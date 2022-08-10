@@ -22,8 +22,7 @@ type Runner struct {
 }
 
 func NewRunner(b Build, opts ...Option) (*Runner, error) {
-	name := fmt.Sprintf("manager: %s", b.Kind())
-	s, err := newSettings(name, opts)
+	s, err := newSettings(opts)
 	if err != nil {
 		return nil, err
 	}

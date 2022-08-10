@@ -63,16 +63,16 @@ func (b *buildish) Init() error {
 	return nil
 }
 
-func (b *buildish) Build(forceVerification bool) (*build.Manager, error) {
-	buildFunc, err := b.getBuildFunc(forceVerification)
+func (b *buildish) Build(why string, forceVerification bool, extraOpts ...build.Option) (*build.Manager, error) {
+	buildFunc, err := b.getBuildFunc(why, forceVerification, extraOpts...)
 	if err != nil {
 		return nil, err
 	}
 	return buildFunc()
 }
 
-func (b *buildish) runBuild(forceVerification bool) error {
-	buildFunc, err := b.getBuildFunc(forceVerification)
+func (b *buildish) runBuild(why string, forceVerification bool) error {
+	buildFunc, err := b.getBuildFunc(why, forceVerification)
 	if err != nil {
 		return err
 	}
@@ -87,7 +87,7 @@ func (b *buildish) runBuild(forceVerification bool) error {
 	return b.output.result(b.desc, result)
 }
 
-func (b *buildish) getBuildFunc(forceVerification bool) (buildFunc, error) {
+func (b *buildish) getBuildFunc(why string, forceVerification bool, extraOpts ...build.Option) (buildFunc, error) {
 	var (
 		done  bool
 		err   error
@@ -95,12 +95,12 @@ func (b *buildish) getBuildFunc(forceVerification bool) (buildFunc, error) {
 	)
 	b.debug("Resolving buildish %q", b.target)
 	b.desc = "Build"
-	if build, done, err = b.urlConfigSource(b.target); done {
-		b.log("Using config from %s", b.target)
-	} else if build, done, err = b.localDirConfigSource(b.target, forceVerification); done {
-		b.log("Using config and source code from %s", b.target)
-	} else if build, done, err = b.localFileConfigSource(b.target); done {
-		b.log("Using config from %s", b.target)
+	if build, done, err = b.urlConfigSource(b.target, extraOpts...); done {
+		b.log("%s using config from %s", why, b.target)
+	} else if build, done, err = b.localDirConfigSource(b.target, forceVerification, extraOpts...); done {
+		b.log("%s using config and source code from %s", why, b.target)
+	} else if build, done, err = b.localFileConfigSource(b.target, extraOpts...); done {
+		b.log("%s using config from %s", why, b.target)
 	} else {
 		err = fmt.Errorf("could not load build config from %q", b.target)
 	}
@@ -110,7 +110,7 @@ func (b *buildish) getBuildFunc(forceVerification bool) (buildFunc, error) {
 	return build, err
 }
 
-func (b *buildish) urlConfigSource(maybeURL string) (buildFunc, bool, error) {
+func (b *buildish) urlConfigSource(maybeURL string, extraOpts ...build.Option) (buildFunc, bool, error) {
 	u, err := url.Parse(maybeURL)
 	if err != nil {
 		b.debug("not a URL: %s: %s", maybeURL, err)
@@ -121,17 +121,17 @@ func (b *buildish) urlConfigSource(maybeURL string) (buildFunc, bool, error) {
 	return b.configSourceFromReadCloser(maybeURL, func() (io.ReadCloser, error) {
 		resp, err := http.Get(maybeURL)
 		return resp.Body, err
-	}), true, err
+	}, extraOpts...), true, err
 }
 
-func (b *buildish) localFileConfigSource(maybeFile string) (buildFunc, bool, error) {
+func (b *buildish) localFileConfigSource(maybeFile string, extraOpts ...build.Option) (buildFunc, bool, error) {
 	maybeFile, exists, err := b.resolvePath("file", maybeFile, fs.FileExists)
 	return b.configSourceFromReadCloser(maybeFile, func() (io.ReadCloser, error) {
 		return os.Open(maybeFile)
-	}), exists, err
+	}, extraOpts...), exists, err
 }
 
-func (b *buildish) localDirConfigSource(maybeDir string, forceVerification bool) (buildFunc, bool, error) {
+func (b *buildish) localDirConfigSource(maybeDir string, forceVerification bool, extraOpts ...build.Option) (buildFunc, bool, error) {
 	absDir, exists, err := b.resolvePath("dir", maybeDir, fs.DirExists)
 	return func() (*build.Manager, error) {
 		c, err := config.FromEnvironment(tool, absDir)
@@ -147,10 +147,10 @@ func (b *buildish) localDirConfigSource(maybeDir string, forceVerification bool)
 		var m *build.Manager
 		if forceVerification {
 			startTime := time.Now()
-			if m, err = b.buildFlags.newLocalVerificationManager(maybeDir, startTime, bc); err != nil {
+			if m, err = b.buildFlags.newLocalVerificationManager(maybeDir, startTime, bc, extraOpts...); err != nil {
 				return nil, err
 			}
-		} else if m, err = b.buildFlags.newPrimaryManager(bc); err != nil {
+		} else if m, err = b.buildFlags.newPrimaryManager(bc, extraOpts...); err != nil {
 			return nil, err
 		}
 		b.build = m.Build()
@@ -176,7 +176,7 @@ func (b *buildish) resolvePath(kind, maybePath string, existsFunc func(string) (
 	return maybePath, exists, err
 }
 
-func (b *buildish) configSourceFromReadCloser(location string, rcFunc func() (io.ReadCloser, error)) buildFunc {
+func (b *buildish) configSourceFromReadCloser(location string, rcFunc func() (io.ReadCloser, error), extraOpts ...build.Option) buildFunc {
 	return func() (*build.Manager, error) {
 		b.debug("reading build config from %q", location)
 		rc, err := rcFunc()
@@ -190,7 +190,7 @@ func (b *buildish) configSourceFromReadCloser(location string, rcFunc func() (io
 			return nil, fmt.Errorf("unable to read build config from %q: %w", location, err)
 		}
 
-		bm, err := b.buildFlags.newRemoteVerificationManager(c)
+		bm, err := b.buildFlags.newRemoteVerificationManager(c, extraOpts...)
 		if err != nil {
 			return nil, err
 		}

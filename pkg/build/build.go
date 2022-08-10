@@ -34,7 +34,7 @@ type core struct {
 }
 
 func newCore(name string, cfg Config, options ...Option) (*core, error) {
-	s, err := newSettings("build: "+name, options)
+	s, err := newSettings(options)
 	if err != nil {
 		return nil, err
 	}

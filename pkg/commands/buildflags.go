@@ -48,49 +48,54 @@ func (flags *buildFlags) ownFlags(fs *flag.FlagSet) {
 	fs.BoolVar(&flags.rebuild, "rebuild", false, "re-run the build even if cached")
 }
 
-func (flags *buildFlags) newPrimary(c build.Config) (build.Build, error) {
-	return build.NewPrimary(c, flags.buildOptions()...)
+// A bunch of constructors for things we need configured according to flags.
+
+func (flags *buildFlags) newPrimary(c build.Config, extraOpts ...build.Option) (build.Build, error) {
+	return build.NewPrimary(c, flags.buildOptions(extraOpts...)...)
 }
 
-func (flags *buildFlags) newPrimaryManager(c build.Config) (*build.Manager, error) {
-	return flags.manager(flags.newPrimary(c))
+func (flags *buildFlags) newPrimaryManager(c build.Config, extraOpts ...build.Option) (*build.Manager, error) {
+	p, err := flags.newPrimary(c, extraOpts...)
+	return flags.manager(p, err, extraOpts...)
 }
 
-func (flags *buildFlags) newLocalVerification(primaryRoot string, startAfter time.Time, c build.Config) (build.Build, error) {
-	return build.NewLocalVerification(primaryRoot, startAfter, c, flags.buildOptions()...)
+func (flags *buildFlags) newLocalVerification(primaryRoot string, startAfter time.Time, c build.Config, extraOpts ...build.Option) (build.Build, error) {
+	return build.NewLocalVerification(primaryRoot, startAfter, c, flags.buildOptions(extraOpts...)...)
 }
 
-func (flags *buildFlags) newLocalVerificationManager(primaryRoot string, startAfter time.Time, c build.Config) (*build.Manager, error) {
-	return flags.manager(flags.newLocalVerification(primaryRoot, startAfter, c))
+func (flags *buildFlags) newLocalVerificationManager(primaryRoot string, startAfter time.Time, c build.Config, extraOpts ...build.Option) (*build.Manager, error) {
+	lv, err := flags.newLocalVerification(primaryRoot, startAfter, c, extraOpts...)
+	return flags.manager(lv, err, extraOpts...)
 }
 
-func (flags *buildFlags) newRemoteVerification(c build.Config) (build.Build, error) {
-	return build.NewRemoteVerification(c, flags.buildOptions()...)
+func (flags *buildFlags) newRemoteVerification(c build.Config, extraOpts ...build.Option) (build.Build, error) {
+	return build.NewRemoteVerification(c, flags.buildOptions(extraOpts...)...)
 }
 
-func (flags *buildFlags) newRemoteVerificationManager(c build.Config) (*build.Manager, error) {
-	return flags.manager(flags.newRemoteVerification(c))
+func (flags *buildFlags) newRemoteVerificationManager(c build.Config, extraOpts ...build.Option) (*build.Manager, error) {
+	rv, err := flags.newRemoteVerification(c, extraOpts...)
+	return flags.manager(rv, err, extraOpts...)
 }
 
-func (flags *buildFlags) newVerifier(primary, verification build.ResultSource) (*build.Verifier, error) {
-	return build.NewVerifier(primary, verification, flags.buildOptions()...)
+func (flags *buildFlags) newVerifier(primary, verification build.ResultSource, extraOpts ...build.Option) (*build.Verifier, error) {
+	return build.NewVerifier(primary, verification, flags.buildOptions(extraOpts...)...)
 }
 
-func (flags *buildFlags) manager(b build.Build, err error) (*build.Manager, error) {
+func (flags *buildFlags) manager(b build.Build, err error, extraOpts ...build.Option) (*build.Manager, error) {
 	if err != nil {
 		return nil, err
 	}
-	return flags.newManager(b)
+	return flags.newManager(b, extraOpts...)
 }
 
-func (flags *buildFlags) newManager(b build.Build) (*build.Manager, error) {
-	r, err := build.NewRunner(b, flags.buildOptions()...)
+func (flags *buildFlags) newManager(b build.Build, extraOpts ...build.Option) (*build.Manager, error) {
+	r, err := build.NewRunner(b, flags.buildOptions(extraOpts...)...)
 	if err != nil {
 		return nil, err
 	}
-	return build.NewManager(r, flags.buildOptions()...)
+	return build.NewManager(r, flags.buildOptions(extraOpts...)...)
 }
 
-func (flags *buildFlags) buildOptions() []build.Option {
-	return append(flags.logOpts.buildOptions(), build.WithForceRebuild(flags.rebuild))
+func (flags *buildFlags) buildOptions(extraOpts ...build.Option) []build.Option {
+	return append(flags.logOpts.buildOptions(extraOpts...), build.WithForceRebuild(flags.rebuild))
 }

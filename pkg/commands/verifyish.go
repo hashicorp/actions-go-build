@@ -70,28 +70,30 @@ func (v *verifyish) setResultSources() error {
 }
 
 func (v *verifyish) primaryResultSource() (build.ResultSource, error) {
+	// Check if we were handed a result already (i.e. if the input was a build or verification result file).
 	if v.buildish.buildResult != nil {
 		return v.buildish.buildResult, nil
 	}
-	return v.buildish.Build(true)
+	return v.buildish.Build("Getting primary build result", true, build.WithLogPrefix("primary build"))
 }
 
 func (v *verifyish) configureLocalVerificationBuild(dir string, startAfter time.Time, c build.Config) error {
-	build, err := v.buildish.Build(true)
+	logPrefix := build.WithLogPrefix("verification build")
+	b, err := v.buildish.Build("Getting local verification build result", true, logPrefix)
 	if err != nil {
 		return err
 	}
-	if err := build.Build().ChangeToVerificationRoot(); err != nil {
+	if err := b.Build().ChangeToVerificationRoot(); err != nil {
 		return err
 	}
-	v.primary = build
-	v.verification, err = v.buildish.buildFlags.newLocalVerificationManager(v.buildish.dir, startAfter, c)
+	v.primary = b
+	v.verification, err = v.buildish.buildFlags.newLocalVerificationManager(v.buildish.dir, startAfter, c, logPrefix)
 	return err
 }
 
 func (v *verifyish) configureRemoteVerificationBuild(c build.Config) error {
 	var err error
-	v.verification, err = v.buildish.buildFlags.newRemoteVerificationManager(c)
+	v.verification, err = v.buildish.buildFlags.newRemoteVerificationManager(c, build.WithLogPrefix("verification build"))
 	return err
 }
 
@@ -128,7 +130,7 @@ func (v *verifyish) readyPrimaryResult() (build.Result, bool, error) {
 		return build.Result{}, false, nil
 	}
 
-	pb, err := v.buildish.Build(false)
+	pb, err := v.buildish.Build("Inspecting cache for build defined", false)
 	if err != nil {
 		return build.Result{}, false, err
 	}

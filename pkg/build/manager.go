@@ -13,8 +13,7 @@ type Manager struct {
 }
 
 func NewManager(r *Runner, opts ...Option) (*Manager, error) {
-	name := fmt.Sprintf("manager: %s", r.build.Kind())
-	s, err := newSettings(name, opts)
+	s, err := newSettings(opts)
 	if err != nil {
 		return nil, err
 	}

@@ -17,7 +17,6 @@ import (
 // settings when calling New.
 type Settings struct {
 	bash         string
-	name         string
 	context      context.Context
 	Log          func(string, ...any)
 	Debug        func(string, ...any)
@@ -25,17 +24,7 @@ type Settings struct {
 	stdout       io.Writer
 	stderr       io.Writer
 	forceRebuild bool
-}
-
-func makeNamedLogFunc(name string, logFunc log.Func) log.Func {
-	return func(f string, a ...any) {
-		f = fmt.Sprintf("%s: %s", name, f)
-		logFunc(f, a...)
-	}
-}
-
-func (s *Settings) makeLogFunc(logFunc log.Func) log.Func {
-	return makeNamedLogFunc(s.name, logFunc)
+	logPrefix    string
 }
 
 // Option represents a function that configures Settings.
@@ -48,6 +37,9 @@ func WithContext(c context.Context) Option { return func(s *Settings) { s.contex
 func WithLogfunc(f func(string, ...any)) Option {
 	return func(s *Settings) { s.Log = s.makeLogFunc(f) }
 }
+
+// WithLogPrefix sets the log prefix.
+func WithLogPrefix(p string) Option { return func(s *Settings) { s.logPrefix = p } }
 
 // WithDebugfunc sest the debug func.
 func WithDebugfunc(f func(string, ...any)) Option {
@@ -68,27 +60,17 @@ func WithStderr(w io.Writer) Option { return func(s *Settings) { s.stderr = w } 
 // WithForceRebuild forces a build to be re-done rather than using cache.
 func WithForceRebuild(on bool) Option { return func(s *Settings) { s.forceRebuild = on } }
 
-func newSettings(name string, options []Option) (Settings, error) {
-	if name == "" {
-		name = "unnamed"
-	}
-	out := &Settings{
-		name: name,
-	}
-	for _, o := range options {
-		o(out)
-	}
-	if err := out.setDefaults(); err != nil {
-		return Settings{}, err
-	}
-	return *out, nil
+func newSettings(options []Option) (Settings, error) {
+	s := &Settings{}
+	err := s.setOptions(options...)
+	return *s, err
 }
 
-func resolveBashPath(path string) (string, error) {
-	if path == "" {
-		path = "bash"
+func (s *Settings) setOptions(opts ...Option) error {
+	for _, o := range opts {
+		o(s)
 	}
-	return exec.LookPath(path)
+	return s.setDefaults()
 }
 
 func (s *Settings) setDefaults() (err error) {
@@ -100,14 +82,18 @@ func (s *Settings) setDefaults() (err error) {
 		s.context = context.Background()
 	}
 	if s.Debug == nil {
-		s.Debug = s.makeLogFunc(log.Debug)
+		s.Debug = log.Debug
 	}
 	if s.Log == nil {
-		s.Log = s.makeLogFunc(log.Verbose)
+		s.Log = log.Verbose
 	}
 	if s.Loud == nil {
-		s.Loud = s.makeLogFunc(log.Info)
+		s.Loud = log.Info
 	}
+
+	WithDebugfunc(s.Debug)(s)
+	WithLogfunc(s.Log)(s)
+	WithLoudfunc(s.Loud)(s)
 	if s.stdout == nil {
 		s.stdout = os.Stderr
 	}
@@ -115,4 +101,25 @@ func (s *Settings) setDefaults() (err error) {
 		s.stderr = os.Stderr
 	}
 	return nil
+}
+
+func resolveBashPath(path string) (string, error) {
+	if path == "" {
+		path = "bash"
+	}
+	return exec.LookPath(path)
+}
+
+func (s *Settings) makeLogFunc(logFunc log.Func) log.Func {
+	return makePrefixedLocFunc(s.logPrefix, logFunc)
+}
+
+func makePrefixedLocFunc(name string, logFunc log.Func) log.Func {
+	if name != "" {
+		name = name + ": "
+	}
+	return func(f string, a ...any) {
+		f = fmt.Sprintf("%s%s", name, f)
+		logFunc(f, a...)
+	}
 }
