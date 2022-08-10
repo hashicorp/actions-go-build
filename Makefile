@@ -2,15 +2,16 @@ SHELL := /usr/bin/env bash -euo pipefail -c
 
 PRODUCT_NAME := actions-go-build
 
-# Default to clearing before running if connected to a terminal.
-CLEAR ?= 0
+# Set AUTOCLEAR=1 to have the terminal cleared before running builds,
+# tests, and installs.
+CLEAR := $(AUTOCLEAR)
 ifneq ($(CLEAR),0)
 	CLEAR := clear
 else
 	CLEAR :=
 endif
 
-default: test
+default: run
 
 # Always just install the git hooks.
 _ := $(shell cd .git/hooks && ln -fs ../../dev/git_hooks/* .)
@@ -82,6 +83,7 @@ env:
 
 .PHONY: $(TMP_BUILD)
 $(TMP_BUILD):
+	# Creating temporary build.
 	@rm -f "$(TMP_BUILD)"
 	@mkdir -p "$(dir $(TMP_BUILD))"
 	@go build -o "$(TMP_BUILD)"
@@ -136,7 +138,9 @@ mod/framework/update:
 # which is usful for quickly seeing its output whilst developing.
 
 run: $(TMP_BUILD)
-	$(RUNCLI)
+	@$(CLEAR)
+	@echo "Running: $(notdir $<) $(RUN)"
+	$(RUNCLI) $(RUN)
 
 run/config: $(TMP_BUILD)
 	$(RUNCLI) config
@@ -162,8 +166,10 @@ run/verify: $(TMP_BUILD)
 
 test/go/update: export UPDATE_TESTDATA := true
 test/go/update: test/go
+	@echo "Test data updated."
 
 test/go: 
+	@$(CLEAR)
 	@go test $(GO_TEST_FLAGS) ./...
 
 .PHONY: docs
