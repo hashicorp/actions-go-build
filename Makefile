@@ -143,21 +143,9 @@ run/test-show: $(TMP_BUILD)
 run/build: $(TMP_BUILD)
 	$(RUNCLI) build
 
-# run/build/env/describe is called by dev/docs/environment_doc
-run/build/env/describe: $(TMP_BUILD)
-	$(RUNCLI) build env describe
-
-run/build/env/dump: $(TMP_BUILD)
-	$(RUNCLI) build env dump
-
-run/build/env/dump-verification: $(TMP_BUILD)
-	$(RUNCLI) build env dump
-
-run/build/primary: $(TMP_BUILD)
-	$(RUNCLI) build primary
-
-run/build/verification: $(TMP_BUILD)
-	$(RUNCLI) build verification
+# run/describe/buildenv is called by dev/docs/environment_doc
+run/describe/buildenv: $(TMP_BUILD)
+	$(RUNCLI) describe buildenv
 
 run/verify: $(TMP_BUILD)
 	$(RUNCLI) verify

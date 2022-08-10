@@ -2,8 +2,10 @@ package commands
 
 import (
 	"flag"
+	"fmt"
 	"os"
 
+	"github.com/hashicorp/actions-go-build/pkg/build"
 	"github.com/hashicorp/composite-action-framework-go/pkg/cli"
 )
 
@@ -24,12 +26,56 @@ type buildOpts struct {
 
 func (opts *buildOpts) Flags(fs *flag.FlagSet) {
 	opts.buildish.Flags(fs)
-	fs.BoolVar(&opts.verification, "verification", false, "force a verification build")
+	fs.BoolVar(&opts.verification, "verification", false, "configure build as a verification build")
 }
 
-var Build = cli.LeafCommand("build", "run a build", func(b *buildOpts) error {
-	return b.runBuild(b.verification)
+var Build = cli.LeafCommand("build", "run a build", func(opts *buildOpts) error {
+	return opts.runBuild(opts.verification)
 })
+
+type inspectOpts struct {
+	buildOpts
+	buildEnv bool
+}
+
+func (opts *inspectOpts) Flags(fs *flag.FlagSet) {
+	opts.buildOpts.Flags(fs)
+	fs.BoolVar(&opts.buildEnv, "build-env", false, "just print the build environment")
+}
+
+var Inspect = cli.LeafCommand("inspect", "inspect things", func(opts *inspectOpts) error {
+	b, err := opts.Build(opts.verification)
+	if err != nil {
+		return err
+	}
+	prefix := ""
+	if !opts.buildEnv {
+		if _, err := fmt.Fprintln(os.Stdout, "Build Environment"); err != nil {
+			return err
+		}
+		prefix = "  "
+	}
+	for _, v := range b.Build().Env() {
+		if _, err := fmt.Fprintln(os.Stdout, prefix+v); err != nil {
+			return err
+		}
+	}
+
+	return nil
+})
+
+var Describe = cli.RootCommand("describe", "describe things", DescribeBuildEnv)
+
+var DescribeBuildEnv = cli.LeafCommand("build-env", "describe the build environment variables", func(cli.None) error {
+	env := build.BuildEnvDefinitions()
+	return cli.TabWrite(stdout, env, func(e build.EnvVar) string {
+		return fmt.Sprintf("%s\t%s", e.Name, e.Description)
+	})
+})
+
+func printList(list []string) error {
+	return cli.TabWrite(stdout, list, func(s string) string { return s })
+}
 
 var Verify2 = cli.LeafCommand("verify", "verify a build's reproducibility", func(v *verifyish) error {
 	return v.runVerification()

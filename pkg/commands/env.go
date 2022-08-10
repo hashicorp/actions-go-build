@@ -53,7 +53,3 @@ var BuildEnvDump = cli.LeafCommand("dump", "print the current build environment"
 	}
 	return printList(b.Env())
 })
-
-func printList(list []string) error {
-	return cli.TabWrite(stdout, list, func(s string) string { return s })
-}
