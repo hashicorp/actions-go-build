@@ -51,18 +51,9 @@ cover: test/go
 test/update: test/go/update
 
 CLINAME   := $(PRODUCT_NAME)
-CLI       := bin/$(CLINAME)
+CLI       := dist/$(CLINAME)
 TMP_BUILD := $(TMPDIR)/temp-build/$(CLINAME)
 RUNCLI    := @$(TMP_BUILD)
-
-BIN_PATH ?= $(CLI)
-
-LDFLAGS      := -X 'main.FullVersion=$$PRODUCT_VERSION'
-LDFLAGS      += -X 'main.Revision=$$PRODUCT_REVISION'
-LDFLAGS      += -X 'main.RevisionTime=$$PRODUCT_REVISION_TIME'
-BUILD_FLAGS  := -trimpath -buildvcs=false -ldflags="$(LDFLAGS)"
-INSTRUCTIONS := go build -o "$$BIN_PATH" $(BUILD_FLAGS)
-INSTALL      := go install $(BUILD_FLAGS)
 
 FORMAT_INSTRUCTIONS := sed -E -e 's/-([^-]+)/\n  -\1/g' -e 's/-X/  -X/g' -e 's/\n/\\\n/g' -e 's/  \\/ \\/g'
 
@@ -101,9 +92,8 @@ $(TMP_BUILD):
 # correct tool version injected into the build.
 #
 # Thus, each version of actions-go-build is built using itself.
-.PHONY: $(BIN_PATH)
-$(BIN_PATH): export BIN_PATH := $(BIN_PATH)
-$(BIN_PATH):
+.PHONY: $(CLI)
+$(CLI):
 	@$(CLEAR)
 	# Running tests...
 	@$(RUN_TESTS_QUIET)
@@ -111,24 +101,22 @@ $(BIN_PATH):
 	@$(MAKE) $(TMP_BUILD)
 	# Second build:  Using first build to build self...
 	@$(TMP_BUILD) build -rebuild
-	@mv "dist/$(CLINAME)" "$@"
 	# Third build:   Using second (self-built) build to build self...
 	@"$@" build -rebuild
-	@mv "dist/$(CLINAME)" "$@"
 	# Verifying reproducibility of self...
 	@./$@ verify
 
-cli: $(BIN_PATH)
+cli: $(CLI)
 	@echo "Build successful."
-	$(BIN_PATH) --version
+	$(CLI) --version
 
 ifneq ($(GITHUB_PATH),)
-install: $(BIN_PATH)
+install: $(CLI)
 	@echo "$(dir $(CURDIR)/$(CLI))" >> "$$GITHUB_PATH"
 	@echo "Command '$(CLINAME)' installed to GITHUB_PATH"
 	$(CLINAME) --version
 else
-install: $(BIN_PATH)
+install: $(CLI)
 	@$(CLEAR)
 	@mv "$<" /usr/local/bin/
 	@V="$$($(CLINAME) version -short)" && \
