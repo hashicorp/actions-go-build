@@ -72,12 +72,12 @@ func TestConfig_init_ok(t *testing.T) {
 		{
 			"overridden primary build root",
 			testUninitializedConfig(func(i *Config) {
-				i.PrimaryBuildRoot = "/other/dir/work"
+				i.Primary.BuildRoot = "/other/dir/work"
 			}),
 			testRepoContext(),
 			testConfig(func(c *Config) {
-				c.PrimaryBuildRoot = "/other/dir/work"
-				c.VerificationBuildRoot = "/other/dir/verification"
+				c.Primary.BuildRoot = "/other/dir/work"
+				c.Verification.BuildRoot = "/other/dir/verification"
 			}),
 		},
 	}
@@ -97,13 +97,15 @@ func TestConfig_init_ok(t *testing.T) {
 
 			// Test the verification build root separately because it's
 			// a temp directory with an unpredictable name.
-			if got.VerificationBuildRoot == "" {
+			if got.Verification.BuildRoot == "" {
 				t.Errorf("got empty VerificationBuildRoot")
 			}
 			// Force got and want build roots and build instructions to be empty so we
 			// can assert equality on everything else.
-			got.VerificationBuildRoot = ""
-			want.VerificationBuildRoot = ""
+			got.Verification = Paths{}
+			want.Verification = Paths{}
+			got.Primary = Paths{}
+			want.Primary = Paths{}
 			got.Parameters.Instructions = ""
 			want.Parameters.Instructions = ""
 
@@ -147,6 +149,7 @@ func standardProduct() crt.Product {
 			Core: "1.2.3",
 			Meta: "",
 		},
+		SourceHash:   "deadbeef",
 		Revision:     "cabba9e",
 		RevisionTime: standardCommitTimeRFC3339(),
 	}
@@ -166,6 +169,7 @@ func standardRepoContext() crt.RepoContext {
 		Dir:         "/some/dir/work",
 		RootDir:     "/some/dir/work",
 		CommitSHA:   "cabba9e",
+		SourceHash:  "deadbeef",
 		CommitTime:  standardCommitTimestamp(),
 		CoreVersion: *version.Must(version.NewVersion("1.2.3")),
 	}
@@ -173,11 +177,11 @@ func standardRepoContext() crt.RepoContext {
 
 func standardConfig() Config {
 	return Config{
-		Product:               standardProduct(),
-		Parameters:            standardParameters(),
-		Reproducible:          "assert",
-		PrimaryBuildRoot:      "/some/dir/work",
-		VerificationBuildRoot: "/some/dir/verification",
+		Product:      standardProduct(),
+		Parameters:   standardParameters(),
+		Reproducible: "assert",
+		Primary:      Paths{BuildRoot: "/some/dir/work"},
+		Verification: Paths{BuildRoot: "/some/dir/verification"},
 		Tool: crt.Tool{
 			Name:     "thisaction",
 			Version:  "0.0.0",
@@ -188,29 +192,11 @@ func standardConfig() Config {
 
 func standardUnintializedConfig() Config {
 	return Config{
-		Product: crt.Product{
-			Repository:     "",
-			Name:           "",
-			CoreName:       "",
-			ExecutableName: "",
-			Version: crt.ProductVersion{
-				Full: "",
-				Core: "",
-				Meta: "",
-			},
-			Revision:     "",
-			RevisionTime: "",
-		},
 		Parameters: build.Parameters{
-			GoVersion:    "1.18",
-			Instructions: "",
-			OS:           "linux",
-			Arch:         "amd64",
-			ZipName:      "",
+			GoVersion: "1.18",
+			OS:        "linux",
+			Arch:      "amd64",
 		},
-		Reproducible:          "",
-		PrimaryBuildRoot:      "",
-		VerificationBuildRoot: "",
 	}
 }
 

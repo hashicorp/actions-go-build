@@ -40,6 +40,12 @@ _GitHubActionsFileCommandDelimeter_
 VERIFICATION_BUILD_ROOT<<_GitHubActionsFileCommandDelimeter_
 /some/dir/verification
 _GitHubActionsFileCommandDelimeter_
+PRIMARY_BUILD_RESULT<<_GitHubActionsFileCommandDelimeter_
+
+_GitHubActionsFileCommandDelimeter_
+VERIFICATION_BUILD_RESULT<<_GitHubActionsFileCommandDelimeter_
+
+_GitHubActionsFileCommandDelimeter_
 BIN_PATH_PRIMARY<<_GitHubActionsFileCommandDelimeter_
 /some/dir/work/dist/lockbox
 _GitHubActionsFileCommandDelimeter_

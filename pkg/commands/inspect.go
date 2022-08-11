@@ -58,19 +58,19 @@ func (p *printer) printAll() error {
 	)
 }
 
-func (p printer) buildEnv() error {
+func (p *printer) buildEnv() error {
 	if err := p.title("Build Environment"); err != nil {
 		return err
 	}
 	for _, v := range p.build.Env() {
-		if err := p.line(p.prefix + v); err != nil {
+		if err := p.line(v); err != nil {
 			return err
 		}
 	}
 	return nil
 }
 
-func (p printer) zipName() error {
+func (p *printer) zipName() error {
 	if err := p.title("Zip Name"); err != nil {
 		return err
 	}
@@ -86,7 +86,7 @@ func firstErr(f ...func() error) error {
 	return nil
 }
 
-func (p printer) title(s string) error {
+func (p *printer) title(s string) error {
 	if !p.printTitles {
 		return nil
 	}
@@ -94,7 +94,7 @@ func (p printer) title(s string) error {
 	return err
 }
 
-func (p printer) line(s string) error {
-	_, err := fmt.Fprintln(p.w, s)
+func (p *printer) line(s string) error {
+	_, err := fmt.Fprintln(p.w, p.prefix+s)
 	return err
 }

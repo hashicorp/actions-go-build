@@ -28,11 +28,8 @@ func NewConfig(product crt.Product, params Parameters, paths Paths, creator crt.
 	}, nil
 }
 
-func (c Config) buildResultCachePath(verification bool) string {
-	if verification {
-		return tempDir.Verification.BuildResultCachePath(c)
-	}
-	return tempDir.Primary.BuildResultCachePath(c)
+func (c Config) BuildResultCachePath(verification bool) string {
+	return newDirsFromConfig(c, verification).BuildResultCacheDir()
 }
 
 // ChangeRoot returns a copy of this Config with an updated build root.
@@ -51,9 +48,9 @@ func (c Config) ChangeToRemotePrimaryRoot() (Config, error) {
 }
 
 func (c Config) VerificationRoot() string {
-	return tempDir.Verification.RemoteBuildRoot(c)
+	return newDirsFromConfig(c, true).RemoteBuildRoot()
 }
 
 func (c Config) RemotePrimaryRoot() string {
-	return tempDir.Primary.RemoteBuildRoot(c)
+	return newDirsFromConfig(c, false).RemoteBuildRoot()
 }

@@ -3,8 +3,6 @@ package config
 import (
 	"context"
 	"fmt"
-	"os"
-	"path/filepath"
 
 	"github.com/hashicorp/actions-go-build/pkg/build"
 	"github.com/hashicorp/actions-go-build/pkg/crt"
@@ -34,19 +32,18 @@ type Config struct {
 	// Tool is the version of actions-go-build that created this config.
 	Tool crt.Tool
 
-	// Optional inputs which do not affect the bytes produced.
-	// Mostly useful for testing.
+	Primary      Paths `env:"PRIMARY"`
+	Verification Paths `env:"VERIFICATION"`
+}
 
-	// PrimaryBuildRoot is the absolute path where the instructions are run for the
-	// primary build. This path should already exist and contain the product repo
-	// checked out at the commit we want to build.
-	// Default: current working directory.
-	PrimaryBuildRoot string `env:"PRIMARY_BUILD_ROOT"`
-	// VerificationBuildRoot is the absolute path where the instructions are run
-	// for the verification build. This path should not already exist, it is created
-	// by making a recursive copy of the primary build root.
-	// Default: a newly minted temporary directory.
-	VerificationBuildRoot string `env:"VERIFICATION_BUILD_ROOT"`
+type Paths struct {
+	// BuildRoot is the absolute path where the instructions are run for this build.
+	// We read it from the environment only to support testing.
+	BuildRoot string `env:"BUILD_ROOT"`
+	// BuildResult is the absolute path where the build result will be written.
+	// This is the same as the cache path for that build result.
+	// We do not read BuildResult from the environment.
+	BuildResult string
 }
 
 // FromEnvironment creates a new Config from environment variables
@@ -78,12 +75,12 @@ func (c Config) buildConfig(root string) (build.Config, error) {
 
 // PrimaryBuildConfig returns the config for the primary build.
 func (c Config) PrimaryBuildConfig() (build.Config, error) {
-	return c.buildConfig(c.PrimaryBuildRoot)
+	return c.buildConfig(c.Primary.BuildRoot)
 }
 
 // VerificationBuildConfig returns the config for a verification build.
 func (c Config) VerificationBuildConfig() (build.Config, error) {
-	return c.buildConfig(c.VerificationBuildRoot)
+	return c.buildConfig(c.Verification.BuildRoot)
 }
 
 func (c Config) init(rc crt.RepoContext, creator crt.Tool) (Config, error) {
@@ -97,18 +94,27 @@ func (c Config) init(rc crt.RepoContext, creator crt.Tool) (Config, error) {
 	if c.Reproducible, err = c.resolveReproducible(); err != nil {
 		return c, err
 	}
-	if c.PrimaryBuildRoot == "" {
-		c.PrimaryBuildRoot = rc.Dir
+
+	primaryPaths := build.NewPrimaryDirs(c.Product, creator)
+	verificationPaths := build.NewVerificationDirs(c.Product, creator)
+
+	// Default the primary build root to the current directory.
+	if c.Primary.BuildRoot == "" {
+		c.Primary.BuildRoot = rc.Dir
 	}
-	if c.VerificationBuildRoot == "" {
-		c.VerificationBuildRoot = defaultVerificationBuildRoot(rc)
+	if c.Verification.BuildRoot == "" {
+		c.Verification.BuildRoot = verificationPaths.RemoteBuildRoot()
 	}
+
+	if c.Primary.BuildResult == "" {
+		c.Primary.BuildResult = primaryPaths.BuildResultCacheDir()
+	}
+	if c.Verification.BuildResult == "" {
+		c.Verification.BuildResult = verificationPaths.BuildResultCacheDir()
+	}
+
 	c.Tool = creator
 	return c, nil
-}
-
-func defaultVerificationBuildRoot(rc crt.RepoContext) string {
-	return filepath.Join(os.TempDir(), "actions-go-build", rc.RepoName, rc.SourceHash, "verification")
 }
 
 func (c Config) resolveReproducible() (string, error) {

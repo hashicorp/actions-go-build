@@ -41,8 +41,6 @@ func (rb *RemoteBuild) Steps() []Step {
 
 	var sourceDLDir, sourceArchivePath string
 
-	var dirs = getTempDirs(rb.core.IsVerification())
-
 	pre := []Step{
 		newStep("change build root to temporary directory", func() error {
 			if rb.IsVerification() {
@@ -51,8 +49,7 @@ func (rb *RemoteBuild) Steps() []Step {
 			return rb.ChangeToPrimaryRoot()
 		}),
 		newStep("create temporary paths", func() error {
-			c := rb.Config()
-			sourceDLDir = dirs.SourceDownloadPath(c)
+			sourceDLDir = rb.Dirs().SourceDownloadDir()
 			return fs.MkdirEmpty(sourceDLDir)
 		}),
 		newStep(fmt.Sprintf("get %s", rb.sourceURL), func() error {

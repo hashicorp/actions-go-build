@@ -106,10 +106,10 @@ runs:
     # Primary Build
     - name: Run Primary Build
       shell: bash
-      run: cd ${{ inputs.work_dir }} && actions-go-build build primary
+      run: cd "${{ inputs.work_dir }}" && actions-go-build build
 
     # Upload Primary Build
-    - name: Upload primary build zip file.
+    - name: Upload Primary Zip
       uses: actions/upload-artifact@v3
       with:
         name: ${{ env.ZIP_NAME }}
@@ -120,10 +120,10 @@ runs:
     - name: Run Local Verification Build
       if: inputs.reproducible == 'assert' || inputs.reproducible == 'report'
       shell: bash
-      run: cd ${{ inputs.work_dir }} && actions-go-build build verification
+      run: cd "${{ inputs.work_dir }}" && actions-go-build build -verification
 
     # Upload Local Verification Build
-    - name: Upload local verification build zip file.
+    - name: Upload Local Verification Zip
       if: inputs.reproducible == 'assert' || inputs.reproducible == 'report'
       uses: actions/upload-artifact@v3
       with:
@@ -135,7 +135,7 @@ runs:
     - name: Assert Build Outputs Identical
       if: inputs.reproducible == 'assert'
       shell: bash
-      run: actions-go-build verify
+      run: actions-go-build verify -verification-build-result "$VERIFICATION_BUILD_RESULT"
 
     # Report Reproducibility
     - name: Report Reproducibility Results

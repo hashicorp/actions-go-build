@@ -22,6 +22,7 @@ type Build interface {
 	ChangeRoot(string) error
 	ChangeToVerificationRoot() error
 	IsVerification() bool
+	Dirs() TempDirs
 }
 
 func New(name string, isVerification bool, cfg Config, options ...Option) (Build, error) {
@@ -52,6 +53,10 @@ func (b *core) Config() Config {
 
 func (b *core) IsVerification() bool { return b.isVerification }
 
+func (b *core) Dirs() TempDirs {
+	return newDirsFromConfig(b.config, b.isVerification)
+}
+
 func (b *core) ChangeRoot(dir string) error {
 	b.Debug("changing root to %s", dir)
 	var err error
@@ -69,7 +74,7 @@ func (b *core) ChangeToPrimaryRoot() error {
 
 func (b *core) CachedResult() (Result, bool, error) {
 	var r Result
-	path := b.config.buildResultCachePath(b.isVerification)
+	path := b.config.BuildResultCachePath(b.isVerification)
 	exists, err := fs.FileExists(path)
 	if err != nil {
 		b.Debug("Cache read error: %s", err)
