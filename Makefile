@@ -5,7 +5,7 @@ PRODUCT_NAME := actions-go-build
 # Set AUTOCLEAR=1 to have the terminal cleared before running builds,
 # tests, and installs.
 CLEAR := $(AUTOCLEAR)
-ifneq ($(CLEAR),0)
+ifeq ($(CLEAR),1)
 	CLEAR := clear
 else
 	CLEAR :=
