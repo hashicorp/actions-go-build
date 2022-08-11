@@ -114,7 +114,7 @@ ifneq ($(GITHUB_PATH),)
 install: $(CLI)
 	@echo "$(dir $(CURDIR)/$(CLI))" >> "$(GITHUB_PATH)"
 	@echo "Command '$(CLINAME)' installed to GITHUB_PATH"
-	PATH="$(GITHUB_PATH)" $(CLINAME) --version
+	PATH="$$(cat $(GITHUB_PATH))" $(CLINAME) --version
 else
 install: $(CLI)
 	@$(CLEAR)
