@@ -74,19 +74,19 @@ func (v *verifyish) primaryResultSource() (build.ResultSource, error) {
 	if v.buildish.buildResult != nil {
 		return v.buildish.buildResult, nil
 	}
-	return v.buildish.Build("Getting primary build result", true, build.WithLogPrefix("primary build"))
+	return v.buildish.Build("Getting primary build result", false, build.WithLogPrefix("primary build"))
 }
 
 func (v *verifyish) configureLocalVerificationBuild(dir string, startAfter time.Time, c build.Config) error {
 	logPrefix := build.WithLogPrefix("verification build")
-	b, err := v.buildish.Build("Getting local verification build result", true, logPrefix)
-	if err != nil {
-		return err
-	}
-	if err := b.Build().ChangeToVerificationRoot(); err != nil {
-		return err
-	}
-	v.primary = b
+	//	b, err := v.buildish.Build("Getting local verification build result", true, logPrefix)
+	//	if err != nil {
+	//		return err
+	//	}
+	//	if err := b.Build().ChangeToVerificationRoot(); err != nil {
+	//		return err
+	//	}
+	var err error
 	v.verification, err = v.buildish.buildFlags.newLocalVerificationManager(v.buildish.dir, startAfter, c, logPrefix)
 	return err
 }

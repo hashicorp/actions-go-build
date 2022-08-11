@@ -40,10 +40,11 @@ func (v *Verifier) Verify() (*VerificationResult, error) {
 	if err != nil {
 		return nil, err
 	}
-	v.Debug("got primary build result")
+
+	v.Debug("got primary build result: error: %s", pr.Error())
 
 	if pr.Config.Product.IsDirty() {
-		v.Loud("WARNING: Primary result is dirty: source hash (%s...) != revision (%s...)",
+		v.Loud("WARNING: Primary build is dirty: source hash (%s...) != revision (%s...)",
 			pr.Config.Product.SourceHash[:8], pr.Config.Product.Revision[:8])
 	}
 
@@ -51,7 +52,14 @@ func (v *Verifier) Verify() (*VerificationResult, error) {
 	if err != nil {
 		return nil, err
 	}
-	v.Debug("got verification build result")
+
+	v.Debug("got verification build result: error: %v", pr.Error())
+
+	if pr.Config.Product.IsDirty() {
+		v.Loud("WARNING: Verification build is dirty: source hash (%s...) != revision (%s...)",
+			pr.Config.Product.SourceHash[:8], pr.Config.Product.Revision[:8])
+	}
+
 	return v.verificationResult(pr, vr)
 }
 

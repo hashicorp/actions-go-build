@@ -8,54 +8,52 @@ import (
 	"path"
 	"path/filepath"
 
-	"github.com/artdarek/go-unzip"
+	"github.com/hashicorp/actions-go-build/internal/unzipper"
 	"github.com/hashicorp/composite-action-framework-go/pkg/fs"
 )
 
-// RemoteVerification is a build where the source code is hosted remotely.
-// This is the kind of build we run when verifying a build result is reproducible.
-type RemoteVerification struct {
+// RemoteBuild is a build where the source code is hosted remotely.
+type RemoteBuild struct {
 	*core
 	sourceURL string
 	cacheID   string
 }
 
-func NewRemoteVerification(c Config, options ...Option) (Build, error) {
-
+func NewRemoteBuild(c Config, isVerification bool, options ...Option) (Build, error) {
 	sourceURL := fmt.Sprintf("https://github.com/%s/archive/%s.zip", c.Product.Repository, c.Product.Revision)
-
-	core, err := newCore("remote-verification-build", c, options...)
+	core, err := newCore("remote build", isVerification, c, options...)
 	if err != nil {
 		return nil, err
 	}
-
 	if err := core.ChangeToVerificationRoot(); err != nil {
 		return nil, err
 	}
-
-	return &RemoteVerification{
+	return &RemoteBuild{
 		core:      core,
 		sourceURL: sourceURL,
 	}, nil
 }
 
-func (lv *RemoteVerification) Kind() string { return "verification" }
-
-func (lv *RemoteVerification) Steps() []Step {
+func (rb *RemoteBuild) Steps() []Step {
 
 	var sourceDLDir, sourceArchivePath string
 
+	var dirs = getTempDirs(rb.core.IsVerification())
+
 	pre := []Step{
 		newStep("change build root to temporary directory", func() error {
-			return lv.ChangeToVerificationRoot()
+			if rb.IsVerification() {
+				return rb.ChangeToVerificationRoot()
+			}
+			return rb.ChangeToPrimaryRoot()
 		}),
 		newStep("create temporary paths", func() error {
-			c := lv.Config()
-			sourceDLDir = filepath.Join(os.TempDir(), "actions-go-build", "rv", c.Product.Name, c.Product.Revision)
+			c := rb.Config()
+			sourceDLDir = dirs.SourceDownloadPath(c)
 			return fs.MkdirEmpty(sourceDLDir)
 		}),
-		newStep(fmt.Sprintf("get %s", lv.sourceURL), func() error {
-			c := lv.Config()
+		newStep(fmt.Sprintf("get %s", rb.sourceURL), func() error {
+			c := rb.Config()
 			sourceArchiveName := fmt.Sprintf("%s-%s.zip", c.Product.Name, c.Product.Revision)
 			sourceArchivePath = filepath.Join(sourceDLDir, sourceArchiveName)
 			destFile, err := os.Create(sourceArchivePath)
@@ -64,7 +62,7 @@ func (lv *RemoteVerification) Steps() []Step {
 			}
 			var closeErr error
 			defer func() { closeErr = destFile.Close() }()
-			response, err := http.Get(lv.sourceURL)
+			response, err := http.Get(rb.sourceURL)
 			if err != nil {
 				return err
 			}
@@ -85,16 +83,16 @@ func (lv *RemoteVerification) Steps() []Step {
 			// Extract the downloaded zip file directly in the same dir as the zip.
 			// These zips contain a directory that contains all the code, so we'll
 			// use that directory as the build root.
-			return unzip.New(sourceArchivePath, sourceDLDir).Extract()
+			return unzipper.New(rb.Debug).Unzip(sourceArchivePath, sourceDLDir)
 		}),
-		newStep("move source code to verification root", func() error {
-			c := lv.Config()
+		newStep("move source code to build root", func() error {
+			c := rb.Config()
 			// This innerDirName is GitHub-specific.
 			innerDirName := fmt.Sprintf("%s-%s", path.Base(c.Product.Repository), c.Product.Revision)
 			sourcePath := filepath.Join(sourceDLDir, innerDirName)
-			return fs.Move(sourcePath, lv.Config().Paths.WorkDir)
+			return fs.Move(sourcePath, rb.Config().Paths.WorkDir)
 		}),
 	}
 
-	return append(pre, lv.core.Steps()...)
+	return append(pre, rb.core.Steps()...)
 }

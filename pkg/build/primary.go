@@ -7,7 +7,7 @@ type Primary struct {
 }
 
 func NewPrimary(cfg Config, opts ...Option) (Build, error) {
-	core, err := newCore("primary", cfg, opts...)
+	core, err := newCore("primary", false, cfg, opts...)
 	if err != nil {
 		return nil, err
 	}

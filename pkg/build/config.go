@@ -1,11 +1,6 @@
 package build
 
 import (
-	"fmt"
-	"log"
-	"os"
-	"path/filepath"
-
 	"github.com/hashicorp/actions-go-build/pkg/crt"
 )
 
@@ -33,17 +28,11 @@ func NewConfig(product crt.Product, params Parameters, paths Paths, creator crt.
 	}, nil
 }
 
-func (c Config) buildResultCachePath() string {
-	if c.Product.SourceHash == "" {
-		// It's the maintainers' jobs to make sure we don't hit this panic.
-		// It's here to avoid writing undiscoverable files to the cache.
-		if (c == Config{}) {
-			log.Panicf("SourceHash is empty; Config is empty.")
-		}
-		log.Panicf("SourceHash is empty; Config looks like this: % #v", c)
+func (c Config) buildResultCachePath(verification bool) string {
+	if verification {
+		return tempDir.Verification.BuildResultCachePath(c)
 	}
-	filename := fmt.Sprintf("buildresult-%s.json", c.Product.SourceHash)
-	return filepath.Join(c.Paths.MetaDir, filename)
+	return tempDir.Primary.BuildResultCachePath(c)
 }
 
 // ChangeRoot returns a copy of this Config with an updated build root.
@@ -57,9 +46,14 @@ func (c Config) ChangeToVerificationRoot() (Config, error) {
 	return c.ChangeRoot(c.VerificationRoot())
 }
 
+func (c Config) ChangeToRemotePrimaryRoot() (Config, error) {
+	return c.ChangeRoot(c.RemotePrimaryRoot())
+}
+
 func (c Config) VerificationRoot() string {
-	if c.Product.SourceHash == "" {
-		panic("can't determine verification root, SourceHash is empty")
-	}
-	return filepath.Join(os.TempDir(), "actions-go-build", "verification", c.Product.Repository, c.Product.SourceHash)
+	return tempDir.Verification.RemoteBuildRoot(c)
+}
+
+func (c Config) RemotePrimaryRoot() string {
+	return tempDir.Primary.RemoteBuildRoot(c)
 }

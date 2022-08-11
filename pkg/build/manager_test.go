@@ -140,6 +140,7 @@ func (m *mockBuild) Env() []string                   { return nil }
 func (m *mockBuild) ChangeRoot(string) error         { return nil }
 func (m *mockBuild) ChangeToVerificationRoot() error { return nil }
 func (m *mockBuild) Kind() string                    { return "mock" }
+func (m *mockBuild) IsVerification() bool            { return false }
 
 func (m *mockBuild) Config() Config {
 	return Config{

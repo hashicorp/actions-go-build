@@ -59,6 +59,15 @@ func (flags *buildFlags) newPrimaryManager(c build.Config, extraOpts ...build.Op
 	return flags.manager(p, err, extraOpts...)
 }
 
+func (flags *buildFlags) newRemotePrimary(c build.Config, extraOpts ...build.Option) (build.Build, error) {
+	return build.NewRemoteBuild(c, false, flags.buildOptions(extraOpts...)...)
+}
+
+func (flags *buildFlags) newRemotePrimaryManager(c build.Config, extraOpts ...build.Option) (*build.Manager, error) {
+	p, err := flags.newRemotePrimary(c, extraOpts...)
+	return flags.manager(p, err, extraOpts...)
+}
+
 func (flags *buildFlags) newLocalVerification(primaryRoot string, startAfter time.Time, c build.Config, extraOpts ...build.Option) (build.Build, error) {
 	return build.NewLocalVerification(primaryRoot, startAfter, c, flags.buildOptions(extraOpts...)...)
 }
@@ -69,7 +78,7 @@ func (flags *buildFlags) newLocalVerificationManager(primaryRoot string, startAf
 }
 
 func (flags *buildFlags) newRemoteVerification(c build.Config, extraOpts ...build.Option) (build.Build, error) {
-	return build.NewRemoteVerification(c, flags.buildOptions(extraOpts...)...)
+	return build.NewRemoteBuild(c, true, flags.buildOptions(extraOpts...)...)
 }
 
 func (flags *buildFlags) newRemoteVerificationManager(c build.Config, extraOpts ...build.Option) (*build.Manager, error) {

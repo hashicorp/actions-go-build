@@ -37,9 +37,9 @@ func (br Result) Error() error {
 	return br.err
 }
 
-func (br Result) Save() (string, error) {
+func (br Result) Save(isVerification bool) (string, error) {
 	// Write the result to meta to cache it.
-	path := br.Config.buildResultCachePath()
+	path := br.Config.buildResultCachePath(isVerification)
 	return path, json.WriteFile(path, br)
 }
 

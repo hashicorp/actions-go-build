@@ -19,29 +19,31 @@ type Build interface {
 	Config() Config
 	CachedResult() (Result, bool, error)
 	Steps() []Step
-	Kind() string
 	ChangeRoot(string) error
 	ChangeToVerificationRoot() error
+	IsVerification() bool
 }
 
-func New(name string, cfg Config, options ...Option) (Build, error) {
-	return newCore(name, cfg, options...)
+func New(name string, isVerification bool, cfg Config, options ...Option) (Build, error) {
+	return newCore(name, isVerification, cfg, options...)
 }
 
 type core struct {
 	Settings
-	config Config
+	config         Config
+	isVerification bool
 }
 
-func newCore(name string, cfg Config, options ...Option) (*core, error) {
+func newCore(name string, isVerification bool, cfg Config, options ...Option) (*core, error) {
 	s, err := newSettings(options)
 	if err != nil {
 		return nil, err
 	}
 	s.Debug("Initialised")
 	return &core{
-		Settings: s,
-		config:   cfg,
+		Settings:       s,
+		config:         cfg,
+		isVerification: isVerification,
 	}, nil
 }
 
@@ -49,7 +51,7 @@ func (b *core) Config() Config {
 	return b.config
 }
 
-func (b *core) Kind() string { return "unknown" }
+func (b *core) IsVerification() bool { return b.isVerification }
 
 func (b *core) ChangeRoot(dir string) error {
 	b.Debug("changing root to %s", dir)
@@ -62,9 +64,13 @@ func (b *core) ChangeToVerificationRoot() error {
 	return b.ChangeRoot(b.config.VerificationRoot())
 }
 
+func (b *core) ChangeToPrimaryRoot() error {
+	return b.ChangeRoot(b.config.RemotePrimaryRoot())
+}
+
 func (b *core) CachedResult() (Result, bool, error) {
 	var r Result
-	path := b.config.buildResultCachePath()
+	path := b.config.buildResultCachePath(b.isVerification)
 	exists, err := fs.FileExists(path)
 	if err != nil {
 		b.Debug("Cache read error: %s", err)
@@ -85,13 +91,11 @@ func newStep(desc string, action StepFunc) Step {
 }
 
 func (b *core) Steps() []Step {
-	c := b.config
 	var productRevisionTimestamp time.Time
-
 	return []Step{
 		newStep("validating inputs", func() error {
 			var err error
-			productRevisionTimestamp, err = c.Product.RevisionTimestamp()
+			productRevisionTimestamp, err = b.Config().Product.RevisionTimestamp()
 			return err
 		}),
 
@@ -102,11 +106,11 @@ func (b *core) Steps() []Step {
 		newStep("asserting executable written", b.assertExecutableWritten),
 
 		newStep("setting mtimes", func() error {
-			return fs.SetMtimes(c.Paths.TargetDir, productRevisionTimestamp)
+			return fs.SetMtimes(b.Config().Paths.TargetDir, productRevisionTimestamp)
 		}),
 
-		newStep(fmt.Sprintf("creating zip file %q", c.Paths.ZipPath), func() error {
-			return zipper.ZipToFile(c.Paths.TargetDir, c.Paths.ZipPath, b.Settings.Log)
+		newStep(fmt.Sprintf("creating zip file %q", b.Config().Paths.ZipPath), func() error {
+			return zipper.ZipToFile(b.Config().Paths.TargetDir, b.Config().Paths.ZipPath, b.Settings.Log)
 		}),
 	}
 }

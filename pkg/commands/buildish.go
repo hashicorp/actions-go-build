@@ -95,7 +95,7 @@ func (b *buildish) getBuildFunc(why string, forceVerification bool, extraOpts ..
 	)
 	b.debug("Resolving buildish %q", b.target)
 	b.desc = "Build"
-	if build, done, err = b.urlConfigSource(b.target, extraOpts...); done {
+	if build, done, err = b.urlConfigSource(b.target, forceVerification, extraOpts...); done {
 		b.log("%s using config from %s", why, b.target)
 	} else if build, done, err = b.localDirConfigSource(b.target, forceVerification, extraOpts...); done {
 		b.log("%s using config and source code from %s", why, b.target)
@@ -110,7 +110,7 @@ func (b *buildish) getBuildFunc(why string, forceVerification bool, extraOpts ..
 	return build, err
 }
 
-func (b *buildish) urlConfigSource(maybeURL string, extraOpts ...build.Option) (buildFunc, bool, error) {
+func (b *buildish) urlConfigSource(maybeURL string, forceVerification bool, extraOpts ...build.Option) (buildFunc, bool, error) {
 	u, err := url.Parse(maybeURL)
 	if err != nil {
 		b.debug("not a URL: %s: %s", maybeURL, err)
@@ -118,7 +118,7 @@ func (b *buildish) urlConfigSource(maybeURL string, extraOpts ...build.Option) (
 	if u.Scheme != "https" {
 		return nil, false, fmt.Errorf("URLs must use https scheme")
 	}
-	return b.configSourceFromReadCloser(maybeURL, func() (io.ReadCloser, error) {
+	return b.configSourceFromReadCloser(maybeURL, forceVerification, func() (io.ReadCloser, error) {
 		resp, err := http.Get(maybeURL)
 		return resp.Body, err
 	}, extraOpts...), true, err
@@ -126,7 +126,7 @@ func (b *buildish) urlConfigSource(maybeURL string, extraOpts ...build.Option) (
 
 func (b *buildish) localFileConfigSource(maybeFile string, extraOpts ...build.Option) (buildFunc, bool, error) {
 	maybeFile, exists, err := b.resolvePath("file", maybeFile, fs.FileExists)
-	return b.configSourceFromReadCloser(maybeFile, func() (io.ReadCloser, error) {
+	return b.configSourceFromReadCloser(maybeFile, false, func() (io.ReadCloser, error) {
 		return os.Open(maybeFile)
 	}, extraOpts...), exists, err
 }
@@ -176,7 +176,7 @@ func (b *buildish) resolvePath(kind, maybePath string, existsFunc func(string) (
 	return maybePath, exists, err
 }
 
-func (b *buildish) configSourceFromReadCloser(location string, rcFunc func() (io.ReadCloser, error), extraOpts ...build.Option) buildFunc {
+func (b *buildish) configSourceFromReadCloser(location string, forceVerification bool, rcFunc func() (io.ReadCloser, error), extraOpts ...build.Option) buildFunc {
 	return func() (*build.Manager, error) {
 		b.debug("reading build config from %q", location)
 		rc, err := rcFunc()
@@ -189,8 +189,12 @@ func (b *buildish) configSourceFromReadCloser(location string, rcFunc func() (io
 		if err != nil {
 			return nil, fmt.Errorf("unable to read build config from %q: %w", location, err)
 		}
-
-		bm, err := b.buildFlags.newRemoteVerificationManager(c, extraOpts...)
+		var bm *build.Manager
+		if forceVerification {
+			bm, err = b.buildFlags.newRemoteVerificationManager(c, extraOpts...)
+		} else {
+			bm, err = b.buildFlags.newRemotePrimaryManager(c, extraOpts...)
+		}
 		if err != nil {
 			return nil, err
 		}

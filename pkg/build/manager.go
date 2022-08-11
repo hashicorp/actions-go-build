@@ -52,7 +52,7 @@ func (bm *Manager) Result() (Result, error) {
 		return r, fmt.Errorf("inspecting cache: %w", err)
 	}
 	if cached {
-		bm.Log("Loaded build result from cache.")
+		bm.Log("Loaded build result from cache; SourceID: %s; Dirty: %t", r.Config.Product.SourceHash, r.Config.Product.IsDirty())
 		return r, nil
 	}
 	bm.Log("No build result avilable in cache; Running a fresh build...")
@@ -61,7 +61,7 @@ func (bm *Manager) Result() (Result, error) {
 
 func (bm *Manager) runBuild() (Result, error) {
 	result := bm.runner.Run()
-	cachePath, err := result.Save()
+	cachePath, err := result.Save(bm.Build().IsVerification())
 	if err != nil {
 		return result, err
 	}
