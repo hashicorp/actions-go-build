@@ -86,7 +86,6 @@ env:
 
 .PHONY: $(TMP_BUILD)
 $(TMP_BUILD):
-	@echo "# Running tests" 1>&2
 	@$(RUN_TESTS_QUIET)
 	@echo "# Creating temporary build." 1>&2
 	@rm -f "$(TMP_BUILD)"
@@ -103,6 +102,7 @@ $(TMP_BUILD):
 #
 # Thus, each version of actions-go-build is built using itself.
 .PHONY: $(BIN_PATH)
+$(BIN_PATH): export BIN_PATH := $(BIN_PATH)
 $(BIN_PATH):
 	@$(CLEAR)
 	# Running tests...
