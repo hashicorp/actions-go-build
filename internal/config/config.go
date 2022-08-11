@@ -32,8 +32,8 @@ type Config struct {
 	// Tool is the version of actions-go-build that created this config.
 	Tool crt.Tool
 
-	Primary      Paths `env:"PRIMARY"`
-	Verification Paths `env:"VERIFICATION"`
+	Primary      Paths `env:",prefix=PRIMARY_"`
+	Verification Paths `env:",prefix=VERIFICATION_"`
 }
 
 type Paths struct {
