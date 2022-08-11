@@ -110,7 +110,8 @@ runs:
     # Primary Build
     - name: Run Primary Build
       shell: bash
-      run: cd "${{ inputs.work_dir }}" && actions-go-build build
+      working-directory: ${{ inputs.work_dir }}
+      run: actions-go-build build
 
     # Upload Primary Build
     - name: Upload Primary Zip
@@ -124,7 +125,8 @@ runs:
     - name: Run Local Verification Build
       if: inputs.reproducible == 'assert' || inputs.reproducible == 'report'
       shell: bash
-      run: cd "${{ inputs.work_dir }}" && actions-go-build build -verification
+      working-directory: ${{ inputs.work_dir }}
+      run: actions-go-build build -verification
 
     # Upload Local Verification Build
     - name: Upload Local Verification Zip

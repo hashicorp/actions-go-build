@@ -14,13 +14,13 @@ type inspectOpts struct {
 	buildOpts
 
 	buildEnv bool
-	zipName  bool
+	zipInfo  bool
 }
 
 func (opts *inspectOpts) Flags(fs *flag.FlagSet) {
 	opts.buildOpts.Flags(fs)
 	fs.BoolVar(&opts.buildEnv, "build-env", false, "just print the build environment")
-	fs.BoolVar(&opts.zipName, "zip-name", false, "just print the zip name")
+	fs.BoolVar(&opts.zipInfo, "zip-info", false, "just print the zip details")
 }
 
 var Inspect = cli.LeafCommand("inspect", "inspect things", func(opts *inspectOpts) error {
@@ -35,8 +35,8 @@ var Inspect = cli.LeafCommand("inspect", "inspect things", func(opts *inspectOpt
 		return p.buildEnv()
 	}
 
-	if opts.zipName {
-		return p.zipName()
+	if opts.zipInfo {
+		return p.zipDetails()
 	}
 
 	return p.printAll()
@@ -54,7 +54,7 @@ func (p *printer) printAll() error {
 	p.prefix = "    "
 	return firstErr(
 		p.buildEnv,
-		p.zipName,
+		p.zipDetails,
 	)
 }
 
@@ -70,11 +70,12 @@ func (p *printer) buildEnv() error {
 	return nil
 }
 
-func (p *printer) zipName() error {
-	if err := p.title("Zip Name"); err != nil {
+func (p *printer) zipDetails() error {
+	if err := p.title("Zip"); err != nil {
 		return err
 	}
-	return p.line(p.build.Config().Parameters.ZipName)
+	p.line("ZIP_NAME=%s", p.build.Config().Parameters.ZipName)
+	return p.line("ZIP_PATH=%s", p.build.Config().Paths.ZipPath)
 }
 
 func firstErr(f ...func() error) error {
@@ -94,7 +95,7 @@ func (p *printer) title(s string) error {
 	return err
 }
 
-func (p *printer) line(s string) error {
-	_, err := fmt.Fprintln(p.w, p.prefix+s)
+func (p *printer) line(s string, a ...any) error {
+	_, err := fmt.Fprintf(p.w, p.prefix+s+"\n", a...)
 	return err
 }
