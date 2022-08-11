@@ -141,5 +141,5 @@ runs:
     - name: Report Reproducibility Results
       if: inputs.reproducible == 'report'
       shell: bash
-      run: actions-go-build verify || true
+      run: actions-go-build verify -verification-build-result "$VERIFICATION_BUILD_RESULT" || true
 
