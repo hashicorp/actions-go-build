@@ -6,11 +6,13 @@ import (
 	"time"
 
 	"github.com/hashicorp/actions-go-build/pkg/build"
+	"github.com/hashicorp/composite-action-framework-go/pkg/json"
 )
 
 type verifyish struct {
 	buildish
-	staggerTime time.Duration
+	staggerTime                 time.Duration
+	verificationBuildResultFile string
 
 	primary      build.ResultSource
 	verification build.ResultSource
@@ -19,6 +21,7 @@ type verifyish struct {
 func (v *verifyish) Flags(fs *flag.FlagSet) {
 	v.buildish.Flags(fs)
 	fs.DurationVar(&v.staggerTime, "staggertime", 5*time.Second, "min. time to wait after start of primary build")
+	fs.StringVar(&v.verificationBuildResultFile, "verification-build-result", "", "load verification build result from file")
 }
 
 func (v *verifyish) Init() error {
@@ -46,27 +49,11 @@ func (v *verifyish) setResultSources() error {
 		return err
 	}
 
-	primaryConfig, err := v.primaryConfig()
-	if err != nil {
+	if v.verification, err = v.verificationResultSource(); err != nil {
 		return err
 	}
 
-	verificationConfig, err := primaryConfig.ChangeToVerificationRoot()
-	if err != nil {
-		return err
-	}
-
-	// If the primary build is sourced from a dir, we have the source on-disk.
-	// This makes it a local verification build.
-	if v.buildish.dir != "" {
-		startAfter, err := v.calculateEarliestBuildTime()
-		if err != nil {
-			return err
-		}
-		return v.configureLocalVerificationBuild(v.buildish.dir, startAfter, verificationConfig)
-	}
-
-	return v.configureRemoteVerificationBuild(verificationConfig)
+	return nil
 }
 
 func (v *verifyish) primaryResultSource() (build.ResultSource, error) {
@@ -77,17 +64,43 @@ func (v *verifyish) primaryResultSource() (build.ResultSource, error) {
 	return v.buildish.Build("Getting primary build result", false, build.WithLogPrefix("primary build"))
 }
 
-func (v *verifyish) configureLocalVerificationBuild(dir string, startAfter time.Time, c build.Config) error {
-	logPrefix := build.WithLogPrefix("verification build")
-	var err error
-	v.verification, err = v.buildish.buildFlags.newLocalVerificationManager(v.buildish.dir, startAfter, c, logPrefix)
-	return err
+func (v *verifyish) verificationResultSource() (build.ResultSource, error) {
+	// The user supplied a ready-made verification build result.
+	if v.verificationBuildResultFile != "" {
+		v.log("Getting verification build result from %q", v.verificationBuildResultFile)
+		return v.verificationResultSourceFromFile(v.verificationBuildResultFile)
+	}
+	v.log("Running new verification build.")
+	return v.verificationResultSourceFromNewBuild()
 }
 
-func (v *verifyish) configureRemoteVerificationBuild(c build.Config) error {
-	var err error
-	v.verification, err = v.buildish.buildFlags.newRemoteVerificationManager(c, build.WithLogPrefix("verification build"))
-	return err
+func (v *verifyish) verificationResultSourceFromFile(path string) (build.ResultSource, error) {
+	return json.ReadFile[build.Result](path)
+}
+
+func (v *verifyish) verificationResultSourceFromNewBuild() (build.ResultSource, error) {
+	primaryConfig, err := v.primaryConfig()
+	if err != nil {
+		return nil, err
+	}
+
+	verificationConfig, err := primaryConfig.ChangeToVerificationRoot()
+	if err != nil {
+		return nil, err
+	}
+
+	logPrefix := build.WithLogPrefix("verification build")
+
+	// If the primary build is sourced from a dir, we have the source on-disk.
+	// This makes it a local verification build.
+	if v.buildish.dir != "" {
+		startAfter, err := v.calculateEarliestBuildTime()
+		if err != nil {
+			return nil, err
+		}
+		return v.buildish.buildFlags.newLocalVerificationManager(v.buildish.dir, startAfter, verificationConfig, logPrefix)
+	}
+	return v.buildish.buildFlags.newRemoteVerificationManager(verificationConfig, logPrefix)
 }
 
 func (v *verifyish) calculateEarliestBuildTime() (time.Time, error) {

@@ -189,6 +189,11 @@ func (b *buildish) configSourceFromReadCloser(location string, forceVerification
 		if err != nil {
 			return nil, fmt.Errorf("unable to read build config from %q: %w", location, err)
 		}
+
+		if c.Product.IsDirty() {
+			return nil, fmt.Errorf("unable to run a remote build based on a dirty build result")
+		}
+
 		var bm *build.Manager
 		if forceVerification {
 			bm, err = b.buildFlags.newRemoteVerificationManager(c, extraOpts...)
