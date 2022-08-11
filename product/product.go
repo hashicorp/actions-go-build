@@ -46,10 +46,10 @@ func Product(defaultName, coreVersion string) (crt.Product, error) {
 		Name = defaultName
 	}
 	if Revision == "" {
-		Revision = "unknown revision"
+		Revision = "unknown-revision"
 	}
 	if SourceHash == "" {
-		SourceHash = "unknown source hash"
+		SourceHash = "unknown-source-hash"
 	}
 	version, err := crt.ProductVersion{
 		Full: VersionFull,

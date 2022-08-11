@@ -20,6 +20,9 @@ type RemoteBuild struct {
 }
 
 func NewRemoteBuild(c Config, isVerification bool, options ...Option) (Build, error) {
+	if c.Product.IsDirty() {
+		return nil, fmt.Errorf("cannot verify a dirty build remotely")
+	}
 	sourceURL := fmt.Sprintf("https://github.com/%s/archive/%s.zip", c.Product.Repository, c.Product.Revision)
 	core, err := newCore("remote build", isVerification, c, options...)
 	if err != nil {

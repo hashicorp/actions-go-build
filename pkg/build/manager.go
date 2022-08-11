@@ -40,10 +40,12 @@ func (bm *Manager) ResultFromCache() (Result, bool, error) {
 // from the attempt to load from cache, so to check if the build failed or not you still need
 // to call the Result's Error method.
 func (bm *Manager) Result() (Result, error) {
-	bm.Debug("getting result")
+	bm.Debug("Beginning getting result.")
+	if bm.Build().IsVerification() {
+		return bm.runBuild("Verification builds never load from cache")
+	}
 	if bm.forceRebuild {
-		bm.Log("Force-rebuild on, running a fresh build...")
-		return bm.runBuild()
+		return bm.runBuild("Force-rebuild on")
 	}
 	bm.Debug("Inspecting cache.")
 	r, cached, err := bm.ResultFromCache()
@@ -54,11 +56,11 @@ func (bm *Manager) Result() (Result, error) {
 		bm.Log("Loaded build result from cache; SourceID: %s; Dirty: %t", r.Config.Product.SourceHash, r.Config.Product.IsDirty())
 		return r, nil
 	}
-	bm.Log("No build result avilable in cache; Running a fresh build...")
-	return bm.runBuild()
+	return bm.runBuild("No build result available in cache")
 }
 
-func (bm *Manager) runBuild() (Result, error) {
+func (bm *Manager) runBuild(why string) (Result, error) {
+	bm.Log("%s; Running a fresh build...", why)
 	result := bm.runner.Run()
 	cachePath, err := result.Save(bm.Build().IsVerification())
 	if err != nil {
