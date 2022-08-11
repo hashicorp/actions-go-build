@@ -87,9 +87,10 @@ runs:
       working-directory: ${{ github.action_path }}
       run: make install
 
-    # Read config and
+    # Read config.
     - name: Read config from inputs; export to GITHUB_ENV
       shell: bash
+      working-directory: ${{ inputs.work_dir }}
       run: actions-go-build config -github
       env:
         PRODUCT_NAME: ${{ inputs.product_name }}
@@ -110,8 +111,8 @@ runs:
     # Primary Build
     - name: Run Primary Build
       shell: bash
-      working-directory: ${{ env.PRIMARY_BUILD_ROOT }}
-      run: pwd && actions-go-build build -debug
+      working-directory: ${{ inputs.work_dir }}
+      run: actions-go-build build
 
     # Upload Primary Build
     - name: Upload Primary Zip
@@ -125,7 +126,7 @@ runs:
     - name: Run Local Verification Build
       if: inputs.reproducible == 'assert' || inputs.reproducible == 'report'
       shell: bash
-      working-directory: ${{ env.PRIMARY_BUILD_ROOT }}
+      working-directory: ${{ inputs.work_dir }}
       run: pwd && actions-go-build build -verification -debug
 
     # Upload Local Verification Build
@@ -141,11 +142,13 @@ runs:
     - name: Assert Build Outputs Identical
       if: inputs.reproducible == 'assert'
       shell: bash
+      working-directory: ${{ inputs.work_dir }}
       run: actions-go-build verify -verification-build-result "$VERIFICATION_BUILD_RESULT"
 
     # Report Reproducibility
     - name: Report Reproducibility Results
       if: inputs.reproducible == 'report'
       shell: bash
+      working-directory: ${{ inputs.work_dir }}
       run: actions-go-build verify -verification-build-result "$VERIFICATION_BUILD_RESULT" || true
 
