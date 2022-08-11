@@ -98,7 +98,11 @@ func (b *buildish) getBuildFunc(why string, forceVerification bool, extraOpts ..
 	if build, done, err = b.urlConfigSource(b.target, forceVerification, extraOpts...); done {
 		b.log("%s using config from %s", why, b.target)
 	} else if build, done, err = b.localDirConfigSource(b.target, forceVerification, extraOpts...); done {
-		b.log("%s using config and source code from %s", why, b.target)
+		absTarget, err := filepath.Abs(b.target)
+		if err != nil {
+			return nil, err
+		}
+		b.log("%s using config and source code from %s", why, absTarget)
 	} else if build, done, err = b.localFileConfigSource(b.target, extraOpts...); done {
 		b.log("%s using config from %s", why, b.target)
 	} else {
