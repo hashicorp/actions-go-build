@@ -75,6 +75,8 @@ runs:
       with:
         go-version: 1.18
 
+    - name: echo "TMPDIR=$RUNNER_TEMP" >> "$GITHUB_ENV"
+
     # Compile the CLI inline. We should work to remove this step by using
     # precompiled binaries for tagged versions (maybe stored as release
     # assets).
