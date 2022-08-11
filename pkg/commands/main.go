@@ -33,37 +33,6 @@ var Build = cli.LeafCommand("build", "run a build", func(opts *buildOpts) error 
 	return opts.runBuild("Running build", opts.verification)
 })
 
-type inspectOpts struct {
-	buildOpts
-	buildEnv bool
-}
-
-func (opts *inspectOpts) Flags(fs *flag.FlagSet) {
-	opts.buildOpts.Flags(fs)
-	fs.BoolVar(&opts.buildEnv, "build-env", false, "just print the build environment")
-}
-
-var Inspect = cli.LeafCommand("inspect", "inspect things", func(opts *inspectOpts) error {
-	b, err := opts.Build("Inspecting build", opts.verification)
-	if err != nil {
-		return err
-	}
-	prefix := ""
-	if !opts.buildEnv {
-		if _, err := fmt.Fprintln(os.Stdout, "Build Environment"); err != nil {
-			return err
-		}
-		prefix = "  "
-	}
-	for _, v := range b.Build().Env() {
-		if _, err := fmt.Fprintln(os.Stdout, prefix+v); err != nil {
-			return err
-		}
-	}
-
-	return nil
-})
-
 var Describe = cli.RootCommand("describe", "describe things", DescribeBuildEnv)
 
 var DescribeBuildEnv = cli.LeafCommand("build-env", "describe the build environment variables", func(cli.None) error {
