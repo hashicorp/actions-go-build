@@ -39,7 +39,6 @@ func newCore(name string, isVerification bool, cfg Config, options ...Option) (*
 	if err != nil {
 		return nil, err
 	}
-	s.Debug("Initialised")
 	return &core{
 		Settings:       s,
 		config:         cfg,

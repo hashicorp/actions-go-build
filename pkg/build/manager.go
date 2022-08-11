@@ -17,7 +17,6 @@ func NewManager(r *Runner, opts ...Option) (*Manager, error) {
 	if err != nil {
 		return nil, err
 	}
-	s.Debug("Initialised")
 	return &Manager{
 		Settings: s,
 		runner:   r,

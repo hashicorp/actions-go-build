@@ -26,7 +26,6 @@ func NewVerifier(primary, verification ResultSource, opts ...Option) (*Verifier,
 		primary:      primary,
 		verification: verification,
 	}
-	v.Debug("initialised")
 	return v, nil
 }
 
@@ -41,7 +40,7 @@ func (v *Verifier) Verify() (*VerificationResult, error) {
 		return nil, err
 	}
 
-	v.Debug("got primary build result: error: %s", pr.Error())
+	v.Debug("got primary build result: error: %v", pr.Error())
 
 	if pr.Config.Product.IsDirty() {
 		v.Loud("WARNING: Primary build is dirty: source hash (%s...) != revision (%s...)",
@@ -101,11 +100,14 @@ func (v *Verifier) verificationResult(pr, vr *Result) (*VerificationResult, erro
 
 	hashes := crt.NewFileSetHashes(binHashes, zipHashes)
 
+	dirty := pr.Config.Product.IsDirty() || vr.Config.Product.IsDirty()
+
 	return &VerificationResult{
 		Primary:             pr,
 		Verification:        vr,
 		Hashes:              hashes,
 		ErrorMessage:        errMessage,
+		Dirty:               dirty,
 		ReproducedCorrectly: err == nil,
 	}, nil
 }
