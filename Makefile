@@ -86,9 +86,9 @@ env:
 
 .PHONY: $(TMP_BUILD)
 $(TMP_BUILD):
-	# Running tests
+	@echo "# Running tests" 1>&2
 	@$(RUN_TESTS_QUIET)
-	# Creating temporary build.
+	@echo "# Creating temporary build." 1>&2
 	@rm -f "$(TMP_BUILD)"
 	@mkdir -p "$(dir $(TMP_BUILD))"
 	@go build -o "$(TMP_BUILD)"
