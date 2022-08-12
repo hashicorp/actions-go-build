@@ -157,12 +157,19 @@ runs:
       if: inputs.reproducible == 'assert'
       shell: bash
       working-directory: ${{ inputs.work_dir }}
-      run: $RUN_CLI verify -debug -verification-build-result "$VERIFICATION_BUILD_RESULT"
+      run: $RUN_CLI verify -debug -json -verification-build-result "$VERIFICATION_BUILD_RESULT" | tee > vr.json
 
     # Report Reproducibility
     - name: Report Reproducibility Results
       if: inputs.reproducible == 'report'
       shell: bash
       working-directory: ${{ inputs.work_dir }}
-      run: $RUN_CLI verify -debug -verification-build-result "$VERIFICATION_BUILD_RESULT" || true
+      run: $RUN_CLI verify -debug -json -verification-build-result "$VERIFICATION_BUILD_RESULT" | tee > vr.json || true
 
+    # Upload Verification Result
+    - name: Upload Verification Result
+      uses: actions/upload-artifact@v3
+      with:
+        name: ${{ env.ZIP_NAME }}.verificationresult.json
+        path: vr.json
+        if-no-files-found: error
