@@ -106,10 +106,7 @@ func (c Config) init(rc crt.RepoContext, creator crt.Tool) (Config, error) {
 		c.Primary.BuildRoot = rc.Dir
 	}
 	if c.Verification.BuildRoot == "" {
-		// We append the primary build root to the default verifiaction build root.
-		// This differentiates verification builds done based on the local dir vs
-		// remote verifiaction builds.
-		c.Verification.BuildRoot = verificationPaths.RemoteBuildRoot(c.Primary.BuildRoot, "verification")
+		c.Verification.BuildRoot = verificationPaths.RemoteBuildRoot()
 	}
 
 	if c.Primary.BuildResult == "" {
