@@ -25,8 +25,7 @@ func SHA256HexStrings(s ...string) (string, error) {
 
 func JSONSHA256Hex(a any) (string, error) {
 	buf := &bytes.Buffer{}
-	mw := io.MultiWriter(buf, os.Stdout)
-	if err := json.NewEncoder(mw).Encode(a); err != nil {
+	if err := json.NewEncoder(buf).Encode(a); err != nil {
 		return "", err
 	}
 	return SHA256Hex(buf)

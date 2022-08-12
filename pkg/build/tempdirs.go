@@ -58,20 +58,20 @@ func assertSourceHash(p crt.Product) {
 	log.Panicf("SourceHash is empty; Product is nonempty: % #v", p)
 }
 
-func (d TempDirs) RemoteBuildRoot() string {
-	return d.cacheDir("source")
+func (d TempDirs) RemoteBuildRoot(extension ...string) string {
+	return d.cacheDir("source", extension...)
 }
 
 func (d TempDirs) SourceDownloadDir() string {
 	return d.cacheDir("sourcearchive")
 }
 
-func (d TempDirs) BuildResultCacheDir() string {
-	return d.cacheDir("buildresult")
+func (d TempDirs) BuildResultCacheDir(extension ...string) string {
+	return d.cacheDir("buildresult", extension...)
 }
 
-func (d TempDirs) cacheDir(kind string) string {
-	return d.tempDirPath("cache", kind, d.product.Repository, d.product.Name, d.product.SourceHash)
+func (d TempDirs) cacheDir(kind string, extension ...string) string {
+	return d.tempDirPath(prefix(extension, "cache", kind, d.product.Repository, d.product.Name, d.product.SourceHash)...)
 }
 
 func (d TempDirs) tempDirPath(elem ...string) string {
