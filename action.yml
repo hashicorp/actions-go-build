@@ -127,7 +127,7 @@ runs:
       if: inputs.reproducible == 'assert' || inputs.reproducible == 'report'
       shell: bash
       working-directory: ${{ inputs.work_dir }}
-      run: pwd && actions-go-build build -verification -debug
+      run: pwd && actions-go-build build -verification
 
     # Upload Local Verification Build
     - name: Upload Local Verification Zip

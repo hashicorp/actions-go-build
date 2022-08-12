@@ -32,6 +32,9 @@ type Config struct {
 	// Tool is the version of actions-go-build that created this config.
 	Tool crt.Tool
 
+	// Debug enables debug logging.
+	Debug bool `env:"DEBUG"`
+
 	Primary      Paths `env:",prefix=PRIMARY_"`
 	Verification Paths `env:",prefix=VERIFICATION_"`
 }

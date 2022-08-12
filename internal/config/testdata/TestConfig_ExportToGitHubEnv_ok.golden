@@ -58,3 +58,6 @@ _GitHubActionsFileCommandDelimeter_
 ZIP_PATH_VERIFICATION<<_GitHubActionsFileCommandDelimeter_
 /some/dir/verification/out/lockbox_1.2.3_linux_amd64.zip
 _GitHubActionsFileCommandDelimeter_
+DEBUG<<_GitHubActionsFileCommandDelimeter_
+false
+_GitHubActionsFileCommandDelimeter_
