@@ -158,6 +158,8 @@ runs:
       shell: bash
       working-directory: ${{ inputs.work_dir }}
       run: |
+        # Verify
+        mkdir -p "$(dirname "$VERIFICATION_RESULT")"
         $RUN_CLI verify \
           -verification-build-result "$VERIFICATION_BUILD_RESULT" \
           -debug \
@@ -169,6 +171,8 @@ runs:
       shell: bash
       working-directory: ${{ inputs.work_dir }}
       run: |
+        # Verify
+        mkdir -p "$(dirname "$VERIFICATION_RESULT")"
         $RUN_CLI verify \
           -verification-build-result "$VERIFICATION_BUILD_RESULT" \
           -debug \
