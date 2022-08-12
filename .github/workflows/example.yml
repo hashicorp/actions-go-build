@@ -12,5 +12,6 @@ jobs:
           os: linux
           arch: amd64
           work_dir: testdata/example-app
+          debug: true
           instructions: |
             go build -o "$BIN_PATH" -trimpath -buildvcs=false

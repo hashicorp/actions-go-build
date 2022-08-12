@@ -66,6 +66,12 @@ inputs:
       See [Build Instructions](#build-instructions) for more info.
     required: true
 
+  debug:
+    description: >
+      Enable debug-level logging.
+    required: false
+    default: 0
+
 runs:
   using: composite
   steps:
@@ -102,6 +108,7 @@ runs:
         BIN_NAME: ${{ inputs.bin_name }}
         ZIP_NAME: ${{ inputs.zip_name }}
         INSTRUCTIONS: ${{ inputs.instructions }}
+        DEBUG: ${{ inputs.debug }}
 
     # Setup Go
     - uses: actions/setup-go@v2
