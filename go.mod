@@ -5,7 +5,7 @@ go 1.18
 require (
 	github.com/artdarek/go-unzip v1.0.0
 	github.com/google/go-cmp v0.5.8
-	github.com/hashicorp/composite-action-framework-go v0.0.3-0.20220811113934-5c9bc906fdfd
+	github.com/hashicorp/composite-action-framework-go v0.0.3-0.20220812092433-589a296823e2
 	github.com/hashicorp/go-version v1.6.0
 	github.com/mitchellh/cli v1.1.4
 	github.com/otiai10/copy v1.7.0
