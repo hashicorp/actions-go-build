@@ -70,6 +70,10 @@ func (d TempDirs) BuildResultCacheDir(extension ...string) string {
 	return d.cacheDir("buildresult", extension...)
 }
 
+func (d TempDirs) VerificationResultCachePath(configID string) string {
+	return d.cacheDir("verificationresult", configID+".json")
+}
+
 func (d TempDirs) cacheDir(kind string, extension ...string) string {
 	return d.tempDirPath(prefix(extension, "cache", kind, d.product.Repository, d.product.Name, d.product.SourceHash)...)
 }

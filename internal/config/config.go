@@ -37,6 +37,8 @@ type Config struct {
 
 	Primary      Paths `env:",prefix=PRIMARY_"`
 	Verification Paths `env:",prefix=VERIFICATION_"`
+
+	VerificationResult string `env:"VERIFICATION_RESULT"`
 }
 
 type Paths struct {
@@ -118,6 +120,11 @@ func (c Config) init(rc crt.RepoContext, creator crt.Tool) (Config, error) {
 	}
 
 	c.Tool = creator
+
+	if c.VerificationResult == "" {
+		c.VerificationResult = verificationPaths.VerificationResultCachePath(build.ID(c))
+	}
+
 	return c, nil
 }
 

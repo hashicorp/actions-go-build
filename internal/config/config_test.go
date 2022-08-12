@@ -108,6 +108,8 @@ func TestConfig_init_ok(t *testing.T) {
 			want.Primary = Paths{}
 			got.Parameters.Instructions = ""
 			want.Parameters.Instructions = ""
+			got.VerificationResult = ""
+			want.VerificationResult = ""
 
 			assert.Equal(t, got, want)
 		})

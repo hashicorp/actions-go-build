@@ -65,6 +65,7 @@ func (c Config) EnvVars() ([]EnvVar, error) {
 	addEnv("ZIP_PATH_PRIMARY", primary.Paths.ZipPath)
 	addEnv("BIN_PATH_VERIFICATION", verification.Paths.BinPath)
 	addEnv("ZIP_PATH_VERIFICATION", verification.Paths.ZipPath)
+	addEnv("VERIFICATION_RESULT", c.VerificationResult)
 	addEnv("DEBUG", strconv.FormatBool(c.Debug))
 
 	return kvs, nil
