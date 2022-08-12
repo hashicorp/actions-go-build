@@ -9,40 +9,41 @@ import (
 )
 
 type TempDirs struct {
-	kind    string
-	product crt.Product
-	tool    crt.Tool
+	cacheKey
+	kind string
 }
+
+type cacheKey struct {
+	product    crt.Product
+	parameters Parameters
+	tool       crt.Tool
+}
+
+func (ck cacheKey) Key() string { return CompoundID(ck.product, ck.parameters, ck.tool) }
 
 func newDirsFromConfig(c Config, verification bool) TempDirs {
 	if verification {
-		return NewVerificationDirs(c.Product, c.Tool)
+		return NewVerificationDirs(c.Product, c.Parameters, c.Tool)
 	}
-	return NewPrimaryDirs(c.Product, c.Tool)
+	return NewPrimaryDirs(c.Product, c.Parameters, c.Tool)
 }
 
-func NewPrimaryDirs(p crt.Product, t crt.Tool) TempDirs {
-	return NewTempDirs("primary", p, t)
+func NewPrimaryDirs(p crt.Product, params Parameters, t crt.Tool) TempDirs {
+	return NewTempDirs("primary", p, params, t)
 }
 
-func NewVerificationDirs(p crt.Product, t crt.Tool) TempDirs {
-	return NewTempDirs("verification", p, t)
+func NewVerificationDirs(p crt.Product, params Parameters, t crt.Tool) TempDirs {
+	return NewTempDirs("verification", p, params, t)
 }
 
 type tempDirs struct {
 	Primary, Verification TempDirs
 }
 
-func NewTempDirs(kind string, p crt.Product, t crt.Tool) TempDirs {
+func NewTempDirs(kind string, p crt.Product, params Parameters, t crt.Tool) TempDirs {
 	assertSourceHash(p)
-	return TempDirs{kind: kind, product: p, tool: t}
-}
-
-func TempDirsFromConfig(c Config) tempDirs {
-	return tempDirs{
-		Primary:      NewPrimaryDirs(c.Product, c.Tool),
-		Verification: NewVerificationDirs(c.Product, c.Tool),
-	}
+	key := cacheKey{p, params, t}
+	return TempDirs{kind: kind, cacheKey: key}
 }
 
 func assertSourceHash(p crt.Product) {
@@ -70,11 +71,15 @@ func (d TempDirs) BuildResultCacheDir() string {
 }
 
 func (d TempDirs) cacheDir(kind string) string {
-	return d.tempDirPath(d.tool, "cache", kind, d.product.SourceHash)
+	return d.tempDirPath("cache", kind, d.product.Repository, d.product.Name, d.product.SourceHash)
 }
 
-func (d TempDirs) tempDirPath(tool crt.Tool, elem ...string) string {
-	return prefixPath(elem, os.TempDir(), tool.Name, tool.Version, tool.Revision, d.kind)
+func (d TempDirs) tempDirPath(elem ...string) string {
+	return prefixPath(elem, os.TempDir(), d.tool.Name, d.tool.Version, d.tool.Revision, d.kind, d.Key())
+}
+
+func productIDSegments(p crt.Product) []string {
+	return []string{p.Repository, p.Name, p.Version.Full}
 }
 
 func prefix(slice []string, with ...string) []string { return append(with, slice...) }

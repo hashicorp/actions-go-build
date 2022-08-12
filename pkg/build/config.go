@@ -1,7 +1,10 @@
 package build
 
 import (
+	"fmt"
+
 	"github.com/hashicorp/actions-go-build/pkg/crt"
+	"github.com/hashicorp/actions-go-build/pkg/digest"
 )
 
 // Config contains the complete configuration to build a single binary
@@ -26,6 +29,39 @@ func NewConfig(product crt.Product, params Parameters, paths Paths, creator crt.
 		Paths:      paths,
 		Tool:       creator,
 	}, nil
+}
+
+func CompoundID(things ...any) string {
+	ids := make([]string, len(things))
+	for i, t := range things {
+		ids[i] = ID(t)
+	}
+	s, err := digest.SHA256HexStrings(ids...)
+	if err != nil {
+		panic(err)
+	}
+	return s
+}
+
+func ID[T any](thing T) string {
+	zero := *(new(T))
+	zeroHash, err := digest.JSONSHA256Hex(zero)
+	if err != nil {
+		panic(err)
+	}
+	thingHash, err := digest.JSONSHA256Hex(thing)
+	if err != nil {
+		panic(err)
+	}
+	if thingHash == zeroHash {
+		panic(fmt.Errorf("Can't take ID of zero %T: % #v", thing, thing))
+	}
+	return thingHash
+}
+
+// ID is a unique sha256 hash of this Config.
+func (c Config) ID() string {
+	return ID(c)
 }
 
 func (c Config) BuildResultCachePath(verification bool) string {

@@ -84,6 +84,7 @@ runs:
     - name: Set some needed environment variables.
       shell: bash
       run: |
+        # Set environment.
         {
           echo "TMPDIR=$RUNNER_TEMP"
           echo "RUN=${{ github.action_path }}/scripts/gha run"

@@ -98,8 +98,8 @@ func (c Config) init(rc crt.RepoContext, creator crt.Tool) (Config, error) {
 		return c, err
 	}
 
-	primaryPaths := build.NewPrimaryDirs(c.Product, creator)
-	verificationPaths := build.NewVerificationDirs(c.Product, creator)
+	primaryPaths := build.NewPrimaryDirs(c.Product, c.Parameters, creator)
+	verificationPaths := build.NewVerificationDirs(c.Product, c.Parameters, creator)
 
 	// Default the primary build root to the current directory.
 	if c.Primary.BuildRoot == "" {
@@ -112,6 +112,7 @@ func (c Config) init(rc crt.RepoContext, creator crt.Tool) (Config, error) {
 	if c.Primary.BuildResult == "" {
 		c.Primary.BuildResult = primaryPaths.BuildResultCacheDir()
 	}
+
 	if c.Verification.BuildResult == "" {
 		c.Verification.BuildResult = verificationPaths.BuildResultCacheDir()
 	}

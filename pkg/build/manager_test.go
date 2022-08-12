@@ -142,13 +142,16 @@ func (m *mockBuild) ChangeToVerificationRoot() error { return nil }
 func (m *mockBuild) Kind() string                    { return "mock" }
 func (m *mockBuild) IsVerification() bool            { return false }
 func (m *mockBuild) Dirs() TempDirs {
-	return NewTempDirs("test", crt.Product{SourceHash: "deadbeef"}, crt.Tool{})
+	return NewTempDirs("test", crt.Product{SourceHash: "deadbeef"}, Parameters{}, crt.Tool{})
 }
 
 func (m *mockBuild) Config() Config {
 	return Config{
 		Product: crt.Product{
 			SourceHash: "blargle",
+		},
+		Parameters: Parameters{
+			Instructions: "test",
 		},
 		Paths: Paths{
 			MetaDir: os.TempDir(),
