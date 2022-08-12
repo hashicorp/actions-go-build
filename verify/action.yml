@@ -1,0 +1,82 @@
+name: Verify A Build Result
+author: Release Engineering <team-rel-eng@hashicorp.com>
+description: Verify a reproducible build result.
+
+inputs:
+
+  result_file:
+    description: >
+      The result file we're trying to verify.
+    required: true
+
+  debug:
+    description: >
+      Enable debug-level logging.
+    required: false
+    default: 0
+
+runs:
+  using: composite
+  steps:
+
+    # Setup Go for CLI compilation.
+    - uses: actions/setup-go@v2
+      with:
+        go-version: 1.18
+
+    - name: Set some needed environment variables.
+      shell: bash
+      run: |
+        # Set environment.
+        {
+          echo "TMPDIR=$RUNNER_TEMP"
+          echo "RUN=${{ github.action_path }}/scripts/gha run"
+          echo "RUN_CLI=env DEBUG=true ${{ github.action_path }}/scripts/gha run actions-go-build"
+          echo "RESULT_FILE=${{ inputs.result_file }}
+        } >> "$GITHUB_ENV"
+
+    # Compile the CLI inline. We should work to remove this step by using
+    # precompiled binaries for tagged versions (maybe stored as release
+    # assets).
+    - name: Install the CLI
+      shell: bash
+      working-directory: ${{ github.action_path }}
+      run: |
+        $RUN make install
+
+    # Read config from file and get Go version.
+    - name: Read config from result file.
+      shell: bash
+      run:
+        $RUN_CLI inspect -build-config "$RESULT_FILE"
+
+        GO_VERSION="$($RUN_CLI inspect -go-version "$RESULT_FILE")"
+        echo "GO_VERSION=$GO_VERSION" | tee >> "$GITHUB_ENV"
+
+        REPRODUCIBLE="$($RUN_CLI inspect -reproducible "$RESULT_FILE")"
+        echo "REPRODUCIBLE=$REPRODUCIBLE" | tee >> "$GITHUB_ENV"
+
+    # Setup Go For Running the Verification Build
+    - uses: actions/setup-go@v2
+      with:
+        go-version: ${{ env.GO_VERSION }}
+
+    # Verify Reproducibility
+    - name: Verify Reproducibility
+      if: env.REPRODUCIBLE == 'true'
+      shell: bash
+      working-directory: ${{ inputs.work_dir }}
+      run: |
+        $RUN_CLI verify "$RESULT_FILE" \
+          -debug \
+          -json | tee > "$VERIFICATION_RESULT"
+
+    # Report Reproducibility
+    - name: Report Reproducibility
+      if: env.REPRODUCIBLE == 'false'
+      shell: bash
+      working-directory: ${{ inputs.work_dir }}
+      run: |
+        $RUN_CLI verify "$RESULT_FILE" \
+          -debug \
+          -json | tee > "$VERIFICATION_RESULT" || true

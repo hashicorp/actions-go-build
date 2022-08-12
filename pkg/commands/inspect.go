@@ -14,14 +14,16 @@ import (
 type inspectOpts struct {
 	buildOpts
 
-	goVersion   bool
-	buildConfig bool
-	buildEnv    bool
-	zipInfo     bool
+	reproducible bool
+	goVersion    bool
+	buildConfig  bool
+	buildEnv     bool
+	zipInfo      bool
 }
 
 func (opts *inspectOpts) Flags(fs *flag.FlagSet) {
 	opts.buildOpts.Flags(fs)
+	fs.BoolVar(&opts.reproducible, "reproducible", false, "just print the reproducible field")
 	fs.BoolVar(&opts.goVersion, "go-version", false, "just print the go version")
 	fs.BoolVar(&opts.buildConfig, "build-config", false, "just print the build config json")
 	fs.BoolVar(&opts.buildEnv, "build-env", false, "just print the build environment")
@@ -35,6 +37,10 @@ var Inspect = cli.LeafCommand("inspect", "inspect things", func(opts *inspectOpt
 	}
 
 	p := printer{w: os.Stdout, build: bm.Build()}
+
+	if opts.reproducible {
+		return p.line("%t", bm.Build().Config().Reproducible)
+	}
 
 	if opts.goVersion {
 		return p.line(bm.Build().Config().Parameters.GoVersion)
