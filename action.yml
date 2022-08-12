@@ -86,8 +86,8 @@ runs:
       run: |
         {
           echo "TMPDIR=$RUNNER_TEMP"
-          echo "UTILS=${{ github.action_path }}/scripts/gha_utils.bash"
-          echo "group=source ${{ github.action_path }}/scripts/gha_utils.bash && group_cmd"
+          echo "RUN=${{ github.action_path }}/scripts/gha run"
+          echo "RUN_CLI=DEBUG=true ${{ github.action_path }}/scripts/gha run actions-go-build"
         } >> "$GITHUB_ENV"
 
     # Compile the CLI inline. We should work to remove this step by using
@@ -97,13 +97,13 @@ runs:
       shell: bash
       working-directory: ${{ github.action_path }}
       run: |
-        $group make install
+        $RUN make install
 
     # Read config.
     - name: Read config from inputs; export to GITHUB_ENV
       shell: bash
       working-directory: ${{ inputs.work_dir }}
-      run: actions-go-build config -github
+      run: $RUN_CLI config -github
       env:
         PRODUCT_NAME: ${{ inputs.product_name }}
         PRODUCT_VERSION: ${{ inputs.product_version }}
@@ -125,7 +125,7 @@ runs:
     - name: Run Primary Build
       shell: bash
       working-directory: ${{ inputs.work_dir }}
-      run: $group actions-go-build build -debug
+      run: $RUN_CLI build -debug
 
     # Upload Primary Build
     - name: Upload Primary Zip
@@ -140,7 +140,7 @@ runs:
       if: inputs.reproducible == 'assert' || inputs.reproducible == 'report'
       shell: bash
       working-directory: ${{ inputs.work_dir }}
-      run: $group actions-go-build build -debug -verification
+      run: $RUN_CLI build -verification
 
     # Upload Local Verification Build
     - name: Upload Local Verification Zip
@@ -156,12 +156,12 @@ runs:
       if: inputs.reproducible == 'assert'
       shell: bash
       working-directory: ${{ inputs.work_dir }}
-      run: $group actions-go-build verify -debug -verification-build-result "$VERIFICATION_BUILD_RESULT"
+      run: $RUN_CLI verify -debug -verification-build-result "$VERIFICATION_BUILD_RESULT"
 
     # Report Reproducibility
     - name: Report Reproducibility Results
       if: inputs.reproducible == 'report'
       shell: bash
       working-directory: ${{ inputs.work_dir }}
-      run: $group actions-go-build verify -debug -verification-build-result "$VERIFICATION_BUILD_RESULT" || true
+      run: $RUN_CLI verify -debug -verification-build-result "$VERIFICATION_BUILD_RESULT" || true
 
