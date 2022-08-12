@@ -75,7 +75,11 @@ func (c Config) buildConfig(root string) (build.Config, error) {
 	if err != nil {
 		return build.Config{}, err
 	}
-	return build.NewConfig(c.Product, c.Parameters, paths, c.Tool)
+	var reproducible bool
+	if c.Reproducible == "assert" {
+		reproducible = true
+	}
+	return build.NewConfig(c.Product, c.Parameters, paths, c.Tool, reproducible)
 }
 
 // PrimaryBuildConfig returns the config for the primary build.

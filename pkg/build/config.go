@@ -19,15 +19,19 @@ type Config struct {
 	Paths Paths
 	// Tool is info about the tool that created this build.Config.
 	Tool crt.Tool
+	// Reproducible tells us whether the build is expected to be reproducible.
+	// This is used by downstream processes.
+	Reproducible bool
 }
 
 // NewConfig expects product, params, and paths to be fully initialized.
-func NewConfig(product crt.Product, params Parameters, paths Paths, creator crt.Tool) (Config, error) {
+func NewConfig(product crt.Product, params Parameters, paths Paths, creator crt.Tool, reproducible bool) (Config, error) {
 	return Config{
-		Product:    product,
-		Parameters: params,
-		Paths:      paths,
-		Tool:       creator,
+		Product:      product,
+		Parameters:   params,
+		Paths:        paths,
+		Tool:         creator,
+		Reproducible: reproducible,
 	}, nil
 }
 

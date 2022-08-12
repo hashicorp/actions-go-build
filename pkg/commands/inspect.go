@@ -8,17 +8,22 @@ import (
 
 	"github.com/hashicorp/actions-go-build/pkg/build"
 	"github.com/hashicorp/composite-action-framework-go/pkg/cli"
+	"github.com/hashicorp/composite-action-framework-go/pkg/json"
 )
 
 type inspectOpts struct {
 	buildOpts
 
-	buildEnv bool
-	zipInfo  bool
+	goVersion   bool
+	buildConfig bool
+	buildEnv    bool
+	zipInfo     bool
 }
 
 func (opts *inspectOpts) Flags(fs *flag.FlagSet) {
 	opts.buildOpts.Flags(fs)
+	fs.BoolVar(&opts.goVersion, "go-version", false, "just print the go version")
+	fs.BoolVar(&opts.buildConfig, "build-config", false, "just print the build config json")
 	fs.BoolVar(&opts.buildEnv, "build-env", false, "just print the build environment")
 	fs.BoolVar(&opts.zipInfo, "zip-info", false, "just print the zip details")
 }
@@ -30,6 +35,14 @@ var Inspect = cli.LeafCommand("inspect", "inspect things", func(opts *inspectOpt
 	}
 
 	p := printer{w: os.Stdout, build: bm.Build()}
+
+	if opts.goVersion {
+		return p.line(bm.Build().Config().Parameters.GoVersion)
+	}
+
+	if opts.buildConfig {
+		return json.Write(os.Stdout, bm.Build().Config())
+	}
 
 	if opts.buildEnv {
 		return p.buildEnv()

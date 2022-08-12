@@ -88,6 +88,7 @@ func standardBuildconfig() build.Config {
 			Version:  "0.0.0",
 			Revision: "cabba9e",
 		},
+		Reproducible: true,
 	}
 }
 
