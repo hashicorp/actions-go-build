@@ -13,6 +13,12 @@ endif
 
 default: run
 
+ifeq ($(TMPDIR),)
+TMPDIR="$(RUNNER_TEMP)"
+endif
+ifeq ($(TMPDIR),)
+$(error Neither TMPDIR nor RUNNER_TEMP are set.)
+endif
 
 RUN_TESTS_QUIET := @$(MAKE) test > /dev/null 2>&1 || { echo "Tests failed, please run 'make test'."; exit 1; }
 
