@@ -19,6 +19,9 @@ jobs:
       # Dogfood this Action to build its own CLI.
       - uses: ./
         with:
+          # We override the default product name so that this test build
+          # of the CLI doesn't take the place of the cli built by the action.
+          product_name: actions-go-build-test-build
           go_version: 1.18
           os: ${{ matrix.os }}
           arch: ${{ matrix.arch }}
