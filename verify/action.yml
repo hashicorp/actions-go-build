@@ -67,6 +67,7 @@ runs:
       shell: bash
       working-directory: ${{ inputs.work_dir }}
       run: |
+        mkdir -p "$(dirname "$VERIFICATION_RESULT")"
         $RUN_CLI verify -json "$RESULT_FILE" | tee > "$VERIFICATION_RESULT"
 
     # Report Reproducibility
@@ -75,4 +76,5 @@ runs:
       shell: bash
       working-directory: ${{ inputs.work_dir }}
       run: |
+        mkdir -p "$(dirname "$VERIFICATION_RESULT")"
         $RUN_CLI verify -json "$RESULT_FILE" | tee > "$VERIFICATION_RESULT" || true
