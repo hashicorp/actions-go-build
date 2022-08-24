@@ -11,7 +11,7 @@ inputs:
   debug:
     description: Enable debug-level logging.
     required: false
-    default: 0
+    default: 'false'
 
 runs:
   using: composite
@@ -50,10 +50,10 @@ runs:
       run:
         $RUN_CLI inspect -build-config "$RESULT_FILE"
 
-        GO_VERSION="$($RUN_CLI inspect -go-version "$RESULT_FILE")"
+        GO_VERSION="$(actions-go-build inspect -go-version "$RESULT_FILE")"
         echo "GO_VERSION=$GO_VERSION" | tee >> "$GITHUB_ENV"
 
-        REPRODUCIBLE="$($RUN_CLI inspect -reproducible "$RESULT_FILE")"
+        REPRODUCIBLE="$(actions-go-build inspect -reproducible "$RESULT_FILE")"
         echo "REPRODUCIBLE=$REPRODUCIBLE" | tee >> "$GITHUB_ENV"
 
     # Setup Go For Running the Verification Build
@@ -67,9 +67,7 @@ runs:
       shell: bash
       working-directory: ${{ inputs.work_dir }}
       run: |
-        $RUN_CLI verify "$RESULT_FILE" \
-          -debug \
-          -json | tee > "$VERIFICATION_RESULT"
+        $RUN_CLI verify "$RESULT_FILE" -json | tee > "$VERIFICATION_RESULT"
 
     # Report Reproducibility
     - name: Report Reproducibility
@@ -77,6 +75,4 @@ runs:
       shell: bash
       working-directory: ${{ inputs.work_dir }}
       run: |
-        $RUN_CLI verify "$RESULT_FILE" \
-          -debug \
-          -json | tee > "$VERIFICATION_RESULT" || true
+        $RUN_CLI verify "$RESULT_FILE" -json | tee > "$VERIFICATION_RESULT" || true
