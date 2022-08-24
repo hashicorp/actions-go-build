@@ -1,6 +1,12 @@
 name: Test Build
 
-on: [push]
+on:
+  push:
+    paths:
+      - '**'
+      - '!**.md'
+      - '!dev/**'
+      - '!verify/**'
 
 jobs:
 

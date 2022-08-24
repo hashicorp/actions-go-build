@@ -1,6 +1,12 @@
 name: Test Verify
 
-on: [push]
+on:
+  push:
+    paths:
+      - '**'
+      - '!**.md'
+      - '!dev/**'
+      - '!action.yml'
 
 jobs:
 
