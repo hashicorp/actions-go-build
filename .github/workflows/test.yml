@@ -27,3 +27,13 @@ jobs:
     uses: ./.github/workflows/self-test-suite.yml
     with:
       runner: ubuntu-latest
+
+  macos-verify:
+    uses: ./.github/workflows/self-test-suite-verify.yml
+    with:
+      runner: macos-latest
+
+  linux-verify:
+    uses: ./.github/workflows/self-test-suite-verify.yml
+    with:
+      runner: ubuntu-latest

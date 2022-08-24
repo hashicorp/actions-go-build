@@ -1,4 +1,4 @@
-name: Test
+name: Test Verify
 
 on:
   workflow_call:
@@ -27,5 +27,5 @@ jobs:
           assert: success
           when: "result file is valid and verification succeeds"
           debug: 1
-          result_file: blah
+          result_file: verify/self-test/testdata/valid-clean-reproducible.buildresult.json
 
