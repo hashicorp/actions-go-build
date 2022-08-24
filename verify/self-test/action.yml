@@ -18,7 +18,7 @@ inputs:
   debug:
     description: Enable debug-level logging.
     required: false
-    default: 'false'
+    default: false
 
 runs:
   using: composite
