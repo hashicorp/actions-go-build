@@ -13,6 +13,11 @@ inputs:
     required: false
     default: false
 
+  output_file:
+    description: The name of the file to write the verification result to.
+    required: false
+    default: verification-result.json
+
 runs:
   using: composite
   steps:
@@ -27,13 +32,15 @@ runs:
       run: |
         # Set environment.
         ACTION_ROOT="${{ github.action_path }}/.."
+        OUTPUT_FILE="${{ inputs.output_file }}"
         {
           echo "TMPDIR=$RUNNER_TEMP"
           echo "ACTION_ROOT=$ACTION_ROOT"
           echo "RUN=$ACTION_ROOT/scripts/gha run"
           echo "RUN_CLI=env DEBUG=${{ inputs.debug }} $ACTION_ROOT/scripts/gha run actions-go-build"
           echo "RESULT_FILE=${{ inputs.result_file }}"
-          echo "VERIFICATION_RESULT=$RUNNER_TEMP/verification-result.json"
+          echo "OUTPUT_FILE=$OUTPUT_FILE"
+          echo "VERIFICATION_RESULT=$RUNNER_TEMP/$OUTPUT_FILE"
         } >> "$GITHUB_ENV"
 
     # Compile the CLI inline. We should work to remove this step by using
@@ -75,7 +82,7 @@ runs:
       shell: bash
       working-directory: ${{ inputs.work_dir }}
       run: |
-        # Run verification, fail workflow on verification failure (reproducible == true).
+        # Verify the build result, fail workflow on verification failure (reproducible == true).
         $RUN_CLI verify -json "$RESULT_FILE" | tee > "$VERIFICATION_RESULT"
 
     # Report Reproducibility
@@ -84,7 +91,7 @@ runs:
       shell: bash
       working-directory: ${{ inputs.work_dir }}
       run: |
-        # Run verification, report result but do not fail (reproducible == false).
+        # Verify the build result, report result but do not fail (reproducible == false).
         $RUN_CLI verify -json "$RESULT_FILE" | tee > "$VERIFICATION_RESULT" || true
 
     # Store reproducibility report.
@@ -93,4 +100,5 @@ runs:
       uses: actions/upload-artifact@v3
       with:
         path: ${{ env.VERIFICATION_RESULT }}
+        name: ${{ env.OUTPUT_FILE }}
         if-no-files-found: error

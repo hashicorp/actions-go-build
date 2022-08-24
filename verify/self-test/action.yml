@@ -18,7 +18,9 @@ inputs:
   debug:
     description: Enable debug-level logging.
     required: false
-    default: false
+  output_file:
+    description: The name of the file to write the verification result to.
+    required: false
 
 runs:
   using: composite
@@ -34,6 +36,7 @@ runs:
       with:
         result_file: ${{ inputs.result_file }}
         debug: ${{ inputs.debug }}
+        output_file: ${{ inputs.output_file }}
       continue-on-error: true
     - if: inputs.assert == 'success'
       name: Assert The Action Succeeded
