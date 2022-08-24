@@ -1,0 +1,31 @@
+name: Test
+
+on:
+  workflow_call:
+    inputs:
+      runner:
+        description: The name of the runner to use.
+        type: string
+        required: true
+
+jobs:
+
+  # Begin action tests.
+  #
+  # These tests use a matrix to define a set of inputs and wanted results.
+  # They use the ./verify/self-test action in this repo to exercise the action itself
+  # with different sets of inputs, and assert that the action succeeds or
+  # fails correctly.
+
+  # A single reproducible go binary.
+  ok-verification-succeeds:
+    runs-on: ${{ inputs.runner }}
+    steps:
+      - uses: actions/checkout@v3
+      - uses: ./verify/self-test
+        with:
+          assert: success
+          when: "result file is valid and verification succeeds"
+          debug: 1
+          result_file: blah
+

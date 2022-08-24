@@ -5,13 +5,11 @@ description: Verify a reproducible build result.
 inputs:
 
   result_file:
-    description: >
-      The result file we're trying to verify.
+    description: The result file we're trying to verify.
     required: true
 
   debug:
-    description: >
-      Enable debug-level logging.
+    description: Enable debug-level logging.
     required: false
     default: 0
 
