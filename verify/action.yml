@@ -30,7 +30,7 @@ runs:
           echo "TMPDIR=$RUNNER_TEMP"
           echo "RUN=${{ github.action_path }}/scripts/gha run"
           echo "RUN_CLI=env DEBUG=true ${{ github.action_path }}/scripts/gha run actions-go-build"
-          echo "RESULT_FILE=${{ inputs.result_file }}
+          echo "RESULT_FILE=${{ inputs.result_file }}"
         } >> "$GITHUB_ENV"
 
     # Compile the CLI inline. We should work to remove this step by using
