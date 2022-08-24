@@ -40,6 +40,9 @@ func newCore(name string, isVerification bool, cfg Config, options ...Option) (*
 	if err != nil {
 		return nil, err
 	}
+	if s.cleanOnly && cfg.Product.IsDirty() {
+		return nil, fmt.Errorf("build config indicates a dirty worktree but clean-only is set to true")
+	}
 	return &core{
 		Settings:       s,
 		config:         cfg,

@@ -71,8 +71,8 @@ func (b *buildish) Build(why string, forceVerification bool, extraOpts ...build.
 	return buildFunc()
 }
 
-func (b *buildish) runBuild(why string, forceVerification bool) error {
-	buildFunc, err := b.getBuildFunc(why, forceVerification)
+func (b *buildish) runBuild(why string, forceVerification bool, extraOpts ...build.Option) error {
+	buildFunc, err := b.getBuildFunc(why, forceVerification, extraOpts...)
 	if err != nil {
 		return err
 	}

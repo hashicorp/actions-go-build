@@ -22,15 +22,17 @@ var Main = cli.RootCommand("go-build", "go build and related functions",
 type buildOpts struct {
 	buildish
 	verification bool
+	clean        bool
 }
 
 func (opts *buildOpts) Flags(fs *flag.FlagSet) {
 	opts.buildish.Flags(fs)
 	fs.BoolVar(&opts.verification, "verification", false, "configure build as a verification build")
+	fs.BoolVar(&opts.clean, "clean", false, "fail unless worktree is clean")
 }
 
 var Build = cli.LeafCommand("build", "run a build", func(opts *buildOpts) error {
-	return opts.runBuild("Running build", opts.verification)
+	return opts.runBuild("Running build", opts.verification, build.WithCleanOnly(opts.clean))
 })
 
 var Describe = cli.RootCommand("describe", "describe things", DescribeBuildEnv)

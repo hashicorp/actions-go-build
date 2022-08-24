@@ -24,6 +24,7 @@ type Settings struct {
 	stdout       io.Writer
 	stderr       io.Writer
 	forceRebuild bool
+	cleanOnly    bool
 	logPrefix    string
 }
 
@@ -59,6 +60,8 @@ func WithStderr(w io.Writer) Option { return func(s *Settings) { s.stderr = w } 
 
 // WithForceRebuild forces a build to be re-done rather than using cache.
 func WithForceRebuild(on bool) Option { return func(s *Settings) { s.forceRebuild = on } }
+
+func WithCleanOnly(on bool) Option { return func(s *Settings) { s.cleanOnly = on } }
 
 func newSettings(options []Option) (Settings, error) {
 	s := &Settings{}
