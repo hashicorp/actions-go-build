@@ -89,7 +89,7 @@ runs:
 
     # Store reproducibility report.
     - name: Upload Reproducibility Report
-      when: always
+      if: always()
       uses: actions/upload-artifact@v3
       with:
         path: ${{ env.VERIFICATION_RESULT }}
