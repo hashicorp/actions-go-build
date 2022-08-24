@@ -25,8 +25,8 @@ runs:
     - name: Set some needed environment variables.
       shell: bash
       run: |
-        ACTION_ROOT="${{ github.action_path }}/.."
         # Set environment.
+        ACTION_ROOT="${{ github.action_path }}/.."
         {
           echo "TMPDIR=$RUNNER_TEMP"
           echo "ACTION_ROOT=$ACTION_ROOT"
@@ -43,19 +43,26 @@ runs:
       shell: bash
       working-directory: ${{ env.ACTION_ROOT }}
       run: |
+        # Install the CLI
         $RUN make install
 
-    # Read config from file and get Go version.
+    # Read build config
     - name: Read config from result file.
       shell: bash
-      run:
-        $RUN_CLI inspect -build-config "$RESULT_FILE"
-
-        GO_VERSION="$(actions-go-build inspect -go-version "$RESULT_FILE")"
+      run: |
+        # Read some values from the build config.
+        GO_VERSION="$(actions-go-build inspect -q -go-version "$RESULT_FILE")"
         echo "GO_VERSION=$GO_VERSION" | tee >> "$GITHUB_ENV"
 
-        REPRODUCIBLE="$(actions-go-build inspect -reproducible "$RESULT_FILE")"
+        REPRODUCIBLE="$(actions-go-build inspect -q -reproducible "$RESULT_FILE")"
         echo "REPRODUCIBLE=$REPRODUCIBLE" | tee >> "$GITHUB_ENV"
+
+    # Print build config.
+    - name: Print build config
+      shell: bash
+      run: |
+        # Print build config.
+        $RUN_CLI inspect -build-config "$RESULT_FILE"
 
     # Setup Go For Running the Verification Build
     - uses: actions/setup-go@v2
@@ -68,7 +75,7 @@ runs:
       shell: bash
       working-directory: ${{ inputs.work_dir }}
       run: |
-        mkdir -p "$(dirname "$VERIFICATION_RESULT")"
+        # Run verification, fail workflow on verification failure (reproducible == true).
         $RUN_CLI verify -json "$RESULT_FILE" | tee > "$VERIFICATION_RESULT"
 
     # Report Reproducibility
@@ -77,5 +84,13 @@ runs:
       shell: bash
       working-directory: ${{ inputs.work_dir }}
       run: |
-        mkdir -p "$(dirname "$VERIFICATION_RESULT")"
+        # Run verification, report result but do not fail (reproducible == false).
         $RUN_CLI verify -json "$RESULT_FILE" | tee > "$VERIFICATION_RESULT" || true
+
+    # Store reproducibility report.
+    - name: Upload Reproducibility Report
+      when: always
+      uses: actions/upload-artifact@v3
+      with:
+        path: ${{ env.VERIFICATION_RESULT }}
+        if-no-files-found: error
