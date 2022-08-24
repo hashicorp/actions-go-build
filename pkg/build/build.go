@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"os"
 	"os/exec"
+	"strings"
 	"time"
 
 	"github.com/hashicorp/actions-go-build/internal/zipper"
@@ -160,25 +161,18 @@ func (b *core) runInstructions() error {
 		return err
 	}
 
-	b.listInstructions()
-
-	b.Log("build environment:")
-	env := b.Env()
-	for _, e := range b.Env() {
-		b.Log(e)
-	}
 	c := b.newCommand(b.Settings.bash, path)
-	c.Env = os.Environ()
-	c.Env = append(c.Env, env...)
+	c.Env = b.Env()
+	b.Log("Build environment determined by config:\n%s", strings.Join(c.Env, "\n"))
+	c.Env = append(os.Environ(), c.Env...)
+	b.Debug("Full build environment:\n%s", strings.Join(c.Env, "\n"))
+
 	return c.Run()
 }
 
 // writeInstructions writes the build instructions to a temporary file
 // and returns its path, or an error if writing fails.
 func (b *core) writeInstructions() (path string, err error) {
+	b.Log("Build instructions:\n%s", b.config.Parameters.Instructions)
 	return fs.WriteTempFile("actions-go-build.instructions", b.config.Parameters.Instructions)
-}
-
-func (b *core) listInstructions() {
-	b.Log(b.config.Parameters.Instructions)
 }

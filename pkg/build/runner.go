@@ -111,6 +111,7 @@ func (br *Runner) recordStep(desc string, step func() error) error {
 	err = fmt.Errorf("%s: %w", desc, err)
 	br.result.err = err
 	br.result.ErrorMessage = err.Error()
+	br.Log("%s: failed: %s", desc, err)
 	return err
 }
 
