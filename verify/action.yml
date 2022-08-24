@@ -33,6 +33,7 @@ runs:
           echo "RUN=$ACTION_ROOT/scripts/gha run"
           echo "RUN_CLI=env DEBUG=${{ inputs.debug }} $ACTION_ROOT/scripts/gha run actions-go-build"
           echo "RESULT_FILE=${{ inputs.result_file }}"
+          echo "VERIFICATION_RESULT=$RUNNER_TEMP/verification-result.json"
         } >> "$GITHUB_ENV"
 
     # Compile the CLI inline. We should work to remove this step by using
