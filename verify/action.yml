@@ -63,7 +63,7 @@ runs:
 
     # Verify Reproducibility
     - name: Verify Reproducibility
-      if: env.REPRODUCIBLE == 'true'
+      if: env.REPRODUCIBLE != 'false'
       shell: bash
       working-directory: ${{ inputs.work_dir }}
       run: |
