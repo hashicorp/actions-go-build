@@ -26,6 +26,6 @@ jobs:
         with:
           assert: success
           when: "result file is valid and verification succeeds"
-          debug: 1
+          debug: false
           result_file: verify/self-test/testdata/valid-clean-reproducible.buildresult.json
 
