@@ -20,5 +20,13 @@ func (opts *buildOpts) Flags(fs *flag.FlagSet) {
 }
 
 var Build = cli.LeafCommand("build", "run a build", func(opts *buildOpts) error {
-	return opts.runBuild("Running build", opts.verification, build.WithCleanOnly(opts.clean))
+	build, err := opts.build("Running build", opts.verification, build.WithCleanOnly(opts.clean))
+	if err != nil {
+		return err
+	}
+	result, err := build.Result()
+	if err != nil {
+		return err
+	}
+	return opts.output.result(opts.desc, result)
 })

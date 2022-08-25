@@ -9,6 +9,24 @@ import (
 	"github.com/hashicorp/composite-action-framework-go/pkg/json"
 )
 
+// A verifyish represents something that can be verified as reproducible.
+// To verify reproducibility, you need to compare two build results to see if they have
+// the same SHAs for the zip files. Build results can come from files on disk, or
+// URLs read from the internet, or from builds run locally on this machine.
+//
+// Verifyish takes a single argument "target" (the one defined in buildish), which represents
+// the build we are wanting to verify (the "primary" build). That can be a build result file,
+// or a file containing build config we can run, or a path to a local directory containing
+// source code we can build. If a build needs to be run to obtain a build result then that
+// is done first.
+//
+// Using this primary build result, a verification build is configured and run, and the results
+// are compared.
+//
+// It is possible to skip the verification build by passing the -verification-build-result flag
+// which allows you to directly compare a primary and verification build result which have
+// been generated earlier. This is mostly useful in CI where you want to be able to generate
+// multiple results in different jobs and then compare them in another job.
 type verifyish struct {
 	buildish
 	staggerTime                 time.Duration
@@ -20,7 +38,7 @@ type verifyish struct {
 
 func (v *verifyish) Flags(fs *flag.FlagSet) {
 	v.buildish.Flags(fs)
-	fs.DurationVar(&v.staggerTime, "staggertime", 5*time.Second, "min. time to wait after start of primary build")
+	fs.DurationVar(&v.staggerTime, "staggertime", 5*time.Second, "minimum time to wait after start of primary build")
 	fs.StringVar(&v.verificationBuildResultFile, "verification-build-result", "", "load verification build result from file")
 }
 
@@ -53,19 +71,20 @@ func (v *verifyish) setResultSources() error {
 }
 
 func (v *verifyish) primaryResultSource() (build.ResultSource, error) {
-	// Check if we were handed a result already (i.e. if the input was a build or verification result file).
+	// Check if we were handed a result already (i.e. if the input was a build result or verification result file).
 	if v.buildish.buildResult != nil {
 		return v.buildish.buildResult, nil
 	}
-	return v.buildish.Build("Getting primary build result", false, build.WithLogPrefix("primary build"))
+	return v.buildish.build("Getting primary build result", false, build.WithLogPrefix("primary build"))
 }
 
 func (v *verifyish) verificationResultSource() (build.ResultSource, error) {
-	// The user supplied a ready-made verification build result.
 	if v.verificationBuildResultFile != "" {
+		// The user supplied a ready-made verification build result.
 		v.log("Getting verification build result from %q", v.verificationBuildResultFile)
 		return v.verificationResultSourceFromFile(v.verificationBuildResultFile)
 	}
+	// No ready-made verification build result, so we need to run a new one.
 	v.log("Running new verification build.")
 	return v.verificationResultSourceFromNewBuild()
 }
@@ -114,8 +133,8 @@ func (v *verifyish) primaryConfig() (*build.Config, error) {
 	if v.buildish.buildConfig != nil {
 		return v.buildish.buildConfig, nil
 	}
-	if v.buildish.build != nil {
-		c := v.buildish.build.Config()
+	if v.buildish.storedBuild != nil {
+		c := v.buildish.storedBuild.Config()
 		return &c, nil
 	}
 	return nil, fmt.Errorf("no build config to compare")
@@ -132,7 +151,7 @@ func (v *verifyish) readyPrimaryResult() (build.Result, bool, error) {
 		return build.Result{}, false, nil
 	}
 
-	pb, err := v.buildish.Build("Inspecting cache for build defined", false)
+	pb, err := v.buildish.build("Inspecting cache for build defined", false)
 	if err != nil {
 		return build.Result{}, false, err
 	}

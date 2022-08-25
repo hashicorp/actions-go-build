@@ -21,13 +21,27 @@ import (
 
 type buildFunc func() (*build.Manager, error)
 
-type configSource int
-
-const (
-	configSourceLocal = configSource(iota)
-	configSourceRemote
-)
-
+// buildish represents a thing which can be built. That essentially means anything from which a
+// build configuration can be derived. There are currently four things that fit into this category:
+//
+//   - A local directory coupled with the local system's environment.
+//   - A json blob from either a local file or a URL containing:
+//     - a build.Config
+//     - a build.Result (which contains a build.Config)
+//     - a build.VerificationResult (which contains a primary build.Config)
+//
+// buildish accepts a single argument (target) which can be a local path or a URL.
+//
+// If target is a local path pointing to a directory, we assume we want to load contextual
+// build configuration from that directory and the current environment, and that we want to
+// run the build in that same directory, as a primary build. (This can be overridden using
+// forceVerification, which copies the current directory to a temporary verification dir
+// before running the build there.)
+//
+// If target is a URL or local path pointing to a config or result file of some sort, then
+// we load the build configuration from that file. In this case (when loading config
+// from a file) we treat the build as a verification build (i.e. we don't build it in
+// the current directory, but rather in a temporary verification build directory).
 type buildish struct {
 	desc string
 	logOpts
@@ -38,11 +52,10 @@ type buildish struct {
 	target string
 
 	// We store these for the sake of verifyish.
-	verificationResult *build.VerificationResult
-	build              build.Build
-	buildResult        *build.Result
-	buildConfig        *build.Config
-	dir                string
+	storedBuild build.Build
+	buildResult *build.Result
+	buildConfig *build.Config
+	dir         string
 }
 
 // defaultTarget is the default build to target.
@@ -63,7 +76,9 @@ func (b *buildish) Init() error {
 	return nil
 }
 
-func (b *buildish) Build(why string, forceVerification bool, extraOpts ...build.Option) (*build.Manager, error) {
+// build is used by consumers of buildish who want a fully-formed build manager which they
+// can either execute or inspect. The why parameter is used to make logging more informative.
+func (b *buildish) build(why string, forceVerification bool, extraOpts ...build.Option) (*build.Manager, error) {
 	buildFunc, err := b.getBuildFunc(why, forceVerification, extraOpts...)
 	if err != nil {
 		return nil, err
@@ -71,49 +86,66 @@ func (b *buildish) Build(why string, forceVerification bool, extraOpts ...build.
 	return buildFunc()
 }
 
-func (b *buildish) runBuild(why string, forceVerification bool, extraOpts ...build.Option) error {
-	buildFunc, err := b.getBuildFunc(why, forceVerification, extraOpts...)
-	if err != nil {
-		return err
-	}
-	build, err := buildFunc()
-	if err != nil {
-		return err
-	}
-	result, err := build.Result()
-	if err != nil {
-		return err
-	}
-	return b.output.result(b.desc, result)
-}
-
+// getBuildFunc uses all the args and flags to return a buildFunc. The strategy is to
+// try to intrepret the target in different ways until an interpretation leads to a viable
+// build func. The order we try this interpretation probably doesn't matter for correctness.
+//
+// Currently the order is:
+//
+//   1. URL pointing to build config.
+//   2. Local directory containing source code.
+//   3. Local file containing build config.
+//
+// Note that we don't eagerly try to actually read the build config, because options on the
+// buildish may still be further tweaked by calling code to influence the settings of the
+// build, so we only lazily get the build config itself at the last minute when it's needed.
 func (b *buildish) getBuildFunc(why string, forceVerification bool, extraOpts ...build.Option) (buildFunc, error) {
+
 	var (
-		done  bool
-		err   error
+		// done is set to true when we've found the correct interpretation of target.
+		done bool
+		// err is the error returned from generating the buildFunc
+		err error
+		// build is the buildFunc itself that we want
 		build buildFunc
 	)
+
 	b.debug("Resolving buildish %q", b.target)
 	b.desc = "Build"
+
 	if build, done, err = b.urlConfigSource(b.target, forceVerification, extraOpts...); done {
+
+		// Target is a URL, hopefully pointing to a JSON blob containing build config.
 		b.log("%s using config from %s", why, b.target)
+
 	} else if build, done, err = b.localDirConfigSource(b.target, forceVerification, extraOpts...); done {
+
+		// Target is a local directory containing source code to be built.
 		absTarget, err := filepath.Abs(b.target)
 		if err != nil {
 			return nil, err
 		}
 		b.log("%s using config and source code from %s", why, absTarget)
+
 	} else if build, done, err = b.localFileConfigSource(b.target, extraOpts...); done {
+
+		// Target is a local file, hopefully containing a JSON blob containing build config.
 		b.log("%s using config from %s", why, b.target)
+
 	} else {
+
+		// Target is gobbledygook.
 		err = fmt.Errorf("could not load build config from %q", b.target)
 	}
+
 	if err != nil {
 		b.debug("error getting build: %s", err)
 	}
+
 	return build, err
 }
 
+// localFileConfigSource returns a buildFunc which derives build config from a JSON blob retrieved via HTTPS.
 func (b *buildish) urlConfigSource(maybeURL string, forceVerification bool, extraOpts ...build.Option) (buildFunc, bool, error) {
 	u, err := url.Parse(maybeURL)
 	if err != nil {
@@ -128,6 +160,7 @@ func (b *buildish) urlConfigSource(maybeURL string, forceVerification bool, extr
 	}, extraOpts...), true, err
 }
 
+// localFileConfigSource returns a buildFunc which derives build config from a JSON blob stored in a local file.
 func (b *buildish) localFileConfigSource(maybeFile string, extraOpts ...build.Option) (buildFunc, bool, error) {
 	maybeFile, exists, err := b.resolvePath("file", maybeFile, fs.FileExists)
 	return b.configSourceFromReadCloser(maybeFile, false, func() (io.ReadCloser, error) {
@@ -135,6 +168,8 @@ func (b *buildish) localFileConfigSource(maybeFile string, extraOpts ...build.Op
 	}, extraOpts...), exists, err
 }
 
+// localDirConfigSource returns a buildFunc which derives build config from source code in a local
+// directory, alongside the current environment.
 func (b *buildish) localDirConfigSource(maybeDir string, forceVerification bool, extraOpts ...build.Option) (buildFunc, bool, error) {
 	absDir, exists, err := b.resolvePath("dir", maybeDir, fs.DirExists)
 	return func() (*build.Manager, error) {
@@ -157,11 +192,13 @@ func (b *buildish) localDirConfigSource(maybeDir string, forceVerification bool,
 		} else if m, err = b.buildFlags.newPrimaryManager(bc, extraOpts...); err != nil {
 			return nil, err
 		}
-		b.build = m.Build()
+		b.storedBuild = m.Build()
 		return m, nil
 	}, exists, err
 }
 
+// resolvePath returns the absolute version of maybePath, alongside a boolean indicating
+// if that path passes the existsFunc test. The kind parameter is used to make logging richer.
 func (b *buildish) resolvePath(kind, maybePath string, existsFunc func(string) (bool, error)) (string, bool, error) {
 	// The dir needs to be absolute, so if it's not, prefix it with the current workdir.
 	maybePath, err := ensureAbs(maybePath)
@@ -180,6 +217,14 @@ func (b *buildish) resolvePath(kind, maybePath string, existsFunc func(string) (
 	return maybePath, exists, err
 }
 
+// configSourceFromReadCloser accepts a function (rcFunc) that obtains an io.ReadCloser, and creates a
+// buildFunc that inteprets bytes from that io.ReadCloser as a json blob containing build configuration.
+// We use rcFunc rather than an actual io.ReadCloser so that we don't need to open files or make requests
+// until the last possible moment when they're needed. This avoids eagerly loading data we don't end up
+// needing.
+//
+// The location parameter is just used for logging purposes, and is assumed to indicate a file path or URL
+// from which the readcloser is sourced.
 func (b *buildish) configSourceFromReadCloser(location string, forceVerification bool, rcFunc func() (io.ReadCloser, error), extraOpts ...build.Option) buildFunc {
 	return func() (*build.Manager, error) {
 		b.debug("reading build config from %q", location)
@@ -211,6 +256,12 @@ func (b *buildish) configSourceFromReadCloser(location string, forceVerification
 	}
 }
 
+// readConfig attempts to interpret the bytes from an io.Reader as one of three possible
+// structs: a build.Config, build.Result, or build.VerificationResult. All three of
+// these structs contain complete build configuration needed to run a build.
+//
+// This is intended to make the system flexible: given any of these three things, you
+// can attempt to reproduce the build they represent.
 func (b *buildish) readConfig(r io.Reader) (build.Config, error) {
 	data, err := io.ReadAll(r)
 	if err != nil {
@@ -229,7 +280,6 @@ func (b *buildish) readConfig(r io.Reader) (build.Config, error) {
 	}
 	if vr, ok := tryUnmarshalJSON[build.VerificationResult](b, data); ok {
 		b.debug("%s is a verification result", b.target)
-		b.verificationResult = &vr
 		b.buildResult = vr.Primary
 		b.buildConfig = &vr.Primary.Config
 		return vr.Primary.Config, nil
@@ -237,6 +287,8 @@ func (b *buildish) readConfig(r io.Reader) (build.Config, error) {
 	return build.Config{}, fmt.Errorf("not a build config, build result, or verification result")
 }
 
+// tryUnmarshalJSON attempts to intepret data as a T, and returns a T and true if successful,
+// and returns a zero T and false otherwise.
 func tryUnmarshalJSON[T any](b *buildish, data []byte) (T, bool) {
 	t := reflect.TypeOf(*(new(T)))
 	a, err := json.ReadBytes[T](data)
@@ -249,6 +301,7 @@ func tryUnmarshalJSON[T any](b *buildish, data []byte) (T, bool) {
 	return a, err == nil
 }
 
+// ensureAbs takes a path and ensures it's absolute relative to the current working directory.
 func ensureAbs(maybePath string) (string, error) {
 	if filepath.IsAbs(maybePath) {
 		return maybePath, nil

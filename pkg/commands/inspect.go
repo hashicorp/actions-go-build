@@ -37,7 +37,7 @@ func (opts *inspectOpts) HideFlags() []string {
 }
 
 var Inspect = cli.LeafCommand("inspect", "inspect things", func(opts *inspectOpts) error {
-	bm, err := opts.Build("Inspecting build", opts.verification)
+	bm, err := opts.build("Inspecting build", opts.verification)
 	if err != nil {
 		return err
 	}
