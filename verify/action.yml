@@ -83,7 +83,7 @@ runs:
         # Verify the build result (fail workflow if not reproduced correctly: ${{ env.REPRODUCIBLE }})
         FAILED=false
         $RUN_CLI verify -json "$RESULT_FILE" | tee > "$VERIFICATION_RESULT" || FAILED=true
-        if !$FAILED; then
+        if ! $FAILED; then
           TITLE=":white_check_mark: Success, reproducibility check succeeded."
         else
           TITLE=":x: Reproducibility check failed."
