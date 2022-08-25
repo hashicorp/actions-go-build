@@ -126,7 +126,7 @@ runs:
     - name: Run Primary Build
       shell: bash
       working-directory: ${{ inputs.work_dir }}
-      run: $RUN_CLI build -debug
+      run: $RUN_CLI build
 
     # Upload Primary Build
     - name: Upload Primary Zip
@@ -162,7 +162,6 @@ runs:
         mkdir -p "$(dirname "$VERIFICATION_RESULT")"
         $RUN_CLI verify \
           -verification-build-result "$VERIFICATION_BUILD_RESULT" \
-          -debug \
           -json | tee > "$VERIFICATION_RESULT"
 
     # Report Reproducibility
@@ -175,7 +174,6 @@ runs:
         mkdir -p "$(dirname "$VERIFICATION_RESULT")"
         $RUN_CLI verify \
           -verification-build-result "$VERIFICATION_BUILD_RESULT" \
-          -debug \
           -json | tee > "$VERIFICATION_RESULT" || true
 
     # Upload Verification Result
