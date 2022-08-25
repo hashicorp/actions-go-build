@@ -15,11 +15,17 @@
 
 </details>
 
+{{- define "successEmoji"}}{{if . }}:white_check_mark:{{else}}:x:{{end -}}
+
+{{- define "hashTitle" -}}
+{{ template "successEmoji" .Match }} {{.Description}} - {{.Name}}
+{{- end -}}
+
 {{- define "singleFile" -}}
-| {{.Description}} - {{.Name}} |           SHA256         |
-|------------------------------|--------------------------|
-| Primary build                | {{.SHA256.Primary     }} |
-| Verification build           | {{.SHA256.Verification}} |
+| {{template "hashTitle" . }} |          SHA256          |
+|-----------------------------|--------------------------|
+| Primary build               | {{.SHA256.Primary     }} |
+| Verification build          | {{.SHA256.Verification}} |
 -----
 {{- end -}}
 
