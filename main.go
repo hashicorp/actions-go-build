@@ -40,12 +40,11 @@ func makeCLI(thisTool crt.Product, args []string) *cli.CLI {
 	c.Args = args
 
 	c.Commands = map[string]cli.CommandFactory{
-		"build":             makeCommand(commands.Build),
-		"config":            makeCommand(commands.Config),
-		"describe buildenv": makeCommand(commands.DescribeBuildEnv),
-		"inspect":           makeCommand(commands.Inspect),
-		"verify":            makeCommand(commands.Verify),
-		"version":           makeCommand(versionCommand),
+		"build":   makeCommand(commands.Build),
+		"config":  makeCommand(commands.Config),
+		"inspect": makeCommand(commands.Inspect),
+		"verify":  makeCommand(commands.Verify),
+		"version": makeCommand(versionCommand),
 	}
 
 	return c

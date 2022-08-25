@@ -18,6 +18,7 @@ type inspectOpts struct {
 	goVersion    bool
 	buildConfig  bool
 	buildEnv     bool
+	buildEnvDesc bool
 	zipInfo      bool
 }
 
@@ -27,7 +28,12 @@ func (opts *inspectOpts) Flags(fs *flag.FlagSet) {
 	fs.BoolVar(&opts.goVersion, "go-version", false, "just print the go version")
 	fs.BoolVar(&opts.buildConfig, "build-config", false, "just print the build config json")
 	fs.BoolVar(&opts.buildEnv, "build-env", false, "just print the build environment")
+	fs.BoolVar(&opts.buildEnvDesc, "describe-build-env", false, "describe the build environment")
 	fs.BoolVar(&opts.zipInfo, "zip-info", false, "just print the zip details")
+}
+
+func (opts *inspectOpts) HideFlags() []string {
+	return append(opts.logOpts.HideFlags(), "clean", "rebuild", "json")
 }
 
 var Inspect = cli.LeafCommand("inspect", "inspect things", func(opts *inspectOpts) error {
@@ -52,6 +58,10 @@ var Inspect = cli.LeafCommand("inspect", "inspect things", func(opts *inspectOpt
 
 	if opts.buildEnv {
 		return p.buildEnv()
+	}
+
+	if opts.buildEnvDesc {
+		return p.buildEnvDesc()
 	}
 
 	if opts.zipInfo {
@@ -89,6 +99,15 @@ func (p *printer) buildEnv() error {
 	return nil
 }
 
+func (p *printer) buildEnvDesc() error {
+	if err := p.title("Build Environment Description"); err != nil {
+		return err
+	}
+	return tabWrite(p, build.BuildEnvDefinitions(), func(e build.EnvVar) string {
+		return fmt.Sprintf("%s\t%s", e.Name, e.Description)
+	})
+}
+
 func (p *printer) zipDetails() error {
 	if err := p.title("Zip"); err != nil {
 		return err
@@ -117,4 +136,8 @@ func (p *printer) title(s string) error {
 func (p *printer) line(s string, a ...any) error {
 	_, err := fmt.Fprintf(p.w, p.prefix+s+"\n", a...)
 	return err
+}
+
+func tabWrite[T any](p *printer, list []T, line func(T) string) error {
+	return cli.TabWrite(p.w, list, line)
 }

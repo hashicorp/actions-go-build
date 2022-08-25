@@ -2,7 +2,7 @@
 | {{.Description}} - {{.Name}} |           SHA256         |
 |------------------------------|--------------------------|
 | Primary build                | {{.SHA256.Primary     }} |
-| Local verification build     | {{.SHA256.Verification}} |
+| Verification build           | {{.SHA256.Verification}} |
 -----
 {{- end -}}
 {{ template "singleFile" .Bin }}
