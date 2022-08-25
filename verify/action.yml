@@ -78,21 +78,25 @@ runs:
 
     # Verify Reproducibility
     - name: Verify Reproducibility
-      if: env.REPRODUCIBLE != 'false'
       shell: bash
-      working-directory: ${{ inputs.work_dir }}
       run: |
-        # Verify the build result, fail workflow on verification failure (reproducible == true).
-        $RUN_CLI verify -json "$RESULT_FILE" | tee > "$VERIFICATION_RESULT"
-
-    # Report Reproducibility
-    - name: Report Reproducibility
-      if: env.REPRODUCIBLE == 'false'
-      shell: bash
-      working-directory: ${{ inputs.work_dir }}
-      run: |
-        # Verify the build result, report result but do not fail (reproducible == false).
-        $RUN_CLI verify -json "$RESULT_FILE" | tee > "$VERIFICATION_RESULT" || true
+        # Verify the build result (fail workflow if not reproduced correctly: ${{ env.REPRODUCIBLE }})
+        FAILED=false
+        $RUN_CLI verify -json "$RESULT_FILE" | tee > "$VERIFICATION_RESULT" || FAILED=true
+        if !$FAILED; then
+          TITLE=":white_check_mark: Success, reproducibility check succeeded."
+        else
+          TITLE=":x: Reproducibility check failed."
+        fi
+        # Display reprodubibility result.
+        {
+          echo "## $TITLE"
+          echo "Full output below."
+          echo '```json'
+          cat "$VERIFICATION_RESULT"
+          echo '```'
+        } >> "$GITHUB_STEP_SUMMARY"
+        $FAILED && exit 1
 
     # Store reproducibility report.
     - name: Upload Reproducibility Report

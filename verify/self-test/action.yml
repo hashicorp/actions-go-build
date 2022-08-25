@@ -21,6 +21,7 @@ inputs:
   output_file:
     description: The name of the file to write the verification result to.
     required: false
+    default: verification-result.json
 
 runs:
   using: composite
