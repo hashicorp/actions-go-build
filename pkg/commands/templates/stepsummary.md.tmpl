@@ -1,3 +1,20 @@
+{{- if .ReproducedCorrectly }}
+## :white-check-mark: {{.Hashes.Zip.Name}} passed reproducibility check.
+{{- else }}
+## :x: {{.Hashes.Zip.Name}} failed reproducibility check.
+{{- end }}
+
+{{ template "hashes" .Hashes }}
+
+<details>
+<summary>Full verification result</summary>
+
+```json
+{{ json . }}
+```
+
+</details>
+
 {{- define "singleFile" -}}
 | {{.Description}} - {{.Name}} |           SHA256         |
 |------------------------------|--------------------------|
@@ -5,5 +22,8 @@
 | Verification build           | {{.SHA256.Verification}} |
 -----
 {{- end -}}
+
+{{- define "hashes" -}}
 {{ template "singleFile" .Bin }}
 {{ template "singleFile" .Zip }}
+{{- end -}}

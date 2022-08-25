@@ -55,6 +55,10 @@ github.com/hashicorp/composite-action-framework-go v0.0.3-0.20220812092433-589a2
 github.com/hashicorp/composite-action-framework-go v0.0.3-0.20220812092433-589a296823e2/go.mod h1:7UKPtzz3e4pstTpkx8dwQX6hNtrD6G6YIMYI1+BJ308=
 github.com/hashicorp/composite-action-framework-go v0.0.3-0.20220812094914-bde8be1a8b71 h1:2jBXZ92JAfa+Tt3tECnD3QPgSn8sokIzYtocCRfs98g=
 github.com/hashicorp/composite-action-framework-go v0.0.3-0.20220812094914-bde8be1a8b71/go.mod h1:qlINAhK7ADd/saEWQza7DTvGTqToVd4Hwv/7Yu2PkAo=
+github.com/hashicorp/composite-action-framework-go v0.0.3-0.20220825123032-e1df877b22c8 h1:UeIFYLJ/LrUmcA98bhjYbdEt8EwUJidpo9B+W/2EcEI=
+github.com/hashicorp/composite-action-framework-go v0.0.3-0.20220825123032-e1df877b22c8/go.mod h1:qlINAhK7ADd/saEWQza7DTvGTqToVd4Hwv/7Yu2PkAo=
+github.com/hashicorp/composite-action-framework-go v0.0.3-0.20220825124702-4def58aae7a3 h1:z3aD3DKGG2/0yVTf3OfztjYF6MdwofdMP3ZCA/l/K30=
+github.com/hashicorp/composite-action-framework-go v0.0.3-0.20220825124702-4def58aae7a3/go.mod h1:qlINAhK7ADd/saEWQza7DTvGTqToVd4Hwv/7Yu2PkAo=
 github.com/hashicorp/errwrap v1.0.0 h1:hLrqtEDnRye3+sgx6z4qVLNuviH3MR5aQ0ykNJa/UYA=
 github.com/hashicorp/errwrap v1.0.0/go.mod h1:YH+1FKiLXxHSkmPseP+kNlulaMuP3n2brvKWEqk/Jc4=
 github.com/hashicorp/go-multierror v1.0.0 h1:iVjPR7a6H0tWELX5NxNe7bYopibicUzc7uPribsnS6o=

@@ -31,16 +31,12 @@ func (v *verifyish) Init() error {
 	return v.setResultSources()
 }
 
-func (v *verifyish) runVerification() error {
+func (v *verifyish) runVerification() (*build.VerificationResult, error) {
 	verifier, err := v.buildish.buildFlags.newVerifier(v.primary, v.verification)
 	if err != nil {
-		return err
+		return nil, err
 	}
-	result, err := verifier.Verify()
-	if err != nil {
-		return err
-	}
-	return v.output.result("Reproducibility verification", result)
+	return verifier.Verify()
 }
 
 func (v *verifyish) setResultSources() error {
