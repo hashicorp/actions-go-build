@@ -82,7 +82,7 @@ runs:
       run: |
         # Verify the build result (fail workflow if not reproduced correctly: ${{ env.REPRODUCIBLE }})
         OK=true
-        $RUN_CLI verify -json "$RESULT_FILE" | tee > "$VERIFICATION_RESULT" || OK=false
+        { $RUN_CLI verify -json "$RESULT_FILE" || OK=false; } | tee > "$VERIFICATION_RESULT"
         if $OK; then
           TITLE=":white_check_mark: Success, reproducibility check succeeded."
         else
@@ -96,7 +96,14 @@ runs:
           cat "$VERIFICATION_RESULT"
           echo '```'
         } >> "$GITHUB_STEP_SUMMARY"
-        $OK || exit 1
+        if $OK; then
+          echo "Success!"
+        elif ! $REPRODUCIBLE; then
+          echo "Failed; not failing workflow because reproducible was set to report not assert."
+        else
+          echo "Failed; failing workflow because reproducible was set to assert."
+          exit 1
+        fi
 
     # Store reproducibility report.
     - name: Upload Reproducibility Report
