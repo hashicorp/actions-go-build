@@ -27,5 +27,6 @@ jobs:
           assert: success
           when: "result file is valid and verification succeeds"
           debug: false
-          result_file: verification-result-${{ inputs.runner }}.json
+          result_file: verify/self-test/testdata/valid-clean-reproducible.buildresult.json
+          output_file: verification-result-${{ inputs.runner }}.json
 

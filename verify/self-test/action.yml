@@ -35,8 +35,8 @@ runs:
       uses: ./verify # The action at ./verify in this repo.
       with:
         result_file: ${{ inputs.result_file }}
-        debug: ${{ inputs.debug }}
         output_file: ${{ inputs.output_file }}
+        debug: ${{ inputs.debug }}
       continue-on-error: true
     - if: inputs.assert == 'success'
       name: Assert The Action Succeeded
