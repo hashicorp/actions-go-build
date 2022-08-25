@@ -1,0 +1,72 @@
+{
+  "Config": {
+    "Product": {
+      "Repository": "hashicorp/actions-go-build",
+      "Module": "github.com/hashicorp/actions-go-build",
+      "Name": "actions-go-build",
+      "CoreName": "actions-go-build",
+      "ExecutableName": "actions-go-build",
+      "Version": {
+        "Full": "0.1.4",
+        "Core": "0.1.4",
+        "Meta": ""
+      },
+      "Revision": "f4f4decfe74c8f4b241c3360069b36c75dd9da94",
+      "RevisionTime": "2022-08-24T09:45:34Z",
+      "SourceHash": "f4f4decfe74c8f4b241c3360069b36c75dd9da94"
+    },
+    "Parameters": {
+      "GoVersion": "1.18.2",
+      "Instructions": "# Insert random bytes into file in zip.\nhead -n100 < /dev/urandom > $TARGET_DIR/randomfile\n go build -o \"$BIN_PATH\" -trimpath -buildvcs=false -ldflags \"-X 'github.com/hashicorp/actions-go-build/product.Repository=hashicorp/actions-go-build' -X 'github.com/hashicorp/actions-go-build/product.Module=github.com/hashicorp/actions-go-build' -X 'github.com/hashicorp/actions-go-build/product.Name=actions-go-build' -X 'github.com/hashicorp/actions-go-build/product.CoreName=actions-go-build' -X 'github.com/hashicorp/actions-go-build/product.ExecutableName=actions-go-build' -X 'github.com/hashicorp/actions-go-build/product.VersionFull=0.1.4' -X 'github.com/hashicorp/actions-go-build/product.VersionCore=0.1.4' -X 'github.com/hashicorp/actions-go-build/product.VersionMeta=' -X 'github.com/hashicorp/actions-go-build/product.Revision=f4f4decfe74c8f4b241c3360069b36c75dd9da94' -X 'github.com/hashicorp/actions-go-build/product.RevisionTime=2022-08-24T09:45:34Z' -X 'github.com/hashicorp/actions-go-build/product.SourceHash=f4f4decfe74c8f4b241c3360069b36c75dd9da94'\"",
+      "OS": "darwin",
+      "Arch": "arm64",
+      "ZipName": "actions-go-build_0.1.4_darwin_arm64.zip"
+    },
+    "Paths": {
+      "WorkDir": "/Users/sam/src/github.com/hashicorp/actions-go-build",
+      "TargetDir": "/Users/sam/src/github.com/hashicorp/actions-go-build/dist",
+      "BinPath": "/Users/sam/src/github.com/hashicorp/actions-go-build/dist/actions-go-build",
+      "ZipPath": "/Users/sam/src/github.com/hashicorp/actions-go-build/out/actions-go-build_0.1.4_darwin_arm64.zip",
+      "MetaDir": "/Users/sam/src/github.com/hashicorp/actions-go-build/meta"
+    },
+    "Tool": {
+      "Name": "actions-go-build",
+      "Version": "0.1.4",
+      "Revision": "739abc99d09d04763fdd7bfbe2f16622d9dde8c4",
+      "RevisionTime": "2022-08-12T16:03:48Z"
+    },
+    "Reproducible": true
+  },
+  "Env": [
+    "PRODUCT_NAME=actions-go-build",
+    "PRODUCT_VERSION=0.1.4",
+    "PRODUCT_REVISION=f4f4decfe74c8f4b241c3360069b36c75dd9da94",
+    "PRODUCT_REVISION_TIME=2022-08-24T09:45:34Z",
+    "OS=darwin",
+    "ARCH=arm64",
+    "GOOS=darwin",
+    "GOARCH=arm64",
+    "WORKTREE_DIRTY=false",
+    "WORKTREE_HASH=f4f4decfe74c8f4b241c3360069b36c75dd9da94",
+    "TARGET_DIR=/Users/sam/src/github.com/hashicorp/actions-go-build/dist",
+    "BIN_PATH=/Users/sam/src/github.com/hashicorp/actions-go-build/dist/actions-go-build"
+  ],
+  "Meta": {
+    "Start": "2022-08-24T10:45:40.518789+01:00",
+    "Finish": "2022-08-24T10:45:41.302868+01:00",
+    "Duration": "784.089583ms"
+  },
+  "Zip": {
+    "Name": "actions-go-build_0.1.4_darwin_arm64.zip",
+    "OriginalPath": "/Users/sam/src/github.com/hashicorp/actions-go-build/out/actions-go-build_0.1.4_darwin_arm64.zip",
+    "Size": 7878357,
+    "SHA256Sum": "80b1bc6cf33016f777f298169fc9f6b71e80d374facb31109e1d33f423690217"
+  },
+  "Executable": {
+    "Name": "actions-go-build",
+    "OriginalPath": "/Users/sam/src/github.com/hashicorp/actions-go-build/dist/actions-go-build",
+    "Size": 14823058,
+    "SHA256Sum": "0cc7a8b48a69ed388e185153bbb867ffb497dd684ebd16305a1bf3595ba1ac19"
+  },
+  "Successful": true
+}

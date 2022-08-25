@@ -10,23 +10,29 @@ on:
 
 jobs:
 
-  # Begin action tests.
+  # Begin verify action tests.
   #
   # These tests use a matrix to define a set of inputs and wanted results.
   # They use the ./verify/self-test action in this repo to exercise the action itself
   # with different sets of inputs, and assert that the action succeeds or
   # fails correctly.
 
-  # A single reproducible go binary.
-  ok-verification-succeeds:
+  test:
     runs-on: ${{ inputs.runner }}
+    strategy:
+      matrix:
+        include:
+          - { assert: success, file: valid-clean-reproducible,            when: result file is valid and verification succeeds }
+          - { assert: failure, file: valid-dirty,                         when: result file is valid but for a dirty build }
+          - { assert: failure, file: valid-clean-non-reproducible-binary, when: result file is valid and verification fails on binary file }
+          - { assert: failure, file: valid-clean-non-reproducible-zip,    when: result file is valid and verification fails on zip file }
+          - { assert: failure, file: this-file-does-not-exist,            when: result file is missing }
+          - { assert: failure, file: corrupt,                             when: result file is corrupt }
     steps:
       - uses: actions/checkout@v3
       - uses: ./verify/self-test
         with:
-          assert: success
-          when: "result file is valid and verification succeeds"
-          debug: false
-          result_file: verify/self-test/testdata/valid-clean-reproducible.buildresult.json
+          assert: ${{ matrix.assert }}
+          when: ${{ matrix.when }}
+          result_file: verify/testdata/${{ matrix.file }}.buildresult.json
           output_file: verification-result-${{ inputs.runner }}.json
-
