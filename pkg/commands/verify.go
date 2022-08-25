@@ -36,12 +36,14 @@ var Verify = cli.LeafCommand("verify", "verify a build's reproducibility", func(
 		if err := json.WriteFile(opts.outFile, result); err != nil {
 			return err
 		}
+		opts.log("Result written to %s", opts.outFile)
 	}
 	if opts.stepSummary != "" {
 		f, err := fs.Append(opts.stepSummary)
 		if err != nil {
 			return err
 		}
+		defer f.Close()
 		funcs := template.FuncMap{
 			"json": func(a any) string {
 				s, err := json.String(a)

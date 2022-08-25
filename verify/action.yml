@@ -81,7 +81,7 @@ runs:
       shell: bash
       run: |
         # Verify the build result (fail workflow if not reproduced correctly: ${{ env.REPRODUCIBLE }})
-        if $RUN_CLI verify -json "$RESULT_FILE" -o "$VERIFICATION_RESULT"; then
+        if $RUN_CLI verify -json -o "$VERIFICATION_RESULT" "$RESULT_FILE"; then
           echo "Success!"
         elif ! $REPRODUCIBLE; then
           echo "Failed; not failing workflow because reproducible was set to report not assert."
