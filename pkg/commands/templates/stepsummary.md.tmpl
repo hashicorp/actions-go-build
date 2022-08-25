@@ -1,8 +1,8 @@
-{{- if .ReproducedCorrectly }}
+{{- if .ReproducedCorrectly -}}
 ## :white-check-mark: {{.Hashes.Zip.Name}} passed reproducibility check.
-{{- else }}
+{{- else -}}
 ## :x: {{.Hashes.Zip.Name}} failed reproducibility check.
-{{- end }}
+{{- end}}
 
 {{ template "hashes" .Hashes }}
 
@@ -15,10 +15,9 @@
 
 </details>
 
-{{- define "successEmoji"}}{{if . }}:white_check_mark:{{else}}:x:{{end -}}
-
-{{- define "hashTitle" -}}
-{{ template "successEmoji" .Match }} {{.Description}} - {{.Name}}
+{{- define "hashes" -}}
+{{ template "singleFile" .Bin }}
+{{ template "singleFile" .Zip }}
 {{- end -}}
 
 {{- define "singleFile" -}}
@@ -29,7 +28,8 @@
 -----
 {{- end -}}
 
-{{- define "hashes" -}}
-{{ template "singleFile" .Bin }}
-{{ template "singleFile" .Zip }}
+{{- define "hashTitle" -}}
+{{ template "successEmoji" .SHA256.Match }} {{.Description}} - {{.Name}}
 {{- end -}}
+
+{{- define "successEmoji"}}{{if . }}:white_check_mark:{{else}}:x:{{end}}{{end -}}
