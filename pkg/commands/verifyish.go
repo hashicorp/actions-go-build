@@ -75,7 +75,7 @@ func (v *verifyish) primaryResultSource() (build.ResultSource, error) {
 	if v.buildish.buildResult != nil {
 		return v.buildish.buildResult, nil
 	}
-	return v.buildish.build("Getting primary build result", false, build.WithLogPrefix("primary build"))
+	return v.buildish.build("Getting primary build result", build.WithLogPrefix("primary build"))
 }
 
 func (v *verifyish) verificationResultSource() (build.ResultSource, error) {
@@ -151,7 +151,7 @@ func (v *verifyish) readyPrimaryResult() (build.Result, bool, error) {
 		return build.Result{}, false, nil
 	}
 
-	pb, err := v.buildish.build("Inspecting cache for build defined", false)
+	pb, err := v.buildish.build("Inspecting cache for build defined")
 	if err != nil {
 		return build.Result{}, false, err
 	}

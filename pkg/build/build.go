@@ -26,17 +26,16 @@ type Build interface {
 	Dirs() TempDirs
 }
 
-func New(name string, isVerification bool, cfg Config, options ...Option) (Build, error) {
-	return newCore(name, isVerification, cfg, options...)
+func New(name string, cfg Config, options ...Option) (Build, error) {
+	return newCore(name, cfg, options...)
 }
 
 type core struct {
 	Settings
-	config         Config
-	isVerification bool
+	config Config
 }
 
-func newCore(name string, isVerification bool, cfg Config, options ...Option) (*core, error) {
+func newCore(name string, cfg Config, options ...Option) (*core, error) {
 	s, err := newSettings(options)
 	if err != nil {
 		return nil, err
@@ -45,9 +44,8 @@ func newCore(name string, isVerification bool, cfg Config, options ...Option) (*
 		return nil, fmt.Errorf("build config indicates a dirty worktree but clean-only is set to true")
 	}
 	return &core{
-		Settings:       s,
-		config:         cfg,
-		isVerification: isVerification,
+		Settings: s,
+		config:   cfg,
 	}, nil
 }
 
@@ -74,6 +72,15 @@ func (b *core) ChangeToVerificationRoot() error {
 
 func (b *core) ChangeToPrimaryRoot() error {
 	return b.ChangeRoot(b.config.RemotePrimaryRoot())
+}
+
+// UpdateBuildRoot updates the build root for this build depending
+// whether it's a primary or verification build.
+func (b *core) UpdateBuildRoot() error {
+	if b.isVerification {
+		return b.ChangeToVerificationRoot()
+	}
+	return b.ChangeToPrimaryRoot()
 }
 
 func (b *core) CachedResult() (Result, bool, error) {

@@ -13,22 +13,23 @@ import (
 )
 
 // RemoteBuild is a build where the source code is hosted remotely.
+// This can be a "primary" or verification build.
 type RemoteBuild struct {
 	*core
 	sourceURL string
 	cacheID   string
 }
 
-func NewRemoteBuild(c Config, isVerification bool, options ...Option) (Build, error) {
+func NewRemoteBuild(c Config, options ...Option) (Build, error) {
 	if c.Product.IsDirty() {
 		return nil, fmt.Errorf("cannot verify a dirty build remotely")
 	}
 	sourceURL := fmt.Sprintf("https://github.com/%s/archive/%s.zip", c.Product.Repository, c.Product.Revision)
-	core, err := newCore("remote build", isVerification, c, options...)
+	core, err := newCore("remote build", c, options...)
 	if err != nil {
 		return nil, err
 	}
-	if err := core.ChangeToVerificationRoot(); err != nil {
+	if err := core.UpdateBuildRoot(); err != nil {
 		return nil, err
 	}
 	return &RemoteBuild{

@@ -16,7 +16,8 @@ type LocalVerification struct {
 }
 
 func NewLocalVerification(primaryRoot string, startAfter time.Time, cfg Config, options ...Option) (Build, error) {
-	core, err := newCore("local verification", true, cfg, options...)
+	options = append(options, AsVerificationBuild())
+	core, err := newCore("local verification", cfg, options...)
 	if err != nil {
 		return nil, err
 	}

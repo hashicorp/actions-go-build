@@ -24,6 +24,7 @@ type inspectOpts struct {
 
 func (opts *inspectOpts) Flags(fs *flag.FlagSet) {
 	opts.buildOpts.Flags(fs)
+	fs.BoolVar(&opts.buildFlags.forceVerification, "verification", false, "inspect as a verification build")
 	fs.BoolVar(&opts.reproducible, "reproducible", false, "just print the reproducible field")
 	fs.BoolVar(&opts.goVersion, "go-version", false, "just print the go version")
 	fs.BoolVar(&opts.buildConfig, "build-config", false, "just print the build config json")
@@ -37,7 +38,7 @@ func (opts *inspectOpts) HideFlags() []string {
 }
 
 var Inspect = cli.LeafCommand("inspect", "inspect things", func(opts *inspectOpts) error {
-	bm, err := opts.build("Inspecting build", opts.verification)
+	bm, err := opts.build("Inspecting build")
 	if err != nil {
 		return err
 	}

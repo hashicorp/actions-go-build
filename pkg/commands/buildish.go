@@ -78,8 +78,8 @@ func (b *buildish) Init() error {
 
 // build is used by consumers of buildish who want a fully-formed build manager which they
 // can either execute or inspect. The why parameter is used to make logging more informative.
-func (b *buildish) build(why string, forceVerification bool, extraOpts ...build.Option) (*build.Manager, error) {
-	buildFunc, err := b.getBuildFunc(why, forceVerification, extraOpts...)
+func (b *buildish) build(why string, extraOpts ...build.Option) (*build.Manager, error) {
+	buildFunc, err := b.getBuildFunc(why, extraOpts...)
 	if err != nil {
 		return nil, err
 	}
@@ -99,7 +99,7 @@ func (b *buildish) build(why string, forceVerification bool, extraOpts ...build.
 // Note that we don't eagerly try to actually read the build config, because options on the
 // buildish may still be further tweaked by calling code to influence the settings of the
 // build, so we only lazily get the build config itself at the last minute when it's needed.
-func (b *buildish) getBuildFunc(why string, forceVerification bool, extraOpts ...build.Option) (buildFunc, error) {
+func (b *buildish) getBuildFunc(why string, extraOpts ...build.Option) (buildFunc, error) {
 
 	var (
 		// done is set to true when we've found the correct interpretation of target.
@@ -113,12 +113,12 @@ func (b *buildish) getBuildFunc(why string, forceVerification bool, extraOpts ..
 	b.debug("Resolving buildish %q", b.target)
 	b.desc = "Build"
 
-	if build, done, err = b.urlConfigSource(b.target, forceVerification, extraOpts...); done {
+	if build, done, err = b.urlConfigSource(b.target, extraOpts...); done {
 
 		// Target is a URL, hopefully pointing to a JSON blob containing build config.
 		b.log("%s using config from %s", why, b.target)
 
-	} else if build, done, err = b.localDirConfigSource(b.target, forceVerification, extraOpts...); done {
+	} else if build, done, err = b.localDirConfigSource(b.target, extraOpts...); done {
 
 		// Target is a local directory containing source code to be built.
 		absTarget, err := filepath.Abs(b.target)
@@ -146,7 +146,7 @@ func (b *buildish) getBuildFunc(why string, forceVerification bool, extraOpts ..
 }
 
 // localFileConfigSource returns a buildFunc which derives build config from a JSON blob retrieved via HTTPS.
-func (b *buildish) urlConfigSource(maybeURL string, forceVerification bool, extraOpts ...build.Option) (buildFunc, bool, error) {
+func (b *buildish) urlConfigSource(maybeURL string, extraOpts ...build.Option) (buildFunc, bool, error) {
 	u, err := url.Parse(maybeURL)
 	if err != nil {
 		b.debug("not a URL: %s: %s", maybeURL, err)
@@ -154,7 +154,7 @@ func (b *buildish) urlConfigSource(maybeURL string, forceVerification bool, extr
 	if u.Scheme != "https" {
 		return nil, false, fmt.Errorf("URLs must use https scheme")
 	}
-	return b.configSourceFromReadCloser(maybeURL, forceVerification, func() (io.ReadCloser, error) {
+	return b.configSourceFromReadCloser(maybeURL, func() (io.ReadCloser, error) {
 		resp, err := http.Get(maybeURL)
 		return resp.Body, err
 	}, extraOpts...), true, err
@@ -163,14 +163,14 @@ func (b *buildish) urlConfigSource(maybeURL string, forceVerification bool, extr
 // localFileConfigSource returns a buildFunc which derives build config from a JSON blob stored in a local file.
 func (b *buildish) localFileConfigSource(maybeFile string, extraOpts ...build.Option) (buildFunc, bool, error) {
 	maybeFile, exists, err := b.resolvePath("file", maybeFile, fs.FileExists)
-	return b.configSourceFromReadCloser(maybeFile, false, func() (io.ReadCloser, error) {
+	return b.configSourceFromReadCloser(maybeFile, func() (io.ReadCloser, error) {
 		return os.Open(maybeFile)
 	}, extraOpts...), exists, err
 }
 
 // localDirConfigSource returns a buildFunc which derives build config from source code in a local
 // directory, alongside the current environment.
-func (b *buildish) localDirConfigSource(maybeDir string, forceVerification bool, extraOpts ...build.Option) (buildFunc, bool, error) {
+func (b *buildish) localDirConfigSource(maybeDir string, extraOpts ...build.Option) (buildFunc, bool, error) {
 	absDir, exists, err := b.resolvePath("dir", maybeDir, fs.DirExists)
 	return func() (*build.Manager, error) {
 		c, err := config.FromEnvironment(tool, absDir)
@@ -184,7 +184,7 @@ func (b *buildish) localDirConfigSource(maybeDir string, forceVerification bool,
 		b.buildConfig = &bc
 		b.dir = absDir
 		var m *build.Manager
-		if forceVerification {
+		if b.buildFlags.forceVerification {
 			startTime := time.Now()
 			if m, err = b.buildFlags.newLocalVerificationManager(maybeDir, startTime, bc, extraOpts...); err != nil {
 				return nil, err
@@ -225,7 +225,7 @@ func (b *buildish) resolvePath(kind, maybePath string, existsFunc func(string) (
 //
 // The location parameter is just used for logging purposes, and is assumed to indicate a file path or URL
 // from which the readcloser is sourced.
-func (b *buildish) configSourceFromReadCloser(location string, forceVerification bool, rcFunc func() (io.ReadCloser, error), extraOpts ...build.Option) buildFunc {
+func (b *buildish) configSourceFromReadCloser(location string, rcFunc func() (io.ReadCloser, error), extraOpts ...build.Option) buildFunc {
 	return func() (*build.Manager, error) {
 		b.debug("reading build config from %q", location)
 		rc, err := rcFunc()
@@ -244,7 +244,7 @@ func (b *buildish) configSourceFromReadCloser(location string, forceVerification
 		}
 
 		var bm *build.Manager
-		if forceVerification {
+		if b.buildFlags.forceVerification {
 			bm, err = b.buildFlags.newRemoteVerificationManager(c, extraOpts...)
 		} else {
 			bm, err = b.buildFlags.newRemotePrimaryManager(c, extraOpts...)

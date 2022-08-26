@@ -24,8 +24,11 @@ type Settings struct {
 	stdout       io.Writer
 	stderr       io.Writer
 	forceRebuild bool
-	cleanOnly    bool
-	logPrefix    string
+	// forceVerification forces the build to be run as a verification build (i.e.
+	// in the verification root directory).
+	isVerification bool
+	cleanOnly      bool
+	logPrefix      string
 }
 
 // Option represents a function that configures Settings.
@@ -61,6 +64,19 @@ func WithStderr(w io.Writer) Option { return func(s *Settings) { s.stderr = w } 
 // WithForceRebuild forces a build to be re-done rather than using cache.
 func WithForceRebuild(on bool) Option { return func(s *Settings) { s.forceRebuild = on } }
 
+// WithForceVerification forces a build to be a verification build (or not depending on
+// the boolean passed).
+func WithForceVerification(on bool) Option { return func(s *Settings) { s.isVerification = on } }
+
+// AsVerificationBuild forces a build to be treated as a verification build (i.e. run
+// in the verification root, and cached separately from primary builds).
+func AsVerificationBuild() Option { return func(s *Settings) { s.isVerification = true } }
+
+// AsPrimaryBuild forces a build to be treated as a primary build (i.e. run
+// in the current directory, or primary root (for remote builds).
+func AsPrimaryBuild() Option { return func(s *Settings) { s.isVerification = false } }
+
+// WithCleanOnly causes the build to fail early if it's not based on a clean worktree.
 func WithCleanOnly(on bool) Option { return func(s *Settings) { s.cleanOnly = on } }
 
 func newSettings(options []Option) (Settings, error) {

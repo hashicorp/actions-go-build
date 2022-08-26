@@ -13,6 +13,12 @@ import (
 type buildFlags struct {
 	logOpts
 	rebuild bool
+
+	// requireClean and forceVerification are not exposed as flags by default.
+	// If a command wants to expose these options it needs to add
+	// its own flags to populate these.
+	requireClean      bool
+	forceVerification bool
 }
 
 var wd = func() string {
@@ -60,7 +66,8 @@ func (flags *buildFlags) newPrimaryManager(c build.Config, extraOpts ...build.Op
 }
 
 func (flags *buildFlags) newRemotePrimary(c build.Config, extraOpts ...build.Option) (build.Build, error) {
-	return build.NewRemoteBuild(c, false, flags.buildOptions(extraOpts...)...)
+	extraOpts = append(extraOpts, build.AsPrimaryBuild())
+	return build.NewRemoteBuild(c, flags.buildOptions(extraOpts...)...)
 }
 
 func (flags *buildFlags) newRemotePrimaryManager(c build.Config, extraOpts ...build.Option) (*build.Manager, error) {
@@ -78,7 +85,8 @@ func (flags *buildFlags) newLocalVerificationManager(primaryRoot string, startAf
 }
 
 func (flags *buildFlags) newRemoteVerification(c build.Config, extraOpts ...build.Option) (build.Build, error) {
-	return build.NewRemoteBuild(c, true, flags.buildOptions(extraOpts...)...)
+	extraOpts = append(extraOpts, build.AsVerificationBuild())
+	return build.NewRemoteBuild(c, flags.buildOptions(extraOpts...)...)
 }
 
 func (flags *buildFlags) newRemoteVerificationManager(c build.Config, extraOpts ...build.Option) (*build.Manager, error) {
@@ -106,5 +114,9 @@ func (flags *buildFlags) newManager(b build.Build, extraOpts ...build.Option) (*
 }
 
 func (flags *buildFlags) buildOptions(extraOpts ...build.Option) []build.Option {
-	return append(flags.logOpts.buildOptions(extraOpts...), build.WithForceRebuild(flags.rebuild))
+	return append(flags.logOpts.buildOptions(extraOpts...),
+		build.WithForceRebuild(flags.rebuild),
+		build.WithCleanOnly(flags.requireClean),
+		build.WithForceVerification(flags.forceVerification),
+	)
 }

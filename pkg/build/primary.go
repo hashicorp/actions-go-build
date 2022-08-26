@@ -7,7 +7,8 @@ type Primary struct {
 }
 
 func NewPrimary(cfg Config, opts ...Option) (Build, error) {
-	core, err := newCore("primary", false, cfg, opts...)
+	opts = append(opts, AsPrimaryBuild())
+	core, err := newCore("primary", cfg, opts...)
 	if err != nil {
 		return nil, err
 	}
