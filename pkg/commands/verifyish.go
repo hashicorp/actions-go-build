@@ -94,17 +94,15 @@ func (v *verifyish) verificationResultSourceFromFile(path string) (build.ResultS
 }
 
 func (v *verifyish) verificationResultSourceFromNewBuild() (build.ResultSource, error) {
-	primaryConfig, err := v.primaryConfig()
+	config, err := v.primaryConfig()
 	if err != nil {
 		return nil, err
 	}
 
-	verificationConfig, err := primaryConfig.ChangeToVerificationRoot()
-	if err != nil {
-		return nil, err
+	opts := []build.Option{
+		build.WithLogPrefix("verification build"),
+		build.AsVerificationBuild(),
 	}
-
-	logPrefix := build.WithLogPrefix("verification build")
 
 	// If the primary build is sourced from a dir, we have the source on-disk.
 	// This makes it a local verification build.
@@ -113,9 +111,9 @@ func (v *verifyish) verificationResultSourceFromNewBuild() (build.ResultSource, 
 		if err != nil {
 			return nil, err
 		}
-		return v.buildish.buildFlags.newLocalVerificationManager(v.buildish.dir, startAfter, verificationConfig, logPrefix)
+		return v.buildish.buildFlags.newLocalVerificationManager(v.buildish.dir, startAfter, *config, opts...)
 	}
-	return v.buildish.buildFlags.newRemoteVerificationManager(verificationConfig, logPrefix)
+	return v.buildish.buildFlags.newRemoteVerificationManager(*config, opts...)
 }
 
 func (v *verifyish) calculateEarliestBuildTime() (time.Time, error) {

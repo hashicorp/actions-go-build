@@ -114,9 +114,11 @@ func (flags *buildFlags) newManager(b build.Build, extraOpts ...build.Option) (*
 }
 
 func (flags *buildFlags) buildOptions(extraOpts ...build.Option) []build.Option {
+	if flags.forceVerification {
+		extraOpts = append(extraOpts, build.AsVerificationBuild())
+	}
 	return append(flags.logOpts.buildOptions(extraOpts...),
 		build.WithForceRebuild(flags.rebuild),
 		build.WithCleanOnly(flags.requireClean),
-		build.WithForceVerification(flags.forceVerification),
 	)
 }
