@@ -39,6 +39,7 @@ var Verify = cli.LeafCommand("verify", "verify a build's reproducibility", func(
 		opts.log("Result written to %s", opts.outFile)
 	}
 	if opts.stepSummary != "" {
+		opts.log("Writing GitHub Step Summary to %s", opts.stepSummary)
 		f, err := fs.Append(opts.stepSummary)
 		if err != nil {
 			return err
