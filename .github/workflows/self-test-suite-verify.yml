@@ -20,6 +20,7 @@ jobs:
   test:
     runs-on: ${{ inputs.runner }}
     strategy:
+      fail-fast: false
       matrix:
         include:
           - { assert: success, file: valid-clean-reproducible,            when: result file is valid and verification succeeds }
