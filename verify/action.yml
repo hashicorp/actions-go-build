@@ -43,8 +43,9 @@ runs:
           echo "VERIFICATION_RESULT=$RUNNER_TEMP/$OUTPUT_FILE"
         } >> "$GITHUB_ENV"
 
-        # Ensure GITHUB_STEP_SUMMARY is gone.
-        rm -rf "$GITHUB_STEP_SUMMARY"
+        # Write a newline to step summary to try to prevent weird
+        # ghost summaries appearing when this is run in a matrix.
+        echo > "$GITHUB_STEP_SUMMARY"
 
     # Compile the CLI inline. We should work to remove this step by using
     # precompiled binaries for tagged versions (maybe stored as release
