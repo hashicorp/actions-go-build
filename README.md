@@ -34,6 +34,9 @@ _This is intended for internal HashiCorp use only; Internal folks please refer t
 
 This Action can run on both Ubuntu and macOS runners.
 
+The core functionality is contained in a Go CLI, which you can also install and
+use locally. See [the CLI docs](docs/cli.md) for local usage.
+
 ### Examples
 
 #### Minimal(ish) Example
