@@ -12,7 +12,7 @@ import (
 )
 
 type inspectOpts struct {
-	buildOpts
+	buildish
 
 	reproducible bool
 	goVersion    bool
@@ -23,7 +23,7 @@ type inspectOpts struct {
 }
 
 func (opts *inspectOpts) Flags(fs *flag.FlagSet) {
-	opts.buildOpts.Flags(fs)
+	opts.buildish.Flags(fs)
 	fs.BoolVar(&opts.buildFlags.forceVerification, "verification", false, "inspect as a verification build")
 	fs.BoolVar(&opts.reproducible, "reproducible", false, "just print the reproducible field")
 	fs.BoolVar(&opts.goVersion, "go-version", false, "just print the go version")
