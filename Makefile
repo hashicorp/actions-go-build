@@ -156,9 +156,9 @@ run/test-show: $(TMP_BUILD)
 run/build: $(TMP_BUILD)
 	$(RUNCLI) build
 
-# run/describe/buildenv is called by dev/docs/environment_doc
-run/describe/buildenv: $(TMP_BUILD)
-	$(RUNCLI) describe buildenv
+# run/inspect/describebuildenv is called by dev/docs/environment_doc
+run/inspect/describebuildenv: $(TMP_BUILD)
+	$(RUNCLI) inspect -describe-build-env
 
 run/verify: $(TMP_BUILD)
 	$(RUNCLI) verify
