@@ -3,14 +3,14 @@ module github.com/hashicorp/actions-go-build
 go 1.18
 
 require (
-	github.com/artdarek/go-unzip v1.0.0
 	github.com/google/go-cmp v0.5.8
 	github.com/hashicorp/composite-action-framework-go v0.0.3-0.20220825124702-4def58aae7a3
 	github.com/hashicorp/go-version v1.6.0
 	github.com/mitchellh/cli v1.1.4
 	github.com/otiai10/copy v1.7.0
-	github.com/sethvargo/go-envconfig v0.7.0
-	github.com/sethvargo/go-githubactions v1.0.0
+	github.com/sethvargo/go-envconfig v0.8.2
+	github.com/sethvargo/go-githubactions v0.5.3
+	golang.org/x/mod v0.5.1
 	golang.org/x/term v0.0.0-20220722155259-a9ba230a4035
 )
 
@@ -48,5 +48,6 @@ require (
 	golang.org/x/crypto v0.0.0-20210421170649-83a5a9bb288b // indirect
 	golang.org/x/net v0.0.0-20210326060303-6b1517762897 // indirect
 	golang.org/x/sys v0.0.0-20210615035016-665e8c7367d1 // indirect
+	golang.org/x/xerrors v0.0.0-20191011141410-1b5146add898 // indirect
 	gopkg.in/warnings.v0 v0.1.2 // indirect
 )
