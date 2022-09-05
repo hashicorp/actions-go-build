@@ -127,7 +127,7 @@ $ actions-go-build inspect -build-config some.build.config.json
 ```
 
 The file you pass can either be a bare build config, or a build result file, or even a
-verification result file. As long as the file is one of thsese kinds, the build config
+verification result file. As long as the file is one of these kinds, the build config
 will be pulled out and displyed.
 
 ### Verification Build Configs
