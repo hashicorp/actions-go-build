@@ -133,7 +133,7 @@ will be pulled out and displyed.
 ### Verification Build Configs
 
 You can view the "verification build" version of any build config by supplying the
-`-verification` flag. to the `inspect` subcommand, e.g.:
+`-verification` flag to the `inspect` subcommand, e.g.:
 
 ```shell
 $ actions-go-build inspect -build-config -verification
