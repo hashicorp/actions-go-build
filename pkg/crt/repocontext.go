@@ -1,9 +1,9 @@
 package crt
 
 import (
-	"bufio"
 	"errors"
 	"fmt"
+	"io/ioutil"
 	"net/url"
 	"os"
 	"path/filepath"
@@ -13,6 +13,7 @@ import (
 	"github.com/hashicorp/composite-action-framework-go/pkg/fs"
 	"github.com/hashicorp/composite-action-framework-go/pkg/git"
 	"github.com/hashicorp/go-version"
+	"golang.org/x/mod/modfile"
 )
 
 type RepoContext struct {
@@ -69,23 +70,15 @@ func GetRepoContext(dir string, ignoreDirs []string) (RepoContext, error) {
 		return RepoContext{}, err
 	}
 	if exists {
-		f, err := os.Open(goDotMod)
+		data, err := ioutil.ReadFile(goDotMod)
 		if err != nil {
 			return RepoContext{}, err
 		}
-		defer f.Close()
-		s := bufio.NewScanner(f)
-		for s.Scan() {
-			t := s.Text()
-			if !strings.HasPrefix(t, "module ") {
-				continue
-			}
-			parts := strings.SplitN(t, " ", 2)
-			if len(parts) == 2 {
-				moduleName = parts[1]
-			}
-			break
+		m, err := modfile.ParseLax(goDotMod, data, nil)
+		if err != nil {
+			return RepoContext{}, err
 		}
+		moduleName = m.Module.Mod.Path
 	}
 
 	return RepoContext{
