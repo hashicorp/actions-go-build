@@ -61,20 +61,6 @@ CLI       := dist/$(CLINAME)
 TMP_BUILD := $(TMPDIR)/temp-build/$(CLINAME)
 RUNCLI    := @$(TMP_BUILD)
 
-FORMAT_INSTRUCTIONS := sed -E -e 's/-([^-]+)/\n  -\1/g' -e 's/-X/  -X/g' -e 's/\n/\\\n/g' -e 's/  \\/ \\/g'
-
-instructions:
-	@printf "%s\n" "$$INSTRUCTIONS" | $(FORMAT_INSTRUCTIONS)
-
-dogfood:
-	actions-go-build
-
-.PHONY: dev
-dev:
-	@$(MAKE) instructions
-	@$(MAKE) env
-	@$(MAKE) cli
-
 .PHONY: env
 env:
 	@echo "ENV:"
@@ -130,6 +116,7 @@ install: $(CLI)
 		echo "# $(CLINAME) v$$V installed to /usr/local/bin"
 endif
 
+.PHONY: mod/framework/update
 mod/framework/update:
 	@REF="$$(cd ../composite-action-framework-go && make module/ref/head)" && \
 		go get "$$REF"
@@ -137,41 +124,23 @@ mod/framework/update:
 # The run/... targets build and then run the CLI itself
 # which is usful for quickly seeing its output whilst developing.
 
+.PHONY: run
 run: $(TMP_BUILD)
-	@$(CLEAR)
-	@echo "\$$ $(notdir $<) $(RUN)"
+	@$${QUIET:-false} || $(CLEAR)
+	@$${QUIET:-false} || echo "\$$ $(notdir $<) $(RUN)"
 	$(RUNCLI) $(RUN)
 
-run/config: $(TMP_BUILD)
-	$(RUNCLI) config
-
-run/config-github: $(TMP_BUILD) 
-	$(RUNCLI) config -github
-
-run/test: $(TMP_BUILD)
-	$(RUNCLI) test
-
-run/test-show: $(TMP_BUILD)
-	$(RUNCLI) test -show
-
-run/build: $(TMP_BUILD)
-	$(RUNCLI) build
-
-# run/inspect/describebuildenv is called by dev/docs/environment_doc
-run/inspect/describebuildenv: $(TMP_BUILD)
-	$(RUNCLI) inspect -describe-build-env
-
-run/verify: $(TMP_BUILD)
-	$(RUNCLI) verify
-
+.PHONY: test/go/update
 test/go/update: export UPDATE_TESTDATA := true
 test/go/update: test/go
 	@echo "Test data updated."
 
+.PHONY: compile
 compile:
 	@$(CLEAR)
 	@go build ./...
 
+.PHONY: test/go
 test/go: compile
 	@go test $(GO_TEST_FLAGS) ./...
 
@@ -186,6 +155,7 @@ readme:
 changelog:
 	@./dev/docs/changelog_update
 
+.PHONY: changelog/view
 changelog/view:
 	@echo "Current development version: $(CURR_VERSION)"
 	@echo
@@ -209,29 +179,6 @@ changelog/add:
 .PHONY: debug/docs
 debug/docs: export DEBUG := 1
 debug/docs: docs
-
-#LDFLAGS += -X 'main.Version=1.2.3'
-#LDFLAGS += -X 'main.Revision=cabba9e'
-#LDFLAGS += -X 'main.RevisionTime=2022-05-30T14:45:00+00:00'
-
-.PHONY: example-app
-example-app:
-	@cd testdata/example-app && go build -ldflags "$(LDFLAGS)" . && ./example-app
-
-GO_BUILD := go build -trimpath -buildvcs=false -ldflags "$(LDFLAGS)" -o "$$BIN_PATH"
-
-# 'make tools' will use the brew target if on Darwin.
-# Otherwise it just prints a message about dependencies.
-ifeq ($(shell uname),Darwin)
-tools: tools/mac/brew
-else
-tools:
-	@echo "Please ensure that BATS, coreutils, util-linux, github-markdown-toc, and GNU parallel are installed."
-endif
-
-# tools/mac/brew tries to install dependencies on mac using homebrew.
-tools/mac/brew:
-	brew bundle --no-upgrade	
 
 .PHONY: release
 release:
