@@ -75,6 +75,7 @@ dev:
 	@$(MAKE) env
 	@$(MAKE) cli
 
+.PHONY: env
 env:
 	@echo "ENV:"
 	@echo "  PRODUCT_VERSION=$$PRODUCT_VERSION"
