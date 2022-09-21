@@ -1,0 +1,44 @@
+
+
+- Add GitHub Auth when downloading source for verification.
+  - If GITHUB_TOKEN is set, always use it.
+  - Add help text to error when auth is needed but not provided.
+- Install needed Go version if not already present on system.
+- Add a shim so that 'go' for the build is the correct go version.
+- Move config package to pkg/
+- Extract Product package to its own place for import by other products.
+
+
+- Change CLI:
+
+	actions-go-build build              (build current dir)
+	actions-go-build build .            (build current dir)
+	actions-go-build build some/dir/    (build some/dir/)
+	actions-go-build build buildresult.json        (remote verification build)
+	actions-go-build build verificationresult.json (remote verification build)
+	actions-go-build build http://xyx/result.json  (remote verification build)
+
+	actions-go-build verify             (local verification build, current dir)
+	actions-go-build verify .           (local verification build, current dir)
+	actions-go-build verify some/dir/   (local verification build some/dir/)
+	actions-go-build verify buildresult.json        (remote verification result)
+	actions-go-build verify verificationresult.json (remote verification result)
+	actions-go-build verify http://xyx/result.json  (remote verification result)
+	actions-go-build inspect [-env] [-describe-env] [-cache] [build-ish] 
+		- Print build env, cache status of various results.
+
+	actions-go-build build-env -describe
+	actions-go-build build-env                          (build env current dir)
+	actions-go-build build-env .                        (build env current dir)
+	actions-go-build build-env some/dir/                (build env some dir)
+	actions-go-build build-env buildresult.json         (build env for that result)
+	actions-go-build build-env verificationresult.json  (build env for that result)
+	actions-go-build build-env http://xyx/result.json   (build env for that result)
+	actions-go-build config           [configish]
+	actions-go-build config -export   [configish]
+
+
+[build-ish] is anything that could be considered a build, e.g. a directory containing
+  source code, a path or URL to a buildresult, a verificationresult etc.
+
+[source-tree] is a directory containing source code.

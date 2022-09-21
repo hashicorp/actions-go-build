@@ -1,0 +1,21 @@
+name: Test Build
+
+on:
+  push:
+    paths:
+      - '**'
+      - '!**.md'
+      - '!dev/**'
+      - '!verify/**'
+
+jobs:
+
+  macos:
+    uses: ./.github/workflows/self-test-suite.yml
+    with:
+      runner: macos-latest
+
+  linux:
+    uses: ./.github/workflows/self-test-suite.yml
+    with:
+      runner: ubuntu-latest

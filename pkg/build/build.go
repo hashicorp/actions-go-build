@@ -2,144 +2,184 @@ package build
 
 import (
 	"fmt"
-	"log"
 	"os"
 	"os/exec"
-	"path/filepath"
+	"strings"
+	"time"
 
 	"github.com/hashicorp/actions-go-build/internal/zipper"
-	"github.com/hashicorp/actions-go-build/pkg/crt"
-	"github.com/hashicorp/actions-go-build/pkg/digest"
 	"github.com/hashicorp/composite-action-framework-go/pkg/fs"
+	"github.com/hashicorp/composite-action-framework-go/pkg/json"
 )
 
+// Build represents the build of a single binary.
+// It could be a primary build or a verification build, this Build doesn't
+// need to know.
 type Build interface {
-	Run() error
 	Env() []string
+	Config() Config
+	CachedResult() (Result, bool, error)
+	Steps() []Step
+	ChangeRoot(string) error
+	ChangeToVerificationRoot() error
+	IsVerification() bool
+	Dirs() TempDirs
 }
 
-func resolveBashPath(path string) (string, error) {
-	if path == "" {
-		path = "bash"
-	}
-	return exec.LookPath(path)
+func New(name string, cfg Config, options ...Option) (Build, error) {
+	return newCore(name, cfg, options...)
 }
 
-func New(cfg crt.BuildConfig, options ...Option) (Build, error) {
+type core struct {
+	Settings
+	config Config
+}
+
+func newCore(name string, cfg Config, options ...Option) (*core, error) {
 	s, err := newSettings(options)
 	if err != nil {
-		return &build{}, err
+		return nil, err
 	}
-	return &build{
-		settings: s,
+	if s.cleanOnly && cfg.Product.IsDirty() {
+		return nil, fmt.Errorf("build config indicates a dirty worktree but clean-only is set to true")
+	}
+	return &core{
+		Settings: s,
 		config:   cfg,
 	}, nil
 }
 
-type build struct {
-	settings Settings
-	config   crt.BuildConfig
+func (b *core) Config() Config {
+	return b.config
 }
 
-type dirs struct {
-	source, target, zip, meta string
+func (b *core) IsVerification() bool { return b.isVerification }
+
+func (b *core) Dirs() TempDirs {
+	return newDirsFromConfig(b.config, b.isVerification)
 }
 
-func (b *build) Run() error {
+func (b *core) ChangeRoot(dir string) error {
+	b.Debug("changing root to %s", dir)
+	var err error
+	b.config, err = b.config.ChangeRoot(dir)
+	return err
+}
+
+func (b *core) ChangeToVerificationRoot() error {
+	return b.ChangeRoot(b.config.VerificationRoot())
+}
+
+func (b *core) ChangeToPrimaryRoot() error {
+	return b.ChangeRoot(b.config.RemotePrimaryRoot())
+}
+
+// UpdateBuildRoot updates the build root for this build depending
+// whether it's a primary or verification build.
+func (b *core) UpdateBuildRoot() error {
+	if b.isVerification {
+		return b.ChangeToVerificationRoot()
+	}
+	return b.ChangeToPrimaryRoot()
+}
+
+func (b *core) CachedResult() (Result, bool, error) {
+	var r Result
+	path := b.config.BuildResultCachePath(b.isVerification)
+	exists, err := fs.FileExists(path)
+	if err != nil {
+		b.Debug("Cache read error: %s", err)
+		return r, false, err
+	}
+	if !exists {
+		b.Debug("Cache miss: %s", path)
+		return r, false, nil
+	}
+	b.Debug("Cache hit: %s", path)
+	r, err = json.ReadFile[Result](path)
+	r.loadedFromCache = true
+	return r, err == nil, err
+}
+
+func newStep(desc string, action StepFunc) Step {
+	return Step{desc: desc, action: action}
+}
+
+func (b *core) Steps() []Step {
+	var productRevisionTimestamp time.Time
+	return []Step{
+		newStep("validating inputs", func() error {
+			var err error
+			productRevisionTimestamp, err = b.Config().Product.RevisionTimestamp()
+			return err
+		}),
+
+		newStep("creating output directories", b.createDirectories),
+
+		newStep("running build instructions", b.runInstructions),
+
+		newStep("asserting executable written", b.assertExecutableWritten),
+
+		newStep("setting mtimes", func() error {
+			return fs.SetMtimes(b.Config().Paths.TargetDir, productRevisionTimestamp)
+		}),
+
+		newStep(fmt.Sprintf("creating zip file %q", b.Config().Paths.ZipPath), func() error {
+			return zipper.ZipToFile(b.Config().Paths.TargetDir, b.Config().Paths.ZipPath, b.Settings.Log)
+		}),
+	}
+}
+
+func (b *core) createDirectories() error {
 	c := b.config
-	log.Printf("Starting build process.")
+	return fs.Mkdirs(c.Paths.TargetDir, c.Paths.ZipDir(), c.Paths.MetaDir)
+}
 
-	// A quick bit of validation before running the build.
-	productRevisionTimestamp, err := c.Product.RevisionTimestamp()
-	if err != nil {
-		return err
-	}
-
-	log.Printf("Beginning build, rooted at %q", b.config.Paths.WorkDir)
-	if err := fs.Mkdirs(c.Paths.TargetDir, c.Paths.ZipDir(), c.Paths.MetaDir); err != nil {
-		return err
-	}
-	instructionsPath, err := b.writeInstructions()
-	if err != nil {
-		return err
-	}
-
-	b.listInstructions()
-
-	if err := b.runInstructions(instructionsPath); err != nil {
-		return err
-	}
-
-	binExists, err := fs.FileExists(c.Paths.BinPath)
+func (b *core) assertExecutableWritten() error {
+	binExists, err := b.executableWasWritten()
 	if err != nil {
 		return err
 	}
 	if !binExists {
-		return fmt.Errorf("no file written to BIN_PATH %q", c.Paths.BinPath)
+		return fmt.Errorf("no file written to BIN_PATH %q", b.config.Paths.BinPath)
 	}
-
-	if err := b.writeDigest(c.Paths.BinPath, "bin_digest"); err != nil {
-		return err
-	}
-
-	if err := fs.SetMtimes(c.Paths.TargetDir, productRevisionTimestamp); err != nil {
-		return err
-	}
-
-	if err := zipper.ZipToFile(c.Paths.TargetDir, c.Paths.ZipPath); err != nil {
-		return err
-	}
-
-	if err := b.writeDigest(c.Paths.ZipPath, "zip_digest"); err != nil {
-		return err
-	}
-
 	return nil
 }
 
-func (b *build) writeDigest(of, named string) error {
-	sha, err := digest.FileSHA256Hex(of)
+func (b *core) executableWasWritten() (bool, error) {
+	return fs.FileExists(b.config.Paths.BinPath)
+}
+
+func (b *core) newCommand(name string, args ...string) *exec.Cmd {
+	cmd := exec.CommandContext(b.Settings.context, name, args...)
+	cmd.Dir = b.config.Paths.WorkDir
+	cmd.Stdout = b.Settings.stdout
+	cmd.Stderr = b.Settings.stderr
+	return cmd
+}
+
+func (b *core) runCommand(name string, args ...string) error {
+	return b.newCommand(name, args...).Run()
+}
+
+func (b *core) runInstructions() error {
+	path, err := b.writeInstructions()
 	if err != nil {
 		return err
 	}
 
-	digestPath := filepath.Join(b.config.Paths.MetaDir, named)
+	c := b.newCommand(b.Settings.bash, path)
+	c.Env = b.Env()
+	b.Log("Build environment determined by config:\n%s", strings.Join(c.Env, "\n"))
+	c.Env = append(os.Environ(), c.Env...)
+	b.Debug("Full build environment:\n%s", strings.Join(c.Env, "\n"))
 
-	return fs.WriteFile(digestPath, sha)
-}
-
-func (b *build) newCommand(name string, args ...string) *exec.Cmd {
-	cmd := exec.CommandContext(b.settings.context, name, args...)
-	cmd.Dir = b.config.Paths.WorkDir
-	cmd.Stdout = b.settings.stdout
-	cmd.Stderr = b.settings.stderr
-	return cmd
-}
-
-func (b *build) runCommand(name string, args ...string) error {
-	return b.newCommand(name, args...).Run()
-}
-
-func (b *build) runInstructions(path string) error {
-	log.Printf("Running build instructions with environment:")
-	env := b.Env()
-	for _, e := range b.Env() {
-		fmt.Fprintln(b.settings.stderr, e)
-	}
-	c := b.newCommand(b.settings.bash, path)
-	c.Env = os.Environ()
-	c.Env = append(c.Env, env...)
 	return c.Run()
 }
 
 // writeInstructions writes the build instructions to a temporary file
 // and returns its path, or an error if writing fails.
-func (b *build) writeInstructions() (path string, err error) {
-	log.Printf("Writing build instructions to temp file.")
+func (b *core) writeInstructions() (path string, err error) {
+	b.Log("Build instructions:\n%s", b.config.Parameters.Instructions)
 	return fs.WriteTempFile("actions-go-build.instructions", b.config.Parameters.Instructions)
-}
-
-func (b *build) listInstructions() {
-	log.Printf("Listing build instructions...")
-	log.Println(b.config.Parameters.Instructions)
 }

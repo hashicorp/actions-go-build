@@ -66,35 +66,30 @@ inputs:
       See [Build Instructions](#build-instructions) for more info.
     required: true
 
+  debug:
+    description: >
+      Enable debug-level logging.
+    required: false
+    default: 0
+
 runs:
   using: composite
   steps:
-
-    # We need the GNU date program installed that comes with coreutils.
-    - name: Ensure Coreutils Installed On Mac
-      if: runner.os == 'macOS'
-      shell: bash
-      run: |
-        set -euo pipefail
-        if (date --help | grep GNU) > /dev/null 2>&1; then
-          echo "GNU date already installed as 'date'"
-          exit 0
-        fi
-        if (gdate --help | grep GNU) > /dev/null 2>&1; then
-          echo "GNU date already installed as 'gdate'"
-          exit 0
-        fi
-        command -v brew > /dev/null 2>&1 || {
-          echo "Homebrew not installed, unable to proceed."
-          exit 1
-        }
-        brew update
-        brew install coreutils
 
     # Setup Go for CLI compilation.
     - uses: actions/setup-go@v2
       with:
         go-version: 1.18
+
+    - name: Set some needed environment variables.
+      shell: bash
+      run: |
+        # Set environment.
+        {
+          echo "TMPDIR=$RUNNER_TEMP"
+          echo "RUN=${{ github.action_path }}/scripts/gha run"
+          echo "RUN_CLI=env DEBUG=true ${{ github.action_path }}/scripts/gha run actions-go-build"
+        } >> "$GITHUB_ENV"
 
     # Compile the CLI inline. We should work to remove this step by using
     # precompiled binaries for tagged versions (maybe stored as release
@@ -102,12 +97,14 @@ runs:
     - name: Install the CLI
       shell: bash
       working-directory: ${{ github.action_path }}
-      run: make install
+      run: |
+        $RUN make install
 
-    # Read config and
+    # Read config.
     - name: Read config from inputs; export to GITHUB_ENV
       shell: bash
-      run: actions-go-build config -github
+      working-directory: ${{ inputs.work_dir }}
+      run: $RUN_CLI config -github
       env:
         PRODUCT_NAME: ${{ inputs.product_name }}
         PRODUCT_VERSION: ${{ inputs.product_version }}
@@ -118,24 +115,21 @@ runs:
         BIN_NAME: ${{ inputs.bin_name }}
         ZIP_NAME: ${{ inputs.zip_name }}
         INSTRUCTIONS: ${{ inputs.instructions }}
+        DEBUG: ${{ inputs.debug }}
 
     # Setup Go
     - uses: actions/setup-go@v2
       with:
         go-version: ${{ inputs.go_version }}
 
-    # Print
-    - name: "Print Build Environment Info"
-      shell: bash
-      run: ${{ github.action_path}}/scripts/build_env_info
-
     # Primary Build
     - name: Run Primary Build
       shell: bash
-      run: cd ${{ inputs.work_dir }} && actions-go-build primary
+      working-directory: ${{ inputs.work_dir }}
+      run: $RUN_CLI build
 
     # Upload Primary Build
-    - name: Upload primary build zip file.
+    - name: Upload Primary Zip
       uses: actions/upload-artifact@v3
       with:
         name: ${{ env.ZIP_NAME }}
@@ -146,10 +140,11 @@ runs:
     - name: Run Local Verification Build
       if: inputs.reproducible == 'assert' || inputs.reproducible == 'report'
       shell: bash
-      run: cd ${{ inputs.work_dir }} && actions-go-build verification
+      working-directory: ${{ inputs.work_dir }}
+      run: $RUN_CLI build -verification
 
     # Upload Local Verification Build
-    - name: Upload local verification build zip file.
+    - name: Upload Local Verification Zip
       if: inputs.reproducible == 'assert' || inputs.reproducible == 'report'
       uses: actions/upload-artifact@v3
       with:
@@ -161,10 +156,31 @@ runs:
     - name: Assert Build Outputs Identical
       if: inputs.reproducible == 'assert'
       shell: bash
-      run: ${{ github.action_path }}/scripts/compare_digests
+      working-directory: ${{ inputs.work_dir }}
+      run: |
+        # Verify
+        mkdir -p "$(dirname "$VERIFICATION_RESULT")"
+        $RUN_CLI verify \
+          -verification-build-result "$VERIFICATION_BUILD_RESULT" \
+          -json | tee > "$VERIFICATION_RESULT"
 
     # Report Reproducibility
     - name: Report Reproducibility Results
       if: inputs.reproducible == 'report'
       shell: bash
-      run: ${{ github.action_path }}/scripts/compare_digests || true
+      working-directory: ${{ inputs.work_dir }}
+      run: |
+        # Verify
+        mkdir -p "$(dirname "$VERIFICATION_RESULT")"
+        $RUN_CLI verify \
+          -verification-build-result "$VERIFICATION_BUILD_RESULT" \
+          -json | tee > "$VERIFICATION_RESULT" || true
+
+    # Upload Verification Result
+    - name: Upload Verification Result
+      if: inputs.reproducible == 'assert' || inputs.reproducible == 'report'
+      uses: actions/upload-artifact@v3
+      with:
+        name: ${{ env.ZIP_NAME }}.verificationresult.json
+        path: ${{ env.VERIFICATION_RESULT }}
+        if-no-files-found: error

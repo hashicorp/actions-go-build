@@ -2,31 +2,94 @@ package build
 
 import (
 	"context"
+	"fmt"
 	"io"
 	"os"
+	"os/exec"
+
+	"github.com/hashicorp/actions-go-build/internal/log"
 )
 
-// Settings contains settings for running the instructions.
-// These are not to be confused with crt.BuildConfig, these settings
+// Settings contains settings for running builds.
+// These are not to be confused with build.Config, these settings
 // are build-run specific and not part of the _definition_ of the build.
 // Don't use this directly, use the With... functions to set
 // settings when calling New.
 type Settings struct {
-	bash    string
-	context context.Context
-	stdout  io.Writer
-	stderr  io.Writer
+	bash         string
+	context      context.Context
+	Log          func(string, ...any)
+	Debug        func(string, ...any)
+	Loud         func(string, ...any)
+	stdout       io.Writer
+	stderr       io.Writer
+	forceRebuild bool
+	// forceVerification forces the build to be run as a verification build (i.e.
+	// in the verification root directory).
+	isVerification bool
+	cleanOnly      bool
+	logPrefix      string
 }
 
+// Option represents a function that configures Settings.
+type Option func(*Settings)
+
+// WithContext sets the context passed when we shell out.
+func WithContext(c context.Context) Option { return func(s *Settings) { s.context = c } }
+
+// WithLogfunc sets the log func.
+func WithLogfunc(f func(string, ...any)) Option {
+	return func(s *Settings) { s.Log = s.makeLogFunc(f) }
+}
+
+// WithLogPrefix sets the log prefix.
+func WithLogPrefix(p string) Option { return func(s *Settings) { s.logPrefix = p } }
+
+// WithDebugfunc sest the debug func.
+func WithDebugfunc(f func(string, ...any)) Option {
+	return func(s *Settings) { s.Debug = s.makeLogFunc(f) }
+}
+
+// WithDebugfunc sest the debug func.
+func WithLoudfunc(f func(string, ...any)) Option {
+	return func(s *Settings) { s.Loud = s.makeLogFunc(f) }
+}
+
+// WithStdout sets the stdout for when we shell out.
+func WithStdout(w io.Writer) Option { return func(s *Settings) { s.stdout = w } }
+
+// WithStderr sets the stderr for when we shell out.
+func WithStderr(w io.Writer) Option { return func(s *Settings) { s.stderr = w } }
+
+// WithForceRebuild forces a build to be re-done rather than using cache.
+func WithForceRebuild(on bool) Option { return func(s *Settings) { s.forceRebuild = on } }
+
+// WithForceVerification forces a build to be a verification build (or not depending on
+// the boolean passed).
+func WithForceVerification(on bool) Option { return func(s *Settings) { s.isVerification = on } }
+
+// AsVerificationBuild forces a build to be treated as a verification build (i.e. run
+// in the verification root, and cached separately from primary builds).
+func AsVerificationBuild() Option { return func(s *Settings) { s.isVerification = true } }
+
+// AsPrimaryBuild forces a build to be treated as a primary build (i.e. run
+// in the current directory, or primary root (for remote builds).
+func AsPrimaryBuild() Option { return func(s *Settings) { s.isVerification = false } }
+
+// WithCleanOnly causes the build to fail early if it's not based on a clean worktree.
+func WithCleanOnly(on bool) Option { return func(s *Settings) { s.cleanOnly = on } }
+
 func newSettings(options []Option) (Settings, error) {
-	out := &Settings{}
-	for _, o := range options {
-		o(out)
+	s := &Settings{}
+	err := s.setOptions(options...)
+	return *s, err
+}
+
+func (s *Settings) setOptions(opts ...Option) error {
+	for _, o := range opts {
+		o(s)
 	}
-	if err := out.setDefaults(); err != nil {
-		return Settings{}, err
-	}
-	return *out, nil
+	return s.setDefaults()
 }
 
 func (s *Settings) setDefaults() (err error) {
@@ -37,8 +100,21 @@ func (s *Settings) setDefaults() (err error) {
 	if s.context == nil {
 		s.context = context.Background()
 	}
+	if s.Debug == nil {
+		s.Debug = log.Debug
+	}
+	if s.Log == nil {
+		s.Log = log.Verbose
+	}
+	if s.Loud == nil {
+		s.Loud = log.Info
+	}
+
+	WithDebugfunc(s.Debug)(s)
+	WithLogfunc(s.Log)(s)
+	WithLoudfunc(s.Loud)(s)
 	if s.stdout == nil {
-		s.stdout = os.Stdout
+		s.stdout = os.Stderr
 	}
 	if s.stderr == nil {
 		s.stderr = os.Stderr
@@ -46,10 +122,23 @@ func (s *Settings) setDefaults() (err error) {
 	return nil
 }
 
-// Option represents a function that configures Settings.
-type Option func(*Settings)
+func resolveBashPath(path string) (string, error) {
+	if path == "" {
+		path = "bash"
+	}
+	return exec.LookPath(path)
+}
 
-func WithContext(c context.Context) Option { return func(s *Settings) { s.context = c } }
-func WithStdout(w io.Writer) Option        { return func(s *Settings) { s.stdout = w } }
-func WithStderr(w io.Writer) Option        { return func(s *Settings) { s.stderr = w } }
-func WithBash(path string) Option          { return func(s *Settings) { s.bash = path } }
+func (s *Settings) makeLogFunc(logFunc log.Func) log.Func {
+	return makePrefixedLocFunc(s.logPrefix, logFunc)
+}
+
+func makePrefixedLocFunc(name string, logFunc log.Func) log.Func {
+	if name != "" {
+		name = name + ": "
+	}
+	return func(f string, a ...any) {
+		f = fmt.Sprintf("%s%s", name, f)
+		logFunc(f, a...)
+	}
+}

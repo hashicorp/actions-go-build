@@ -1,0 +1,53 @@
+name: Go Build Verify Action Self-Tests
+author: Release Engineering <team-rel-eng@hashicorp.com>
+description: Action for testing hashicorp/actions-go-build/verify.
+
+inputs:
+  # Test parameters.
+  when:
+    description: A sentence fragment describing the scenario. E.g. 'the worzels are singing'.
+    required: true
+  assert:
+    description: Either 'success' or 'failure' to indicate if we expect the action to succeed or fail.
+    required: true
+
+  # Action under test configuration.
+  result_file:
+    description: Result file we're trying to verify.
+    required: true
+  debug:
+    description: Enable debug-level logging.
+    required: false
+  output_file:
+    description: The name of the file to write the verification result to.
+    required: false
+    default: verification-result.json
+
+runs:
+  using: composite
+  steps:
+    - if: inputs.assert != 'success' && inputs.assert != 'failure'
+      shell: bash
+      run: |
+        echo "assert must be one of: 'success' or 'failure'"
+        exit 1
+    - name: Invoke actions-go-build when ${{ env.WHEN }}
+      id: verify
+      uses: ./verify # The action at ./verify in this repo.
+      with:
+        result_file: ${{ inputs.result_file }}
+        output_file: ${{ inputs.output_file }}
+        debug: ${{ inputs.debug }}
+      continue-on-error: true
+    - if: inputs.assert == 'success'
+      name: Assert The Action Succeeded
+      shell: bash
+      env:
+        WHEN: ${{ inputs.when }}
+      run: ./scripts/gha_assert_success "${{ steps.verify.outcome }}"
+    - if: inputs.assert == 'failure'
+      name: Assert The Action Failed Correctly
+      shell: bash
+      env:
+        WHEN: ${{ inputs.when }}
+      run: ./scripts/gha_assert_failure "${{ steps.verify.outcome }}"

@@ -15,11 +15,8 @@ type Product struct {
 	// Repository is the product repository URL minus the scheme.
 	// E.g. github.com/hashicorp/lockbox
 	Repository string `env:"PRODUCT_REPOSITORY"`
-	// Directory is the path to the directory housing this product, inside Repository,
-	// relative to the repository root. Defaults to the current working directory.
-	// Note that this is optional, you can have multiple products sharing the same
-	// directory if wanted. If set, the Instructions should be run inside this directory.
-	Directory string `env:"PRODUCT_DIRECTORY"`
+	// Module is the name of the Go module this product is defined in.
+	Module string
 	// Name is the product name. This is used to derive the default names
 	// for the executable binary, the zip package, deb and rpm packages,
 	// container image tags, and other artifacts in the future.
@@ -44,6 +41,14 @@ type Product struct {
 	// keeping the binary reproducible. (It can be used as a sort of "build
 	// time").
 	RevisionTime string
+	// SourceHash is either the same as the Revision if the worktree is not
+	// dirty, or else it's a SHA1 hash of the HEAD commit plus all the contents
+	// of all dirty files.
+	SourceHash string
+}
+
+func (p Product) IsDirty() bool {
+	return p.Revision != p.SourceHash
 }
 
 func (p Product) Init(rc RepoContext) (Product, error) {
@@ -55,10 +60,32 @@ func (p Product) RevisionTimestamp() (time.Time, error) {
 	return ts, maybeErr(err, "invalid revision timestamp %q", p.RevisionTime)
 }
 
+func (p Product) VersionCommandOutput() string {
+	return p.versionCommandOutput(p.Revision, p.RevisionTime)
+}
+
+func (p Product) VersionCommandOutputShort() string {
+	parts := strings.SplitN(p.RevisionTime, "T", 2)
+	time := parts[0]
+	rev := p.Revision
+	// If revision is 40 chars or more, it's probably a git commit SHA1, so shorten it.
+	if len(rev) >= 40 {
+		rev = rev[:8]
+	}
+	return p.versionCommandOutput(rev, time)
+}
+
+func (p Product) versionCommandOutput(rev, revTime string) string {
+	var d string
+	if p.IsDirty() {
+		d = fmt.Sprintf("Dirty build: source hash: %s\n", p.SourceHash)
+	}
+	return fmt.Sprintf("%s%s v%s (%s) %s", d, p.Name, p.Version.Full, rev, revTime)
+}
+
 // trimSpace trims space from the user-provided input fields only.
 func (p Product) trimSpace() Product {
 	p.Repository = strings.TrimSpace(p.Repository)
-	p.Directory = strings.TrimSpace(p.Directory)
 	p.Name = strings.TrimSpace(p.Name)
 	p.Version = p.Version.trimSpace()
 	p.ExecutableName = strings.TrimSpace(p.ExecutableName)
@@ -68,6 +95,10 @@ func (p Product) trimSpace() Product {
 func (p Product) setDefaults(rc RepoContext) (Product, error) {
 	if p.Repository == "" {
 		p.Repository = rc.RepoName
+	}
+
+	if p.Module == "" {
+		p.Module = rc.ModuleName
 	}
 
 	if p.Name == "" {
@@ -81,12 +112,13 @@ func (p Product) setDefaults(rc RepoContext) (Product, error) {
 	}
 
 	var err error
-	if p.Version, err = p.Version.resolve(rc); err != nil {
+	if p.Version, err = p.Version.InitWithCoreVersion(rc.CoreVersion.String()); err != nil {
 		return p, err
 	}
 
 	p.Revision = rc.CommitSHA
 	p.RevisionTime = rc.CommitTime.UTC().Format(time.RFC3339)
+	p.SourceHash = rc.SourceHash
 	return p, nil
 }
 

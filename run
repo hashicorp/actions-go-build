@@ -1,0 +1,10 @@
+#!/usr/bin/env bash
+
+set -Eeuo pipefail
+
+if [[ "${1:-}" == "-q" ]]; then
+	shift
+	export QUIET=true
+fi
+
+make RUN="$*"

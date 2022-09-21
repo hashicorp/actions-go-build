@@ -3,9 +3,8 @@ package config
 import (
 	"context"
 	"fmt"
-	"log"
-	"os"
 
+	"github.com/hashicorp/actions-go-build/pkg/build"
 	"github.com/hashicorp/actions-go-build/pkg/crt"
 	"github.com/sethvargo/go-envconfig"
 )
@@ -21,7 +20,7 @@ type Config struct {
 	// BuildParameters are invariant build details, required alongside
 	// the Product definition to capture the full instructions needed to
 	// reproduce a build.
-	Parameters crt.BuildParameters
+	Parameters build.Parameters
 
 	// Reproducible tells the action whether this build ought to be reproducible.
 	// It must be one of these three values:
@@ -30,70 +29,70 @@ type Config struct {
 	//   - "nope"   - don't run the verification build at all.
 	Reproducible string `env:"REPRODUCIBLE"`
 
-	// Optional inputs which do not affect the bytes produced.
-	// Mostly useful for testing.
+	// Tool is the version of actions-go-build that created this config.
+	Tool crt.Tool
 
-	// ZipName is the name of the zip file to be created.
-	ZipName string `env:"ZIP_NAME"`
-	// PrimaryBuildRoot is the absolute path where the instructions are run for the
-	// primary build. This path should already exist and contain the product repo
-	// checked out at the commit we want to build.
-	// Default: current working directory.
-	PrimaryBuildRoot string `env:"PRIMARY_BUILD_ROOT"`
-	// VerificationBuildRoot is the absolute path where the instructions are run
-	// for the verification build. This path should not already exist, it is created
-	// by making a recursive copy of the primary build root.
-	// Default: a newly minted temporary directory.
-	VerificationBuildRoot string `env:"VERIFICATION_BUILD_ROOT"`
+	// Debug enables debug logging.
+	Debug bool `env:"DEBUG"`
+
+	Primary      Paths `env:",prefix=PRIMARY_"`
+	Verification Paths `env:",prefix=VERIFICATION_"`
+
+	VerificationResult string `env:"VERIFICATION_RESULT"`
+}
+
+type Paths struct {
+	// BuildRoot is the absolute path where the instructions are run for this build.
+	// We read it from the environment only to support testing.
+	BuildRoot string `env:"BUILD_ROOT"`
+	// BuildResult is the absolute path where the build result will be written.
+	// This is the same as the cache path for that build result.
+	// We do not read BuildResult from the environment.
+	BuildResult string
 }
 
 // FromEnvironment creates a new Config from environment variables
 // and repository context in the current working directory.
-func FromEnvironment() (Config, error) {
+func FromEnvironment(creator crt.Tool, dir string) (Config, error) {
 	var c Config
 	ctx := context.Background()
 	if err := envconfig.Process(ctx, &c); err != nil {
 		return c, err
 	}
 
-	wd, err := os.Getwd()
+	rc, err := crt.GetRepoContext(dir, build.Dirs.List())
 	if err != nil {
 		return c, err
 	}
 
-	rc, err := crt.GetRepoContext(wd)
-	if err != nil {
-		return c, err
-	}
-
-	return c.init(rc)
+	return c.init(rc, creator)
 }
 
 // buildConfig returns a BuildConfig based on this Config, rooted at root.
 // The root must be an absolute path.
-func (c Config) buildConfig(root string) (crt.BuildConfig, error) {
-	paths, err := crt.NewBuildPaths(root, c.Product.ExecutableName, c.ZipName)
+func (c Config) buildConfig(root string) (build.Config, error) {
+	paths, err := build.NewBuildPaths(root, c.Product.ExecutableName, c.Parameters.ZipName)
 	if err != nil {
-		return crt.BuildConfig{}, err
+		return build.Config{}, err
 	}
-	return crt.NewBuildConfig(c.Product, c.Parameters, paths)
+	var reproducible bool
+	if c.Reproducible == "assert" {
+		reproducible = true
+	}
+	return build.NewConfig(c.Product, c.Parameters, paths, c.Tool, reproducible)
 }
 
 // PrimaryBuildConfig returns the config for the primary build.
-func (c Config) PrimaryBuildConfig() (crt.BuildConfig, error) {
-	return c.buildConfig(c.PrimaryBuildRoot)
+func (c Config) PrimaryBuildConfig() (build.Config, error) {
+	return c.buildConfig(c.Primary.BuildRoot)
 }
 
-// VerificationBuildConfig returns the config for the verification build.
-func (c Config) VerificationBuildConfig() (crt.BuildConfig, error) {
-	return c.buildConfig(c.VerificationBuildRoot)
+// VerificationBuildConfig returns the config for a verification build.
+func (c Config) VerificationBuildConfig() (build.Config, error) {
+	return c.buildConfig(c.Verification.BuildRoot)
 }
 
-func defaultZipName(product crt.Product, params crt.BuildParameters) string {
-	return fmt.Sprintf("%s_%s_%s_%s.zip", product.Name, product.Version.Full, params.OS, params.Arch)
-}
-
-func (c Config) init(rc crt.RepoContext) (Config, error) {
+func (c Config) init(rc crt.RepoContext, creator crt.Tool) (Config, error) {
 	var err error
 	if c.Product, err = c.Product.Init(rc); err != nil {
 		return c, err
@@ -104,19 +103,32 @@ func (c Config) init(rc crt.RepoContext) (Config, error) {
 	if c.Reproducible, err = c.resolveReproducible(); err != nil {
 		return c, err
 	}
-	if c.ZipName == "" {
-		c.ZipName = defaultZipName(c.Product, c.Parameters)
+
+	primaryPaths := build.NewPrimaryDirs(c.Product, c.Parameters, creator)
+	verificationPaths := build.NewVerificationDirs(c.Product, c.Parameters, creator)
+
+	// Default the primary build root to the current directory.
+	if c.Primary.BuildRoot == "" {
+		c.Primary.BuildRoot = rc.Dir
 	}
-	if c.PrimaryBuildRoot == "" {
-		c.PrimaryBuildRoot = rc.Dir
+	if c.Verification.BuildRoot == "" {
+		c.Verification.BuildRoot = verificationPaths.RemoteBuildRoot()
 	}
-	if c.VerificationBuildRoot == "" {
-		dir, err := os.MkdirTemp("", "actions-go-build.verification-build.*")
-		if err != nil {
-			log.Panic(err)
-		}
-		c.VerificationBuildRoot = dir
+
+	if c.Primary.BuildResult == "" {
+		c.Primary.BuildResult = primaryPaths.BuildResultCacheDir()
 	}
+
+	if c.Verification.BuildResult == "" {
+		c.Verification.BuildResult = verificationPaths.BuildResultCacheDir()
+	}
+
+	c.Tool = creator
+
+	if c.VerificationResult == "" {
+		c.VerificationResult = verificationPaths.VerificationResultCachePath(build.ID(c))
+	}
+
 	return c, nil
 }
 

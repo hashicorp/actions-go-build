@@ -4,6 +4,7 @@ import (
 	"os"
 	"testing"
 
+	"github.com/hashicorp/actions-go-build/pkg/build"
 	"github.com/hashicorp/actions-go-build/pkg/crt"
 	"github.com/hashicorp/composite-action-framework-go/pkg/testhelpers/assert"
 	"github.com/hashicorp/composite-action-framework-go/pkg/testhelpers/goldenfile"
@@ -22,7 +23,7 @@ func TestConfig_BuildConfig_ok(t *testing.T) {
 		desc   string
 		config Config
 		root   string
-		want   crt.BuildConfig
+		want   build.Config
 	}{
 		{
 			"root",
@@ -34,7 +35,7 @@ func TestConfig_BuildConfig_ok(t *testing.T) {
 			"root/blah",
 			testConfig(),
 			"/blah",
-			testBuildConfig(func(bc *crt.BuildConfig) {
+			testBuildConfig(func(bc *build.Config) {
 				bc.Paths.WorkDir = "/blah"
 				bc.Paths.TargetDir = "/blah/dist"
 				bc.Paths.BinPath = "/blah/dist/lockbox"
@@ -45,15 +46,16 @@ func TestConfig_BuildConfig_ok(t *testing.T) {
 		{
 			"root/blah (overridden zip name)",
 			testConfig(func(c *Config) {
-				c.ZipName = "blargle.zip"
+				c.Parameters.ZipName = "blargle.zip"
 			}),
 			"/blah",
-			testBuildConfig(func(bc *crt.BuildConfig) {
+			testBuildConfig(func(bc *build.Config) {
 				bc.Paths.WorkDir = "/blah"
 				bc.Paths.TargetDir = "/blah/dist"
 				bc.Paths.BinPath = "/blah/dist/lockbox"
 				bc.Paths.ZipPath = "/blah/out/blargle.zip"
 				bc.Paths.MetaDir = "/blah/meta"
+				bc.Parameters.ZipName = "blargle.zip"
 			}),
 		},
 	}
@@ -70,20 +72,26 @@ func TestConfig_BuildConfig_ok(t *testing.T) {
 	}
 }
 
-func standardBuildconfig() crt.BuildConfig {
-	return crt.BuildConfig{
+func standardBuildconfig() build.Config {
+	return build.Config{
 		Product:    standardProduct(),
 		Parameters: standardParameters(),
-		Paths: crt.BuildPaths{
+		Paths: build.Paths{
 			WorkDir:   "/",
 			TargetDir: "/dist",
 			BinPath:   "/dist/lockbox",
 			ZipPath:   "/out/lockbox_1.2.3_linux_amd64.zip",
 			MetaDir:   "/meta",
 		},
+		Tool: crt.Tool{
+			Name:     "thisaction",
+			Version:  "0.0.0",
+			Revision: "cabba9e",
+		},
+		Reproducible: true,
 	}
 }
 
-func testBuildConfig(modifiers ...func(*crt.BuildConfig)) crt.BuildConfig {
+func testBuildConfig(modifiers ...func(*build.Config)) build.Config {
 	return applyModifiers(standardBuildconfig(), modifiers...)
 }

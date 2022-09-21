@@ -4,6 +4,7 @@ import (
 	"errors"
 	"log"
 	"os"
+	"strconv"
 
 	"github.com/sethvargo/go-githubactions"
 )
@@ -55,13 +56,17 @@ func (c Config) EnvVars() ([]EnvVar, error) {
 	addEnv("REPRODUCIBLE", c.Reproducible)
 	addEnv("INSTRUCTIONS", c.Parameters.Instructions)
 	addEnv("BIN_NAME", c.Product.ExecutableName)
-	addEnv("ZIP_NAME", c.ZipName)
-	addEnv("PRIMARY_BUILD_ROOT", c.PrimaryBuildRoot)
-	addEnv("VERIFICATION_BUILD_ROOT", c.VerificationBuildRoot)
+	addEnv("ZIP_NAME", c.Parameters.ZipName)
+	addEnv("PRIMARY_BUILD_ROOT", c.Primary.BuildRoot)
+	addEnv("VERIFICATION_BUILD_ROOT", c.Verification.BuildRoot)
+	addEnv("PRIMARY_BUILD_RESULT", c.Primary.BuildResult)
+	addEnv("VERIFICATION_BUILD_RESULT", c.Verification.BuildResult)
 	addEnv("BIN_PATH_PRIMARY", primary.Paths.BinPath)
 	addEnv("ZIP_PATH_PRIMARY", primary.Paths.ZipPath)
 	addEnv("BIN_PATH_VERIFICATION", verification.Paths.BinPath)
 	addEnv("ZIP_PATH_VERIFICATION", verification.Paths.ZipPath)
+	addEnv("VERIFICATION_RESULT", c.VerificationResult)
+	addEnv("DEBUG", strconv.FormatBool(c.Debug))
 
 	return kvs, nil
 }

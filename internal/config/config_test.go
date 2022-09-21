@@ -4,6 +4,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/hashicorp/actions-go-build/pkg/build"
 	"github.com/hashicorp/actions-go-build/pkg/crt"
 	"github.com/hashicorp/composite-action-framework-go/pkg/testhelpers/assert"
 	"github.com/hashicorp/go-version"
@@ -32,7 +33,7 @@ func TestConfig_init_ok(t *testing.T) {
 				c.Product.Version.Full = "1.2.3+ent"
 				c.Product.Version.Core = "1.2.3"
 				c.Product.Version.Meta = "ent"
-				c.ZipName = "lockbox_1.2.3+ent_linux_amd64.zip"
+				c.Parameters.ZipName = "lockbox_1.2.3+ent_linux_amd64.zip"
 			}),
 		},
 		{
@@ -45,17 +46,17 @@ func TestConfig_init_ok(t *testing.T) {
 				c.Product.Version.Full = "1.2.3+ent.hsm"
 				c.Product.Version.Core = "1.2.3"
 				c.Product.Version.Meta = "ent.hsm"
-				c.ZipName = "lockbox_1.2.3+ent.hsm_linux_amd64.zip"
+				c.Parameters.ZipName = "lockbox_1.2.3+ent.hsm_linux_amd64.zip"
 			}),
 		},
 		{
 			"overridden zip_name",
 			testUninitializedConfig(func(i *Config) {
-				i.ZipName = "blarglefish.zip"
+				i.Parameters.ZipName = "blarglefish.zip"
 			}),
 			testRepoContext(),
 			testConfig(func(c *Config) {
-				c.ZipName = "blarglefish.zip"
+				c.Parameters.ZipName = "blarglefish.zip"
 			}),
 		},
 		{
@@ -71,12 +72,12 @@ func TestConfig_init_ok(t *testing.T) {
 		{
 			"overridden primary build root",
 			testUninitializedConfig(func(i *Config) {
-				i.PrimaryBuildRoot = "/other/dir/work"
+				i.Primary.BuildRoot = "/other/dir/work"
 			}),
 			testRepoContext(),
 			testConfig(func(c *Config) {
-				c.PrimaryBuildRoot = "/other/dir/work"
-				c.VerificationBuildRoot = "/other/dir/verification"
+				c.Primary.BuildRoot = "/other/dir/work"
+				c.Verification.BuildRoot = "/other/dir/verification"
 			}),
 		},
 	}
@@ -84,20 +85,31 @@ func TestConfig_init_ok(t *testing.T) {
 	for _, c := range cases {
 		description, inputs, rc, want := c.description, c.inputs, c.rc, c.want
 		t.Run(description, func(t *testing.T) {
-			got, err := inputs.init(rc)
+			tool := crt.Tool{
+				Name:     "thisaction",
+				Version:  "0.0.0",
+				Revision: "cabba9e",
+			}
+			got, err := inputs.init(rc, tool)
 			if err != nil {
 				t.Fatal(err)
 			}
 
 			// Test the verification build root separately because it's
 			// a temp directory with an unpredictable name.
-			if got.VerificationBuildRoot == "" {
+			if got.Verification.BuildRoot == "" {
 				t.Errorf("got empty VerificationBuildRoot")
 			}
-			// Force got and want to be empty so we can assert equality on
-			// everything else.
-			got.VerificationBuildRoot = ""
-			want.VerificationBuildRoot = ""
+			// Force got and want build roots and build instructions to be empty so we
+			// can assert equality on everything else.
+			got.Verification = Paths{}
+			want.Verification = Paths{}
+			got.Primary = Paths{}
+			want.Primary = Paths{}
+			got.Parameters.Instructions = ""
+			want.Parameters.Instructions = ""
+			got.VerificationResult = ""
+			want.VerificationResult = ""
 
 			assert.Equal(t, got, want)
 		})
@@ -139,6 +151,7 @@ func standardProduct() crt.Product {
 			Core: "1.2.3",
 			Meta: "",
 		},
+		SourceHash:   "deadbeef",
 		Revision:     "cabba9e",
 		RevisionTime: standardCommitTimeRFC3339(),
 	}
@@ -155,59 +168,45 @@ func standardCommitTimeRFC3339() string {
 func standardRepoContext() crt.RepoContext {
 	return crt.RepoContext{
 		RepoName:    "dadgarcorp/lockbox",
-		CoreVersion: *version.Must(version.NewVersion("1.2.3")),
-		RootDir:     "/some/dir/work",
 		Dir:         "/some/dir/work",
+		RootDir:     "/some/dir/work",
 		CommitSHA:   "cabba9e",
+		SourceHash:  "deadbeef",
 		CommitTime:  standardCommitTimestamp(),
+		CoreVersion: *version.Must(version.NewVersion("1.2.3")),
 	}
 }
 
 func standardConfig() Config {
 	return Config{
-		Product:               standardProduct(),
-		Parameters:            standardParameters(),
-		Reproducible:          "assert",
-		PrimaryBuildRoot:      "/some/dir/work",
-		VerificationBuildRoot: "/some/dir/verification",
-		ZipName:               "lockbox_1.2.3_linux_amd64.zip",
+		Product:      standardProduct(),
+		Parameters:   standardParameters(),
+		Reproducible: "assert",
+		Primary:      Paths{BuildRoot: "/some/dir/work"},
+		Verification: Paths{BuildRoot: "/some/dir/verification"},
+		Tool: crt.Tool{
+			Name:     "thisaction",
+			Version:  "0.0.0",
+			Revision: "cabba9e",
+		},
 	}
 }
 
 func standardUnintializedConfig() Config {
 	return Config{
-		Product: crt.Product{
-			Repository:     "",
-			Directory:      "",
-			Name:           "",
-			CoreName:       "",
-			ExecutableName: "",
-			Version: crt.ProductVersion{
-				Full: "",
-				Core: "",
-				Meta: "",
-			},
-			Revision:     "",
-			RevisionTime: "",
+		Parameters: build.Parameters{
+			GoVersion: "1.18",
+			OS:        "linux",
+			Arch:      "amd64",
 		},
-		Parameters: crt.BuildParameters{
-			GoVersion:    "1.18",
-			Instructions: "",
-			OS:           "linux",
-			Arch:         "amd64",
-		},
-		Reproducible:          "",
-		ZipName:               "",
-		PrimaryBuildRoot:      "",
-		VerificationBuildRoot: "",
 	}
 }
 
-func standardParameters() crt.BuildParameters {
-	return crt.BuildParameters{
-		GoVersion:    "1.18",
-		OS:           "linux",
-		Arch:         "amd64",
-		Instructions: `go build -o "$BIN_PATH" -trimpath -buildvcs=false`,
+func standardParameters() build.Parameters {
+	return build.Parameters{
+		GoVersion: "1.18",
+		OS:        "linux",
+		Arch:      "amd64",
+		ZipName:   "lockbox_1.2.3_linux_amd64.zip",
 	}
 }

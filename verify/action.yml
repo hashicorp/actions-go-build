@@ -1,0 +1,104 @@
+name: Verify A Build Result
+author: Release Engineering <team-rel-eng@hashicorp.com>
+description: Verify a reproducible build result.
+
+inputs:
+
+  result_file:
+    description: The result file we're trying to verify.
+    required: true
+
+  debug:
+    description: Enable debug-level logging.
+    required: false
+    default: false
+
+  output_file:
+    description: The name of the file to write the verification result to.
+    required: false
+    default: verification-result.json
+
+runs:
+  using: composite
+  steps:
+
+    # Setup Go for CLI compilation.
+    - uses: actions/setup-go@v2
+      with:
+        go-version: 1.18
+
+    - name: Set some needed environment variables.
+      shell: bash
+      run: |
+        # Set environment.
+        ACTION_ROOT="${{ github.action_path }}/.."
+        OUTPUT_FILE="${{ inputs.output_file }}"
+        {
+          echo "TMPDIR=$RUNNER_TEMP"
+          echo "ACTION_ROOT=$ACTION_ROOT"
+          echo "RUN=$ACTION_ROOT/scripts/gha run"
+          echo "RUN_CLI=env DEBUG=${{ inputs.debug }} $ACTION_ROOT/scripts/gha run actions-go-build"
+          echo "RESULT_FILE=${{ inputs.result_file }}"
+          echo "OUTPUT_FILE=$OUTPUT_FILE"
+          echo "VERIFICATION_RESULT=$RUNNER_TEMP/$OUTPUT_FILE"
+        } >> "$GITHUB_ENV"
+
+        # Write a newline to step summary to try to prevent weird
+        # ghost summaries appearing when this is run in a matrix.
+        echo > "$GITHUB_STEP_SUMMARY"
+
+    # Compile the CLI inline. We should work to remove this step by using
+    # precompiled binaries for tagged versions (maybe stored as release
+    # assets).
+    - name: Install the CLI
+      shell: bash
+      working-directory: ${{ env.ACTION_ROOT }}
+      run: |
+        # Install the CLI
+        $RUN make install
+
+    # Read build config
+    - name: Read config from result file.
+      shell: bash
+      run: |
+        # Read some values from the build config.
+        GO_VERSION="$(actions-go-build inspect -q -go-version "$RESULT_FILE")"
+        echo "GO_VERSION=$GO_VERSION" | tee >> "$GITHUB_ENV"
+
+        REPRODUCIBLE="$(actions-go-build inspect -q -reproducible "$RESULT_FILE")"
+        echo "REPRODUCIBLE=$REPRODUCIBLE" | tee >> "$GITHUB_ENV"
+
+    # Print build config.
+    - name: Print build config
+      shell: bash
+      run: |
+        # Print build config.
+        $RUN_CLI inspect -build-config "$RESULT_FILE"
+
+    # Setup Go For Running the Verification Build
+    - uses: actions/setup-go@v2
+      with:
+        go-version: ${{ env.GO_VERSION }}
+
+    # Verify Reproducibility
+    - name: Verify Reproducibility
+      shell: bash
+      run: |
+        # Verify the build result (fail workflow if not reproduced correctly: ${{ env.REPRODUCIBLE }})
+        if $RUN_CLI verify -json -o "$VERIFICATION_RESULT" "$RESULT_FILE"; then
+          echo "Success!"
+        elif ! $REPRODUCIBLE; then
+          echo "Failed; not failing workflow because reproducible was set to report not assert."
+        else
+          echo "Failed; failing workflow because reproducible was set to assert."
+          exit 1
+        fi
+
+    # Store reproducibility report.
+    - name: Upload Reproducibility Report
+      if: always()
+      uses: actions/upload-artifact@v3
+      with:
+        path: ${{ env.VERIFICATION_RESULT }}
+        name: ${{ env.OUTPUT_FILE }}
+        if-no-files-found: error

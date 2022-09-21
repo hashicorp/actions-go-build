@@ -33,7 +33,7 @@ func TestZipper_ZipDir_ok(t *testing.T) {
 		inputFiles := c
 		t.Run("", func(t *testing.T) {
 			buf := &bytes.Buffer{}
-			z := New(buf)
+			z := New(buf, t.Logf)
 
 			dir := createTestDir(t, inputFiles)
 			if err := z.ZipDir(dir); err != nil {
@@ -88,7 +88,7 @@ func TestZipper_ZipDir_err_duplicate(t *testing.T) {
 		inputFiles := c
 		t.Run("", func(t *testing.T) {
 			buf := &bytes.Buffer{}
-			z := New(buf)
+			z := New(buf, t.Logf)
 
 			dir := createTestDir(t, inputFiles)
 			err := z.ZipDir(dir)

@@ -1,6 +1,13 @@
 name: Test
 
-on: [push]
+on:
+  push:
+    paths:
+      - '**'
+      - '!**.md'
+      - '!dev/**'
+      - '!verify/**'
+      - '!action.yml'
 
 jobs:
 
@@ -8,26 +15,6 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: github/super-linter@v4
-
-  script-tests:
-    runs-on: ubuntu-latest
-    steps:
-      - name: Install BATS
-        env:
-          BATS_VERSION: 1.7.0
-          BATS_REPO: https://github.com/bats-core/bats-core
-          BATS_PATH: /usr/local/bats
-        run: |
-          sudo git clone --depth 1 --branch "v$BATS_VERSION" "$BATS_REPO" "$BATS_PATH"
-          echo "$BATS_PATH/bin" >> "$GITHUB_PATH"
-      - uses: actions/setup-go@v2
-        with:
-          go-version: 1.18
-      - uses: actions/checkout@v3
-      - name: install CLI
-        run: make install
-      - name: Run BATS tests
-        run: make test/bats
 
   go-tests:
     runs-on: ubuntu-latest
@@ -37,13 +24,3 @@ jobs:
           go-version: 1.18
       - uses: actions/checkout@v3
       - run: make test/go
-
-  macos:
-    uses: ./.github/workflows/self-test-suite.yml
-    with:
-      runner: macos-latest
-
-  linux:
-    uses: ./.github/workflows/self-test-suite.yml
-    with:
-      runner: ubuntu-latest

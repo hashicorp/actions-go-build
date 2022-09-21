@@ -1,16 +1,54 @@
 SHELL := /usr/bin/env bash -euo pipefail -c
 
-default: test
+PRODUCT_NAME := actions-go-build
+
+# Set AUTOCLEAR=1 to have the terminal cleared before running builds,
+# tests, and installs.
+CLEAR := $(AUTOCLEAR)
+ifeq ($(CLEAR),1)
+	CLEAR := clear
+else
+	CLEAR :=
+endif
+
+default: run
+
+ifeq ($(TMPDIR),)
+TMPDIR="$(RUNNER_TEMP)"
+endif
+ifeq ($(TMPDIR),)
+$(error Neither TMPDIR nor RUNNER_TEMP are set.)
+endif
+
+RUN_TESTS_QUIET := @$(MAKE) test > /dev/null 2>&1 || { echo "Tests failed, please run 'make test'."; exit 1; }
 
 # Always just install the git hooks.
 _ := $(shell cd .git/hooks && ln -fs ../../dev/git_hooks/* .)
 
+ifneq ($(PRODUCT_VERSION),)
+CURR_VERSION := $(PRODUCT_VERSION)
+else
 CURR_VERSION := $(shell cat dev/VERSION)
+endif
+
 CURR_VERSION_CL := dev/changes/v$(CURR_VERSION).md
 
-BATS := bats -j 10 -T
+DIRTY := $(shell git diff --exit-code > /dev/null 2>&1 || echo -n "dirty-")
 
-test: test/bats test/go
+ifneq ($(PRODUCT_REVISION),)
+CURR_REVISION := $(PRODUCT_REVISION)
+else
+CURR_REVISION := $(shell git rev-parse HEAD)
+PRODUCT_REVISION := $(CURR_REVISION)
+endif
+
+CURR_REVISION    := $(DIRTY)$(CURR_REVISION)
+PRODUCT_REVISION ?= $(CURR_REVISION)
+
+build:
+	go build ./...
+
+test: test/go
 
 cover: GO_TEST_FLAGS := -coverprofile=coverage.profile
 cover: test/go
@@ -18,78 +56,106 @@ cover: test/go
 
 test/update: test/go/update
 
-CLINAME := $(notdir $(CURDIR))
-CLI     := bin/$(CLINAME)
-RUNCLI  := @./$(CLI)
+CLINAME   := $(PRODUCT_NAME)
+CLI       := dist/$(CLINAME)
+TMP_BUILD := $(TMPDIR)/temp-build/$(CLINAME)
+RUNCLI    := @$(TMP_BUILD)
 
-cli:
-	@go build -trimpath -o "$(CLI)"
+.PHONY: env
+env:
+	@echo "ENV:"
+	@echo "  PRODUCT_VERSION=$$PRODUCT_VERSION"
+	@echo "  PRODUCT_REVISION=$$PRODUCT_REVISION"
+	@echo "  PRODUCT_REVISION_TIME=$$PRODUCT_REVISION_TIME"
+
+.PHONY: $(TMP_BUILD)
+$(TMP_BUILD):
+	@$(RUN_TESTS_QUIET)
+	@echo "# Creating temporary build." 1>&2
+	@rm -f "$(TMP_BUILD)"
+	@mkdir -p "$(dir $(TMP_BUILD))"
+	@go build -o "$(TMP_BUILD)"
+
+# When building the binary, we first do a plain 'go build' to build a temporary
+# binary that contains no version info. Then we use that version of the binary
+# to build this product with all the version info added automatically from the
+# build context.
+#
+# We then use _that_ binary to build yet another binary, this time with the
+# correct tool version injected into the build.
+#
+# Thus, each version of actions-go-build is built using itself.
+.PHONY: $(CLI)
+$(CLI):
+	@$(CLEAR)
+	# Running tests...
+	@$(RUN_TESTS_QUIET)
+	# First build:   Plain go build...
+	@$(MAKE) $(TMP_BUILD)
+	# Second build:  Using first build to build self...
+	@$(TMP_BUILD) build -rebuild
+	# Third build:   Using second (self-built) build to build self...
+	@"$@" build -rebuild
+	# Verifying reproducibility of self...
+	@./$@ verify
+
+cli: $(CLI)
+	@echo "Build successful."
+	$(CLI) --version
 
 ifneq ($(GITHUB_PATH),)
-install: cli
-	@echo "$(dir $(CURDIR)/$(CLI))" >> "$$GITHUB_PATH"
+install: $(CLI)
+	@echo "$(dir $(CURDIR)/$(CLI))" >> "$(GITHUB_PATH)"
 	@echo "Command '$(CLINAME)' installed to GITHUB_PATH"
+	PATH="$$(cat $(GITHUB_PATH))" $(CLINAME) --version
 else
-install: cli
-	@go install "$(CLIPKG)"
-	@echo "Command '$(CLINAME)' installed to GOBIN"
+install: $(CLI)
+	@$(CLEAR)
+	@mv "$<" /usr/local/bin/
+	@V="$$($(CLINAME) version -short)" && \
+		echo "# $(CLINAME) v$$V installed to /usr/local/bin"
 endif
 
+.PHONY: mod/framework/update
 mod/framework/update:
 	@REF="$$(cd ../composite-action-framework-go && make module/ref/head)" && \
 		go get "$$REF"
 
-# The run/cli/... targets build and then run the CLI itself
+# The run/... targets build and then run the CLI itself
 # which is usful for quickly seeing its output whilst developing.
 
-run/cli/%: export PRODUCT_REPOSITORY := hashicorp/actions-go-build
-run/cli/%: export PRODUCT_VERSION    := 1.2.3
-run/cli/%: export OS                 := $(shell go env GOOS)
-run/cli/%: export ARCH               := $(shell go env GOARCH)
-run/cli/%: export REPRODUCIBLE       := assert
-run/cli/%: export INSTRUCTIONS       := echo "Running build in bash"; go build -o "$$BIN_PATH"
+.PHONY: run
+run: $(TMP_BUILD)
+	@$${QUIET:-false} || $(CLEAR)
+	@$${QUIET:-false} || echo "\$$ $(notdir $<) $(RUN)"
+	$(RUNCLI) $(RUN)
 
-run/cli/config: cli
-	$(RUNCLI) config
-
-run/cli/config/github: cli
-	$(RUNCLI) config -github
-
-run/cli/env: cli
-	$(RUNCLI) env
-
-# run/cli/env/describe is called by dev/docs/environment_doc
-run/cli/env/describe: cli
-	$(RUNCLI) env describe
-
-run/cli/env/dump: cli
-	$(RUNCLI) env dump
-
-run/cli/primary: cli
-	$(RUNCLI) primary
-
-run/cli/verification: cli
-	$(RUNCLI) verification
-
-test/bats:
-	# Running bats tests in scripts/
-	@$(BATS) scripts/
-
+.PHONY: test/go/update
 test/go/update: export UPDATE_TESTDATA := true
 test/go/update: test/go
+	@echo "Test data updated."
 
-test/go: 
-	go test $(GO_TEST_FLAGS) ./...
+.PHONY: compile
+compile:
+	@$(CLEAR)
+	@go build ./...
+
+.PHONY: test/go
+test/go: compile
+	@go test $(GO_TEST_FLAGS) ./...
 
 .PHONY: docs
 docs: readme changelog
 
+.PHONY: readme
 readme:
 	@./dev/docs/readme_update
 
+.PHONY: changelog
 changelog:
 	@./dev/docs/changelog_update
 
+.PHONY: changelog/view
 changelog/view:
 	@echo "Current development version: $(CURR_VERSION)"
 	@echo
@@ -113,29 +179,6 @@ changelog/add:
 .PHONY: debug/docs
 debug/docs: export DEBUG := 1
 debug/docs: docs
-
-LDFLAGS += -X 'main.Version=1.2.3'
-LDFLAGS += -X 'main.Revision=cabba9e'
-LDFLAGS += -X 'main.RevisionTime=2022-05-30T14:45:00+00:00'
-
-.PHONY: example-app
-example-app:
-	@cd testdata/example-app && go build -ldflags "$(LDFLAGS)" . && ./example-app
-
-GO_BUILD := go build -trimpath -buildvcs=false -ldflags "$(LDFLAGS)" -o "$$BIN_PATH"
-
-# 'make tools' will use the brew target if on Darwin.
-# Otherwise it just prints a message about dependencies.
-ifeq ($(shell uname),Darwin)
-tools: tools/mac/brew
-else
-tools:
-	@echo "Please ensure that BATS, coreutils, util-linux, github-markdown-toc, and GNU parallel are installed."
-endif
-
-# tools/mac/brew tries to install dependencies on mac using homebrew.
-tools/mac/brew:
-	brew bundle --no-upgrade	
 
 .PHONY: release
 release:

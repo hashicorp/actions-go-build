@@ -26,7 +26,7 @@ REPRODUCIBLE<<_GitHubActionsFileCommandDelimeter_
 assert
 _GitHubActionsFileCommandDelimeter_
 INSTRUCTIONS<<_GitHubActionsFileCommandDelimeter_
-go build -o "$BIN_PATH" -trimpath -buildvcs=false
+
 _GitHubActionsFileCommandDelimeter_
 BIN_NAME<<_GitHubActionsFileCommandDelimeter_
 lockbox
@@ -40,6 +40,12 @@ _GitHubActionsFileCommandDelimeter_
 VERIFICATION_BUILD_ROOT<<_GitHubActionsFileCommandDelimeter_
 /some/dir/verification
 _GitHubActionsFileCommandDelimeter_
+PRIMARY_BUILD_RESULT<<_GitHubActionsFileCommandDelimeter_
+
+_GitHubActionsFileCommandDelimeter_
+VERIFICATION_BUILD_RESULT<<_GitHubActionsFileCommandDelimeter_
+
+_GitHubActionsFileCommandDelimeter_
 BIN_PATH_PRIMARY<<_GitHubActionsFileCommandDelimeter_
 /some/dir/work/dist/lockbox
 _GitHubActionsFileCommandDelimeter_
@@ -51,4 +57,10 @@ BIN_PATH_VERIFICATION<<_GitHubActionsFileCommandDelimeter_
 _GitHubActionsFileCommandDelimeter_
 ZIP_PATH_VERIFICATION<<_GitHubActionsFileCommandDelimeter_
 /some/dir/verification/out/lockbox_1.2.3_linux_amd64.zip
+_GitHubActionsFileCommandDelimeter_
+VERIFICATION_RESULT<<_GitHubActionsFileCommandDelimeter_
+
+_GitHubActionsFileCommandDelimeter_
+DEBUG<<_GitHubActionsFileCommandDelimeter_
+false
 _GitHubActionsFileCommandDelimeter_

@@ -8,7 +8,8 @@
 
 set -Eeuo pipefail
 
-source scripts/standard_header.bash
+log() { echo "$*" 1>&2; }
+die() { log "$*"; exit 1; }
 
 [ "$1" = "success" ] || die ":x: Action failed unexpectedly when ${WHEN}."
 log ":white_check_mark: Action succeeded when ${WHEN}"
