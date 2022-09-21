@@ -44,7 +44,7 @@ assert_no_diff_caused_by() {
 	test_in_isolation "$REF" "$@"
 	(
 		cd "$DIR"
-		git diff --exit-code > /dev/null 2>&1 || exit 1
+		git diff --exit-code || exit 1
 	) || die "$NAME is out of date, please run '$*' and commit the changes."
 	log "✓ $NAME is up-to-date."
 }
@@ -123,6 +123,8 @@ do
 			# Update to existing branch, examine new commits
 			range="$remote_oid..$local_oid"
 		fi
+
+		assert_success "$local_oid" "Compilation" go build ./...
 
 		# Check for version consistency.
 		assert_success "$local_oid" "Version check" make version/check

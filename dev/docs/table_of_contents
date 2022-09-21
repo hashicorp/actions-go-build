@@ -1,12 +1,11 @@
 #!/usr/bin/env bash
 
+# shellcheck disable=SC2002 # It reads better using pipes.
+
 set -Eeuo pipefail
 
-# remove_escaped_dots replaces literal '\.' with literal '.'
-# For some reason gh-md-toc thinks it has to escape dots
-# inside link text.
-remove_escaped_dots() {
-	sed -E 's/\\\./\./g'
-}
+TITLES="$(cat README.md | grep -E '^#{2,3} .*$' | sed -E -e 's/#/  /g' -e 's/^    //g' -e 's/^( +)/\1- /g' -e 's/( +)- (.*$)/\1* [\2]/g')"
 
-gh-md-toc --start-depth 1 --depth 3 --hide-footer --hide-header README.md | remove_escaped_dots
+LINKS="$(cat README.md | grep -E '^#{2,3} .*$' | tr ' ,()' '-' | tr '[:upper:]' '[:lower:]' | sed -E 's/^#+-(.*)$/(#\1)/g')"
+
+pr -m -t <(echo "$TITLES") <(echo "$LINKS") | sed -E -e 's/\][[:space:]]+\(/](/g' -e 's/^ //g'

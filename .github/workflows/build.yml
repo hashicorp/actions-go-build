@@ -1,0 +1,34 @@
+name: Build
+on:
+  push:
+    paths:
+      - '**'
+      - '!**.md'
+      - '!dev/**'
+      - '!verify/**'
+jobs:
+  build:
+    strategy:
+      matrix:
+        include:
+          - { runner: ubuntu, os: linux,   arch: amd64 }
+          - { runner: ubuntu, os: linux,   arch: arm64 }
+          - { runner: ubuntu, os: windows, arch: amd64 }
+          - { runner: ubuntu, os: windows, arch: arm64 }
+          - { runner: macos,  os: darwin,  arch: amd64 }
+          - { runner: macos,  os: darwin,  arch: arm64 }
+    runs-on: ${{ matrix.runner }}-latest
+    env:
+      GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+    steps:
+      - uses: actions/checkout@v3
+      # Dogfood this Action to build its own CLI.
+      - uses: ./
+        with:
+          # We override the default product name so that this test build
+          # of the CLI doesn't take the place of the cli built by the action.
+          product_name: actions-go-build-test-build
+          go_version: 1.18
+          os: ${{ matrix.os }}
+          arch: ${{ matrix.arch }}
+          instructions: go build -o $BIN_PATH -trimpath -buildvcs=false

@@ -3,11 +3,9 @@
 set -Eeuo pipefail
 
 source dev/docs/markdown_table.bash
-source scripts/build_env.bash
-
 
 build_env_with_pipes() {
-	print_build_env | sed -E 's/^([^[:space:]]+[[:space:]]+)(.*)/\1 | \2/g'
+	./run -q inspect -describe-build-env 2>/dev/null | sed -E 's/^([^[:space:]]+[[:space:]]+)(.*)/\1 | \2/g'
 }
 
 read_output_to_array ROW_DATA build_env_with_pipes
