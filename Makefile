@@ -194,12 +194,17 @@ endif
 release:
 	@./dev/release/create
 
-version:
+version: version/check
 	@LATEST="$(shell $(GH) release list -L 1 | grep Latest | cut -f1)"; \
 		echo "Working on v$(CURR_VERSION) (Latest public release: $$LATEST)"
+.PHONY: version
 
 version/check:
-	@./dev/release/version_check
+	@./dev/release/version_check || { \
+		echo "Tip: run 'make version/set VERSION=<next version>'"; \
+		exit 1; \
+	}
+.PHONY: version/check
 
 version/set:
 	@[[ -z "$(VERSION)" ]] && { \
@@ -212,6 +217,7 @@ version/set:
 	./dev/release/set_version "$(VERSION)" && \
 	git add dev/VERSION dev/changes/v$(VERSION).md && \
 	git commit -m "set development version to v$(VERSION)"
+.PHONY: version/set
 
 EXAMPLE1         := .github/workflows/example.yml
 EXAMPLE1_CURRENT := .github/workflows/example_currentbranch.yml

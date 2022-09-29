@@ -3,7 +3,7 @@
 set -Eeuo pipefail
 
 log() { echo >&2 "$*"; }
-die() { log "FATAL: $*"; }
+die() { log "FATAL: $*"; exit 1; }
 
 VERSION_FILE=dev/VERSION
 
@@ -15,7 +15,7 @@ tag_exists() {
 
 # If we've already released this version it should have been incremented.
 tag_exists "$VERSION" && {
-	die "Please run dev/release/set_version to update '$VERSION_FILE'; you've already tagged v$VERSION"
+	die "Please update '$VERSION_FILE'; you've already tagged v$VERSION"
 }
 
 CL_FILE="dev/changes/v$VERSION.md"
