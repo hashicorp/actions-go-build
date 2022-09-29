@@ -215,7 +215,8 @@ version/set:
 		exit 1; \
 	}; \
 	./dev/release/set_version "$(VERSION)" && \
-	git add dev/VERSION dev/changes/v$(VERSION).md && \
+	make changelog && \
+	git add dev/VERSION dev/changes/v$(VERSION).md CHANGELOG.md && \
 	git commit -m "set development version to v$(VERSION)"
 .PHONY: version/set
 
