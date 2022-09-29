@@ -180,12 +180,23 @@ changelog/add:
 debug/docs: export DEBUG := 1
 debug/docs: docs
 
+GH := $(shell command -v gh 2> /dev/null)
+ifeq ($(GH),)
+	GH := echo "Please install the [GitHub CLI](https://github.com/cli/cli\#installation)"; \#
+else
+	GH_AUTHED := $(shell gh auth status > /dev/null 2>&1 && echo true)
+ifneq ($(GH_AUTHED),true)
+	GH := echo "Please ensure 'gh auth status' succeeds and try again."; \#
+endif
+endif
+
 .PHONY: release
 release:
 	@./dev/release/create
 
 version:
-	@echo "$(CURR_VERSION)"
+	@LATEST="$(shell $(GH) release list -L 1 | grep Latest | cut -f1)"; \
+		echo "Working on v$(CURR_VERSION) (Latest public release: $$LATEST)"
 
 version/check:
 	@./dev/release/version_check
