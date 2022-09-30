@@ -23,7 +23,7 @@ endif
 RUN_TESTS_QUIET := @$(MAKE) test > /dev/null 2>&1 || { echo "Tests failed, please run 'make test'."; exit 1; }
 
 # Always just install the git hooks.
-_ := $(shell cd .git/hooks && ln -fs ../../dev/git_hooks/* .)
+_ := $(shell mkdir -p .git/hooks && cd .git/hooks && ln -fs ../../dev/git_hooks/* .)
 
 ifneq ($(PRODUCT_VERSION),)
 CURR_VERSION := $(PRODUCT_VERSION)
