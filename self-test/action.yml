@@ -43,6 +43,10 @@ inputs:
 runs:
   using: composite
   steps:
+    # Delete the .git directory since it's not present when this is run
+    # in other repos.
+    - name: Delete .git dir
+      shell: rm -rf .git
     - if: inputs.assert != 'success' && inputs.assert != 'failure'
       shell: bash
       run: |
