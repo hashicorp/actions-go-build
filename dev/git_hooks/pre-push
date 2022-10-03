@@ -68,15 +68,9 @@ if [[ "${DEBUG:-}" == "1" ]]; then
 		echo "$OUT"
 		return $X
 	}
-	grep() {
-		$(which grep) -E "$@"
-	}
 else
 	run_log() {
 		"$@"
-	}
-	grep() {
-		$(which grep) -Eq "$@"
 	}
 fi
 
@@ -84,21 +78,16 @@ changed_files() {
 	git diff --name-only "$range"
 }
 
-changed_files_include() {
-	local PATTERN="$1"
-	run_log changed_files | "$GREP" "^$PATTERN\$"
-}
-
 changed_go_files() {
-	run_log changed_files | grep '.*\.go$'
+	run_log changed_files | grep -E '.*\.go$'
 }
 
 go_implementation_changed() {
-	run_log changed_go_files | grep -v '_test\.go$'
+	run_log changed_go_files | grep -Eqv '_test\.go$'
 }
 
 go_tests_changed() {
-	run_log changed_files | grep '_test\.go$'
+	run_log changed_go_files | grep -Eq '_test\.go$'
 }
 
 should_have_changelog_update() {
