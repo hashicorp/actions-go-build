@@ -111,6 +111,12 @@ runs:
         git clone "$ACTION_REPO" "$ACTION_PATH"
         cd "$ACTION_PATH"
         git reset --hard "$ACTION_REF"
+
+        export PRODUCT_REPOSITORY="actions-go-build"
+        export PRODUCT_NAME="actions-go-build"
+        export PRODUCT_VERSION_META=
+        export BIN_NAME="actions-go-build"
+
         $RUN make install
 
     # Read config.
