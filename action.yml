@@ -101,8 +101,10 @@ runs:
         # Install the CLI
         # Make sure we have the git repo cloned.
         cd ..
-        rm -rf "${{ github.action_path }}"
-        git clone "${{ github.action_repo }}" "${{ github.action_path }}"
+        P="${{ github.action_path }}"
+        P="${P%/./}"
+        rm -rf "$P"
+        git clone "${{ github.action_repo }}" "$P"
         git reset --hard ${{ github.action_ref }}
         $RUN make install
 
