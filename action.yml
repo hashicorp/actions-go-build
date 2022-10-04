@@ -110,6 +110,7 @@ runs:
         rm -rf "$ACTION_PATH"
         git clone "$ACTION_REPO" "$ACTION_PATH"
         git reset --hard "$ACTION_REF"
+        cd "$ACTION_PATH"
         $RUN make install
 
     # Read config.
