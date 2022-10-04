@@ -26,6 +26,7 @@ test_in_isolation() {
 	mkdir -p "$DIR"
 	git clone -q . "$DIR"
 	(
+		set -Eeuo pipefail
 		cd "$DIR"
 		git diff --exit-code > /dev/null 2>&1 || die "Unable to check $REF - unclean clone."
 		git reset -q --hard "$REF"
@@ -145,7 +146,7 @@ do
 		fi
 
 		# Check makefile not broken.
-		assert_success make test/makefile
+		assert_success "$local_oid" "Makefile ok" make test/makefile
 	fi
 done
 

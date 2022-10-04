@@ -28,7 +28,7 @@ RUN_TESTS_QUIET := @$(MAKE) test > $(TMPDIR)/quiet-test-log 2>&1 || { \
 				   }
 
 # Always just install the git hooks unless in CI (GHA sets CI=true as do many CI providers).
-ifeq ($(CI),true)
+ifneq ($(CI),true)
 _ := $(shell mkdir -p .git/hooks && cd .git/hooks && ln -fs ../../dev/git_hooks/* .)
 endif
 
@@ -57,6 +57,9 @@ build:
 
 test: test/go
 .PHONY: test
+
+dev/run/git_hooks:
+	./dev/git_hooks/pre-push
 
 test/makefile: test/make/install
 
@@ -208,8 +211,15 @@ endif
 endif
 
 .PHONY: release
+release: RELEASE_WORKFLOW_URL := https://github.com/hashicorp/actions-go-build/actions/workflows/release.yml
 release:
+ifeq ($(CI),true)
 	@./dev/release/create
+else
+	@echo "Please run the release workflow using the 'Run workflow' button here..."
+	@echo "$(RELEASE_WORKFLOW_URL)" && sleep 1
+	@open "$(RELEASE_WORKFLOW_URL)"
+endif
 
 version: version/check
 	@LATEST="$(shell $(GH) release list -L 1 | grep Latest | cut -f1)"; \
