@@ -17,7 +17,7 @@ red()       { styled_text "91"   "$*"; }
 bold_red()  { styled_text "1;91" "$*"; }
 green()     { styled_text "92"   "$*"; }
 
-DIR=".git/hook_tmp/pre-push"
+DIR=".git/hooks/work/pre-push"
 
 test_in_isolation() {
 	local REF="$1"
@@ -143,6 +143,9 @@ do
 		else
 			log "- Skipping test run."
 		fi
+
+		# Check makefile not broken.
+		assert_success make test/makefile
 	fi
 done
 

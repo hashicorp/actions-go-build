@@ -1,3 +1,4 @@
+test/makefile: export PRODUCT_REVISION :=
 SHELL := /usr/bin/env bash -euo pipefail -c
 
 PRODUCT_NAME := actions-go-build
@@ -20,7 +21,11 @@ ifeq ($(TMPDIR),)
 $(error Neither TMPDIR nor RUNNER_TEMP are set.)
 endif
 
-RUN_TESTS_QUIET := @$(MAKE) test > /dev/null 2>&1 || { echo "Tests failed, please run 'make test'."; exit 1; }
+RUN_TESTS_QUIET := @$(MAKE) test > $(TMPDIR)/quiet-test-log 2>&1 || { \
+				     echo "Tests failed, see below..."; \
+					 cat $(TMPDIR)/quiet-test-log; \
+					 exit 1; \
+				   }
 
 # Always just install the git hooks unless in CI (GHA sets CI=true as do many CI providers).
 ifeq ($(CI),true)
@@ -40,7 +45,7 @@ DIRTY := $(shell git diff --exit-code > /dev/null 2>&1 || echo -n "dirty-")
 ifneq ($(PRODUCT_REVISION),)
 CURR_REVISION := $(PRODUCT_REVISION)
 else
-CURR_REVISION := $(shell git rev-parse HEAD)
+CURR_REVISION := $(shell git rev-parse HEAD 2>/dev/null || echo "unknown")
 PRODUCT_REVISION := $(CURR_REVISION)
 endif
 
@@ -51,6 +56,15 @@ build:
 	go build ./...
 
 test: test/go
+.PHONY: test
+
+test/makefile: test/make/install
+
+# test/make/install checks that the install target works with no .git dir present.
+test/make/install:
+	@mv .git .no.git && trap 'mv .no.git .git' EXIT && $(MAKE) install
+.PHONY: test/makefile
+
 
 cover: GO_TEST_FLAGS := -coverprofile=coverage.profile
 cover: test/go
@@ -66,9 +80,10 @@ RUNCLI    := @$(TMP_BUILD)
 .PHONY: env
 env:
 	@echo "ENV:"
-	@echo "  PRODUCT_VERSION=$$PRODUCT_VERSION"
-	@echo "  PRODUCT_REVISION=$$PRODUCT_REVISION"
-	@echo "  PRODUCT_REVISION_TIME=$$PRODUCT_REVISION_TIME"
+	@echo "  PRODUCT_VERSION=$(PRODUCT_VERSION)"
+	@echo "  CURR_VERSION=$(CURR_VERSION)"
+	@echo "  PRODUCT_REVISION=$(PRODUCT_REVISION)"
+	@echo "  PRODUCT_REVISION_TIME=$(PRODUCT_REVISION_TIME)"
 
 .PHONY: $(TMP_BUILD)
 $(TMP_BUILD):
