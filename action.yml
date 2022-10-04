@@ -109,8 +109,8 @@ runs:
         [[ -n "$ACTION_REF" ]] || ACTION_REF="${{ github.sha }}"
         rm -rf "$ACTION_PATH"
         git clone "$ACTION_REPO" "$ACTION_PATH"
-        git reset --hard "$ACTION_REF"
         cd "$ACTION_PATH"
+        git reset --hard "$ACTION_REF"
         $RUN make install
 
     # Read config.
