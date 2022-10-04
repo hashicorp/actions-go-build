@@ -100,8 +100,9 @@ runs:
       run: |
         # Install the CLI
         # Make sure we have the git repo cloned.
-        rm -rf ./*
-        git clone ${{ github.action_repo }} .
+        cd ..
+        rm -rf "${{ github.action_path }}"
+        git clone "${{ github.action_repo }}" "${{ github.action_path }}"
         git reset --hard ${{ github.action_ref }}
         $RUN make install
 
