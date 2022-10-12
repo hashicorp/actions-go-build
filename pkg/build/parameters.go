@@ -2,6 +2,7 @@ package build
 
 import (
 	"fmt"
+	"os/exec"
 	"runtime"
 	"strings"
 
@@ -34,9 +35,20 @@ func (bp Parameters) trimSpace() Parameters {
 	return bp
 }
 
+func getInstalledGoVersion() (string, error) {
+	got, err := exec.Command("go", "env", "GOVERSION").Output()
+	if err != nil {
+		return "", err
+	}
+	return strings.TrimPrefix(string(got[:len(got)-1]), "go"), nil
+}
+
 func (bp Parameters) setDefaults(p crt.Product) (Parameters, error) {
 	if bp.GoVersion == "" {
-		bp.GoVersion = strings.TrimPrefix(runtime.Version(), "go")
+		var err error
+		if bp.GoVersion, err = getInstalledGoVersion(); err != nil {
+			return bp, err
+		}
 	}
 	if bp.OS == "" {
 		bp.OS = runtime.GOOS
