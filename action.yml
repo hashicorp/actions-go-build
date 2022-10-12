@@ -106,12 +106,20 @@ runs:
         # Make sure we have the git repo cloned.
         cd ..
         ACTION_PATH="${ACTION_PATH%/./}"
+
+        # ACTION_REF is always populated when this action is used by
+        # external repositories. In the case that it's empty, that means
+        # we're running the action's self-tests, where the ref should be
+        # github.sha to make sure we're running tests agains the current
+        # commit.
         [[ -n "$ACTION_REF" ]] || ACTION_REF="${{ github.sha }}"
         rm -rf "$ACTION_PATH"
         git clone "$ACTION_REPO" "$ACTION_PATH"
         cd "$ACTION_PATH"
         git reset --hard "$ACTION_REF"
 
+        # Ensure that config defined in the usage of this action
+        # doesn't impact the build of the action's own CLI.
         export PRODUCT_REPOSITORY="actions-go-build"
         export PRODUCT_NAME="actions-go-build"
         export PRODUCT_VERSION_META=
