@@ -2,6 +2,9 @@
 
 set -Eeuo pipefail
 
+# Export everything for gnu parallel.
+set -o allexport 
+
 log() { echo >&2 "$*"; }
 die() { log "$(bold_red "FATAL: ") $(bold "$*")"; exit 1; }
 err() { log "$(bold_red "ERROR: ") $*"; return 1; }
@@ -131,10 +134,7 @@ check_readme() { assert_no_diff_caused_by "$local_oid" "README.md" make readme; 
 export -f check_readme
 
 check_examples() { assert_no_diff_caused_by "$local_oid" ".github/workflows/*.currentbranch.yml" make examples; }
-export -f check_exampled
-
-# Export everything for gnu parallel.
-set -o allexport 
+export -f check_examples
 
 # shellcheck disable=SC2021 # We want to replace square brackets.
 zero="$(git hash-object --stdin </dev/null | tr '[0-9a-f]' '0')"
@@ -163,7 +163,9 @@ do
 		check_readme
 		check_examples
 		check_tests
-		" | parallel
+		" | parallel || { echo "JOBS FAILED"; exit 1; }
+
+		echo "DEBUG STOP"; exit 1
 	fi
 done
 
