@@ -94,6 +94,39 @@ should_have_changelog_update() {
 	run_log go_tests_changed && run_log go_implementation_changed
 }
 
+check_changelog_new_entries() {
+	# Check for changelog update, only if the push includes both a
+	# test change and a non-test change to the Go code.
+	if run_log should_have_changelog_update; then 
+		CL_FILE="dev/changes/v$(cat dev/VERSION).md"
+		git diff --name-only "$range" | grep -qE "^$CL_FILE\$" || {
+			die "No update to changelog file '$CL_FILE'; run 'make changelog/add' to update it."
+		}
+		log "✓ Changes logged in $CL_FILE"
+	else
+		log "- Skipping changelog update check."
+	fi
+}
+
+check_tests() {
+	# Check tests pass with commited changes.
+	if ( go_tests_changed || go_implementation_changed; ); then
+		assert_success "$local_oid" "Tests" make test
+	else
+		log "- Skipping test run."
+	fi
+}
+
+check_compilation() { assert_success "$local_oid" "Compilation" go build ./...; }
+
+check_version() { assert_success "$local_oid" "Version check" make version/check; }
+
+check_changelog() { assert_no_diff_caused_by "$local_oid" "CHANGELOG.md" make changelog; }
+
+check_readme() { assert_no_diff_caused_by "$local_oid" "README.md" make readme; }
+
+check_examples() { assert_no_diff_caused_by "$local_oid" ".github/workflows/*.currentbranch.yml" make examples; }
+
 # shellcheck disable=SC2021 # We want to replace square brackets.
 zero="$(git hash-object --stdin </dev/null | tr '[0-9a-f]' '0')"
 
@@ -113,36 +146,13 @@ do
 			range="$remote_oid..$local_oid"
 		fi
 
-		assert_success "$local_oid" "Compilation" go build ./...
-
-		# Check for version consistency.
-		assert_success "$local_oid" "Version check" make version/check
-
-		# Check for changelog update, only if the push includes both a
-		# test change and a non-test change to the Go code.
-		if run_log should_have_changelog_update; then 
-			CL_FILE="dev/changes/v$(cat dev/VERSION).md"
-			git diff --name-only "$range" | grep -qE "^$CL_FILE\$" || {
-				die "No update to changelog file '$CL_FILE'; run 'make changelog/add' to update it."
-			}
-			log "✓ Changes logged in $CL_FILE"
-		else
-			log "- Skipping changelog update check."
-		fi
-
-		# Check docs are up-to-date.
-		assert_no_diff_caused_by "$local_oid" "CHANGELOG.md" make changelog
-		assert_no_diff_caused_by "$local_oid" "README.md"    make readme
-
-		# Check example workflows are up-to-date.
-		assert_no_diff_caused_by "$local_oid" ".github/workflows/*.currentbranch.yml" make examples
-
-		# Check tests pass with commited changes.
-		if ( go_tests_changed || go_implementation_changed; ); then
-			assert_success "$local_oid" "Tests" make test
-		else
-			log "- Skipping test run."
-		fi
+		check_compilation
+		check_version
+		check_changelog_new_entries
+		check_changelog
+		check_readme
+		check_examples
+		check_tests
 	fi
 done
 
