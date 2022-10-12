@@ -146,6 +146,7 @@ do
 			range="$remote_oid..$local_oid"
 		fi
 
+		echo "
 		check_compilation
 		check_version
 		check_changelog_new_entries
@@ -153,6 +154,7 @@ do
 		check_readme
 		check_examples
 		check_tests
+		" | parallel
 	fi
 done
 
