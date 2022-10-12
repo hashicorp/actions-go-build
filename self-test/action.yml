@@ -48,6 +48,13 @@ runs:
       run: |
         echo "assert must be one of: 'success' or 'failure'"
         exit 1
+    - name: Delete the .git directory
+      shell: bash
+      run: |
+        # Delete .git because it is not present when this action is
+        # called from external repos, so this ensures our test env is
+        # as similar as possible to when third parties use it.
+        rm -rf .git
     - name: Invoke actions-go-build when ${{ env.WHEN }}
       id: build
       uses: ./ # The action at the root of this repo.
