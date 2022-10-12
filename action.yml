@@ -97,8 +97,40 @@ runs:
     - name: Install the CLI
       shell: bash
       working-directory: ${{ github.action_path }}
+      env:
+        ACTION_REPO: https://github.com/hashicorp/actions-go-build
+        ACTION_REF: ${{ github.action_ref }}
+        ACTION_PATH: ${{ github.action_path }}
       run: |
+        # Install the CLI
+        # Make sure we have the git repo cloned.
+        cd ..
+        ACTION_PATH="${ACTION_PATH%/./}"
+
+        # ACTION_REF is always populated when this action is used by
+        # external repositories. In the case that it's empty, that means
+        # we're running the action's self-tests, where the ref should be
+        # github.sha to make sure we're running tests agains the current
+        # commit.
+        [[ -n "$ACTION_REF" ]] || ACTION_REF="${{ github.sha }}"
+        rm -rf "$ACTION_PATH"
+        git clone "$ACTION_REPO" "$ACTION_PATH"
+        cd "$ACTION_PATH"
+        git reset --hard "$ACTION_REF"
+
+        # Ensure that config defined in the usage of this action
+        # doesn't impact the build of the action's own CLI.
+        export PRODUCT_REPOSITORY="actions-go-build"
+        export PRODUCT_NAME="actions-go-build"
+        export PRODUCT_VERSION_META=
+        export BIN_NAME="actions-go-build"
+
         $RUN make install
+
+    # Setup Go
+    - uses: actions/setup-go@v2
+      with:
+        go-version: ${{ inputs.go_version }}
 
     # Read config.
     - name: Read config from inputs; export to GITHUB_ENV
@@ -116,11 +148,6 @@ runs:
         ZIP_NAME: ${{ inputs.zip_name }}
         INSTRUCTIONS: ${{ inputs.instructions }}
         DEBUG: ${{ inputs.debug }}
-
-    # Setup Go
-    - uses: actions/setup-go@v2
-      with:
-        go-version: ${{ inputs.go_version }}
 
     # Primary Build
     - name: Run Primary Build
