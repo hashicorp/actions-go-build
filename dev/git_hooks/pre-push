@@ -116,16 +116,25 @@ check_tests() {
 		log "- Skipping test run."
 	fi
 }
+export -f check_tests
 
 check_compilation() { assert_success "$local_oid" "Compilation" go build ./...; }
+export -f check_compilation
 
 check_version() { assert_success "$local_oid" "Version check" make version/check; }
+export -f check_version
 
 check_changelog() { assert_no_diff_caused_by "$local_oid" "CHANGELOG.md" make changelog; }
+export -f check_changelog
 
 check_readme() { assert_no_diff_caused_by "$local_oid" "README.md" make readme; }
+export -f check_readme
 
 check_examples() { assert_no_diff_caused_by "$local_oid" ".github/workflows/*.currentbranch.yml" make examples; }
+export -f check_exampled
+
+# Export everything for gnu parallel.
+set -o allexport 
 
 # shellcheck disable=SC2021 # We want to replace square brackets.
 zero="$(git hash-object --stdin </dev/null | tr '[0-9a-f]' '0')"
