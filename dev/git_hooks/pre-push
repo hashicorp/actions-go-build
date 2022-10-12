@@ -23,8 +23,10 @@ green()     { styled_text "92"   "$*"; }
 DIR=".git/hook_tmp/pre-push"
 
 test_in_isolation() {
-	local REF="$1"
-	shift
+	local ID="$1"
+	local REF="$2"
+	shift 2
+	local DIR="$DIR/$ID"
 	rm -rf "$DIR"
 	mkdir -p "$DIR"
 	git clone -q . "$DIR"
@@ -44,7 +46,7 @@ assert_no_diff_caused_by() {
 	local REF="$1"
 	local NAME="$2"
 	shift 2
-	test_in_isolation "$REF" "$@"
+	test_in_isolation "no-diff-$NAME" "$REF" "$@"
 	(
 		cd "$DIR"
 		git diff --exit-code || exit 1
@@ -56,7 +58,7 @@ assert_success() {
 	local REF="$1"
 	local NAME="$2"
 	shift 2
-	test_in_isolation "$REF" "$@" || die "$NAME failed; please ensure that '$*' succeeds before pushing."
+	test_in_isolation "assert-success-$NAME" "$REF" "$@" || die "$NAME failed; please ensure that '$*' succeeds before pushing."
 	log "✓ $NAME passed."
 }
 
