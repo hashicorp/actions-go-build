@@ -127,6 +127,11 @@ runs:
 
         $RUN make install
 
+    # Setup Go
+    - uses: actions/setup-go@v2
+      with:
+        go-version: ${{ inputs.go_version }}
+
     # Read config.
     - name: Read config from inputs; export to GITHUB_ENV
       shell: bash
@@ -143,11 +148,6 @@ runs:
         ZIP_NAME: ${{ inputs.zip_name }}
         INSTRUCTIONS: ${{ inputs.instructions }}
         DEBUG: ${{ inputs.debug }}
-
-    # Setup Go
-    - uses: actions/setup-go@v2
-      with:
-        go-version: ${{ inputs.go_version }}
 
     # Primary Build
     - name: Run Primary Build
