@@ -40,7 +40,14 @@ func getInstalledGoVersion() (string, error) {
 	if err != nil {
 		return "", err
 	}
-	return strings.TrimPrefix(string(got[:len(got)-1]), "go"), nil
+	return parseGoVersion(string(got)), nil
+}
+
+func parseGoVersion(raw string) string {
+	raw = strings.TrimPrefix(raw, "go")
+	raw = strings.TrimPrefix(raw, "v")
+	raw = strings.TrimSuffix(raw, "\n")
+	return raw
 }
 
 func (bp Parameters) setDefaults(p crt.Product) (Parameters, error) {
