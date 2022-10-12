@@ -97,7 +97,26 @@ runs:
     - name: Install the CLI
       shell: bash
       working-directory: ${{ github.action_path }}
+      env:
+        ACTION_REPO: https://github.com/hashicorp/actions-go-build
+        ACTION_REF: ${{ github.action_ref }}
+        ACTION_PATH: ${{ github.action_path }}
       run: |
+        # Install the CLI
+        # Make sure we have the git repo cloned.
+        cd ..
+        ACTION_PATH="${ACTION_PATH%/./}"
+        [[ -n "$ACTION_REF" ]] || ACTION_REF="${{ github.sha }}"
+        rm -rf "$ACTION_PATH"
+        git clone "$ACTION_REPO" "$ACTION_PATH"
+        cd "$ACTION_PATH"
+        git reset --hard "$ACTION_REF"
+
+        export PRODUCT_REPOSITORY="actions-go-build"
+        export PRODUCT_NAME="actions-go-build"
+        export PRODUCT_VERSION_META=
+        export BIN_NAME="actions-go-build"
+
         $RUN make install
 
     # Read config.
