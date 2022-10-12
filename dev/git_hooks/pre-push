@@ -165,9 +165,7 @@ do
 		check_readme
 		check_examples
 		check_tests
-		" | parallel || { echo "JOBS FAILED"; exit 1; }
-
-		echo "DEBUG STOP"; exit 1
+		" | parallel || exit 1
 	fi
 done
 
