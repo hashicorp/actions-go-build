@@ -6,7 +6,8 @@ Instead, edit the files in dev/changes/, then run 'make docs' to update this fil
 
 ## Unreleased Changes (targeting v0.1.5)
 
-
+- Fix detection of Go version. Don't assume it's the same as the version that built
+  actions-go-build itself.
 
 ## [v0.1.4](https://github.com/hashicorp/actions-go-build/releases/tag/v0.1.4) - September 29, 2022
 
