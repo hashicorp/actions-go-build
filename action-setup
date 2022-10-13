@@ -1,0 +1,63 @@
+#!/usr/bin/env bash
+
+set -euo pipefail
+
+# This script exports some environment variables for later steps,
+# and clones this entire repository into the action path.
+#
+# When actions are used, the repository itself is not present by
+# default, however the repository itself is required by this action
+# in order for it to build its own CLI.
+
+#
+# Export environment variables for later steps.
+#
+{
+  echo "TMPDIR=${RUNNER_TEMP:?}"
+  echo "RUN=${GITHUB_ACTION_PATH:?}/scripts/gha run"
+  echo "RUN_CLI=env DEBUG=true ${GITHUB_ACTION_PATH:?}/scripts/gha run actions-go-build"
+} >> "${GITHUB_ENV:?}"
+
+
+#
+# Clone the action repository.
+#
+
+ACTION_REPO="https://github.com/hashicorp/actions-go-build"
+ACTION_REF="${GITHUB_ACTION_REF:?}"
+ACTION_PATH="${GITHUB_ACTION_PATH:?}"
+
+# Strip the /./ from the end of action path.
+ACTION_PATH="${ACTION_PATH%/./}"
+
+# Go to the directory containing the action.
+cd "$ACTION_PATH/.." || exit 1
+
+
+# ACTION_REF is always populated when this action is used by
+# external repositories. In the case that it's empty, that means
+# we're running the action's self-tests, where the ref should be
+# github.sha to make sure we're running tests agains the current
+# commit.
+[[ -n "$ACTION_REF" ]] || ACTION_REF="${GITHUB_SHA:?}"
+
+# Destroy the action from orbit.
+rm -rf "$ACTION_PATH"
+
+# Clone the action repository.
+git clone "$ACTION_REPO" "$ACTION_PATH"
+cd "$ACTION_PATH" || exit 1
+git reset --hard "$ACTION_REF"
+
+#
+# Install the CLI
+#
+
+# Ensure that config defined in the usage of this action
+# doesn't impact the build of the action's own CLI.
+export PRODUCT_REPOSITORY="actions-go-build"
+export PRODUCT_NAME="actions-go-build"
+export PRODUCT_VERSION_META=
+export BIN_NAME="actions-go-build"
+
+$RUN make install
