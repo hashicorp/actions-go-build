@@ -46,7 +46,7 @@ rm -rf "$ACTION_PATH"
 # Clone the action repository.
 git clone "$ACTION_REPO" "$ACTION_PATH"
 cd "$ACTION_PATH" || exit 1
-git fetch origin "$ACTION_REF"
+git fetch --all
 git reset --hard "$ACTION_REF"
 
 #
