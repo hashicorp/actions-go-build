@@ -14,16 +14,6 @@ echo "END DEBUG"
 # in order for it to build its own CLI.
 
 #
-# Export environment variables for later steps.
-#
-{
-  echo "TMPDIR=${RUNNER_TEMP:?}"
-  echo "RUN=${GITHUB_ACTION_PATH:?}/scripts/gha run"
-  echo "RUN_CLI=env DEBUG=true ${GITHUB_ACTION_PATH:?}/scripts/gha run actions-go-build"
-} >> "${GITHUB_ENV:?}"
-
-
-#
 # Clone the action repository.
 #
 
@@ -32,27 +22,23 @@ ACTION_REPO="https://github.com/hashicorp/actions-docker-build"
 echo "DEBUG: ACTION_REPO=$ACTION_REPO"
 
 ACTION_PATH="${GITHUB_ACTION_PATH:?}"
+ACTION_REF="$(basename "$ACTION_PATH")"
 
-# Strip the /./ from the end of action path.
-ACTION_PATH="${ACTION_PATH%/./}"
+# If the ref is just "." then that means we're referencing the action
+# from the self-tests rather than from a remote repo. Therefore the
+# action ref is just the same as the current github.sha.
+if [[ "$ACTION_REF" == "." ]]; then
+	ACTION_REF="$GITHUB_SHA"
+	# Strip the /./ from the end of action path.
+	ACTION_PATH="${ACTION_PATH%/./}"
+fi
 
 echo "DEBUG: ACTION_PATH=$ACTION_PATH"
 
-ACTION_REF="$(basename "$ACTION_PATH")"
-
 echo "DEBUG: ACTION_REF=$ACTION_REF"
 
-
-# Go to the directory containing the action.
+# Go to the directory containing the directory containing the action.
 cd "$ACTION_PATH/.." || exit 1
-
-
-# ACTION_REF is always populated when this action is used by
-# external repositories. In the case that it's empty, that means
-# we're running the action's self-tests, where the ref should be
-# github.sha to make sure we're running tests agains the current
-# commit.
-[[ -n "$ACTION_REF" ]] || ACTION_REF="${GITHUB_SHA:?}"
 
 # Destroy the action from orbit.
 rm -rf "$ACTION_PATH"
@@ -74,3 +60,13 @@ export PRODUCT_VERSION_META=
 export BIN_NAME="actions-go-build"
 
 $RUN make install
+
+#
+# Export environment variables for later steps.
+#
+
+{
+  echo "TMPDIR=${RUNNER_TEMP:?}"
+  echo "RUN=${ACTION_PATH:?}/scripts/gha run"
+  echo "RUN_CLI=env DEBUG=true ${ACTION_PATH:?}/scripts/gha run actions-go-build"
+} >> "${GITHUB_ENV:?}"
