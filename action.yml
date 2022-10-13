@@ -83,6 +83,7 @@ runs:
 
     - name: Action Setup
       shell: bash
+      working-directory: ${{ github.action_path }}
       run: ./action-setup
 
     # Setup Go

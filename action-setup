@@ -23,12 +23,21 @@ set -euo pipefail
 # Clone the action repository.
 #
 
-ACTION_REPO="https://github.com/hashicorp/actions-go-build"
-ACTION_REF="${GITHUB_ACTION_REF:?}"
+ACTION_REPO="https://github.com/${GITHUB_ACTION_REPOSITORY:?}"
+
+echo "DEBUG: ACTION_REPO=$ACTION_REPO"
+
 ACTION_PATH="${GITHUB_ACTION_PATH:?}"
 
 # Strip the /./ from the end of action path.
 ACTION_PATH="${ACTION_PATH%/./}"
+
+echo "DEBUG: ACTION_PATH=$ACTION_PATH"
+
+ACTION_REF="$(basename "$ACTION_PATH")"
+
+echo "DEBUG: ACTION_REF=$ACTION_REF"
+
 
 # Go to the directory containing the action.
 cd "$ACTION_PATH/.." || exit 1
