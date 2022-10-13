@@ -2,6 +2,10 @@
 
 set -euo pipefail
 
+echo "DEBUG: env"
+env
+echo "END DEBUG"
+
 # This script exports some environment variables for later steps,
 # and clones this entire repository into the action path.
 #
@@ -23,7 +27,7 @@ set -euo pipefail
 # Clone the action repository.
 #
 
-ACTION_REPO="https://github.com/${GITHUB_ACTION_REPOSITORY:?}"
+ACTION_REPO="https://github.com/hashicorp/actions-docker-build"
 
 echo "DEBUG: ACTION_REPO=$ACTION_REPO"
 
