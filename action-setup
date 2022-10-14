@@ -23,7 +23,7 @@ ACTION_REF="$(basename "$ACTION_PATH")"
 # from the self-tests rather than from a remote repo. Therefore the
 # action ref is just the same as the current github.sha.
 if [[ "$ACTION_REF" == "." ]]; then
-	ACTION_REF="$GITHUB_SHA"
+	ACTION_REF="$GITHUB_REF_NAME"
 	# Strip the /./ from the end of action path.
 	ACTION_PATH="${ACTION_PATH%/./}"
 fi
