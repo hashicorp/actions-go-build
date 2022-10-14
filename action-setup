@@ -4,6 +4,8 @@ set -euo pipefail
 
 die() { echo "$*"; exit 1; }
 
+# When calling this script, unless from the action at the root, you should 
+# specify the name of the sub-action (i.e. its path relative to repo root).
 SUB_ACTION="${1:-}"
 
 # This script exports some environment variables for later steps,
@@ -19,7 +21,7 @@ SUB_ACTION="${1:-}"
 
 ACTION_REPO="https://github.com/hashicorp/actions-go-build"
 ACTION_PATH="${GITHUB_ACTION_PATH:?}"
-ACTION_ROOT="${ACTION_PATH%/$SUBACTION}"
+ACTION_ROOT="${ACTION_PATH%"/$SUB_ACTION"}"
 ACTION_REF="$(basename "$ACTION_PATH")"
 
 # If the ref is just "." then that means we're referencing the action
