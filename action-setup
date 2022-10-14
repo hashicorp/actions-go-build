@@ -60,6 +60,8 @@ export PRODUCT_NAME="actions-go-build"
 export PRODUCT_VERSION_META=
 export BIN_NAME="actions-go-build"
 
+RUN="${ACTION_PATH:?}/scripts/gha run"
+
 $RUN make install
 
 #
@@ -68,6 +70,6 @@ $RUN make install
 
 {
   echo "TMPDIR=${RUNNER_TEMP:?}"
-  echo "RUN=${ACTION_PATH:?}/scripts/gha run"
+  echo "RUN=$RUN"
   echo "RUN_CLI=env DEBUG=true ${ACTION_PATH:?}/scripts/gha run actions-go-build"
 } >> "${GITHUB_ENV:?}"
