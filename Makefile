@@ -70,6 +70,7 @@ env:
 	@echo "  PRODUCT_REVISION=$$PRODUCT_REVISION"
 	@echo "  PRODUCT_REVISION_TIME=$$PRODUCT_REVISION_TIME"
 
+$(info TMP_BUILD=$(TMP_BUILD))
 .PHONY: $(TMP_BUILD)
 $(TMP_BUILD):
 	@$(RUN_TESTS_QUIET)
@@ -105,6 +106,7 @@ cli: $(CLI)
 	@echo "Build successful."
 	$(CLI) --version
 
+.PHONY: install
 ifneq ($(GITHUB_PATH),)
 install: $(CLI)
 	@echo "$(dir $(CURDIR)/$(CLI))" >> "$(GITHUB_PATH)"
