@@ -15,7 +15,7 @@ die() { echo "$*"; exit 1; }
 # Clone the action repository.
 #
 
-ACTION_REPO="https://github.com/hashicorp/actions-docker-build"
+ACTION_REPO="https://github.com/hashicorp/actions-go-build"
 ACTION_PATH="${GITHUB_ACTION_PATH:?}"
 ACTION_REF="$(basename "$ACTION_PATH")"
 
@@ -37,7 +37,9 @@ if [[ ! -d "$ACTION_PATH/.git" ]]; then
 	# Destroy the action from orbit.
 	rm -rf "$ACTION_PATH"
 
-	git config --global url.http://$GITHUB_TOKEN@github.com/.insteadOf = https://github.com/
+	if [[ -n "${GITHUB_TOKEN:-}" ]]; then
+		git config --global "url.http://$GITHUB_TOKEN@github.com/.insteadOf" = https://github.com/
+	fi
 
 	# Clone the action repository.
 	git clone --depth 1 --branch "$ACTION_REF" "$ACTION_REPO" "$ACTION_PATH"
