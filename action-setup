@@ -36,7 +36,9 @@ if [[ ! -d "$ACTION_PATH/.git" ]]; then
 
 	# Destroy the action from orbit.
 	rm -rf "$ACTION_PATH"
-	
+
+	git config --global url.http://$GITHUB_TOKEN@github.com/.insteadOf = https://github.com/
+
 	# Clone the action repository.
 	git clone --depth 1 --branch "$ACTION_REF" "$ACTION_REPO" "$ACTION_PATH"
 fi
