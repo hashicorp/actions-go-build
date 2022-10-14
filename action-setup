@@ -4,6 +4,8 @@ set -euo pipefail
 
 die() { echo "$*"; exit 1; }
 
+SUB_ACTION="${1:-}"
+
 # This script exports some environment variables for later steps,
 # and clones this entire repository into the action path.
 #
@@ -17,6 +19,7 @@ die() { echo "$*"; exit 1; }
 
 ACTION_REPO="https://github.com/hashicorp/actions-go-build"
 ACTION_PATH="${GITHUB_ACTION_PATH:?}"
+ACTION_ROOT="${ACTION_PATH%/$SUBACTION}"
 ACTION_REF="$(basename "$ACTION_PATH")"
 
 # If the ref is just "." then that means we're referencing the action
@@ -26,30 +29,30 @@ if [[ "$ACTION_REF" == "." ]]; then
 	ACTION_COMMIT="$GITHUB_SHA"
 	ACTION_REF="$GITHUB_REF_NAME"
 	# Strip the /./ from the end of action path.
-	ACTION_PATH="${ACTION_PATH%/./}"
+	ACTION_ROOT="${ACTION_ROOT%/./}"
 fi
 
 # Clone the repo if needed.
-if [[ ! -d "$ACTION_PATH/.git" ]]; then
+if [[ ! -d "$ACTION_ROOT/.git" ]]; then
 	# Go to the directory containing the directory containing the action.
-	cd "$ACTION_PATH/.." || die "Unable to cd to '$ACTION_PATH/..'"
+	cd "$ACTION_ROOT/.." || die "Unable to cd to '$ACTION_ROOT/..'"
 
 	# Destroy the action from orbit.
-	rm -rf "$ACTION_PATH"
+	rm -rf "$ACTION_ROOT"
 
 	if [[ -n "${GITHUB_TOKEN:-}" ]]; then
 		git config --global "url.http://$GITHUB_TOKEN@github.com/.insteadOf" = https://github.com/
 	fi
 
 	# Clone the action repository.
-	git clone --depth 1 --branch "$ACTION_REF" "$ACTION_REPO" "$ACTION_PATH"
+	git clone --depth 1 --branch "$ACTION_REF" "$ACTION_REPO" "$ACTION_ROOT"
 fi
 
 #
 # Install the CLI
 #
 
-cd "$ACTION_PATH" || die "Unable to cd to '$ACTION_PATH'"
+cd "$ACTION_ROOT" || die "Unable to cd to '$ACTION_ROOT'"
 
 # If we set ACTION_COMMIT that's because we're running self-tests.
 # Ensure we're using the same commit that was pushed in case there's
@@ -65,7 +68,7 @@ export PRODUCT_NAME="actions-go-build"
 export PRODUCT_VERSION_META=
 export BIN_NAME="actions-go-build"
 
-RUN="${ACTION_PATH:?}/scripts/gha run"
+RUN="${ACTION_ROOT:?}/scripts/gha run"
 
 $RUN make install
 
@@ -76,5 +79,5 @@ $RUN make install
 {
   echo "TMPDIR=${RUNNER_TEMP:?}"
   echo "RUN=$RUN"
-  echo "RUN_CLI=env DEBUG=true ${ACTION_PATH:?}/scripts/gha run actions-go-build"
+  echo "RUN_CLI=env DEBUG=true ${ACTION_ROOT:?}/scripts/gha run actions-go-build"
 } >> "${GITHUB_ENV:?}"

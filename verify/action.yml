@@ -30,7 +30,7 @@ runs:
     - name: Action Setup
       shell: bash
       working-directory: ${{ github.action_path }}/..
-      run: ./action-setup
+      run: ./action-setup verify
 
     - name: Set some needed environment variables.
       shell: bash
