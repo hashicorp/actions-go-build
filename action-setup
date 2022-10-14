@@ -23,6 +23,7 @@ ACTION_REF="$(basename "$ACTION_PATH")"
 # from the self-tests rather than from a remote repo. Therefore the
 # action ref is just the same as the current github.sha.
 if [[ "$ACTION_REF" == "." ]]; then
+	ACTION_COMMIT="$GITHUB_SHA"
 	ACTION_REF="$GITHUB_REF_NAME"
 	# Strip the /./ from the end of action path.
 	ACTION_PATH="${ACTION_PATH%/./}"
@@ -45,6 +46,13 @@ fi
 #
 
 cd "$ACTION_PATH" || die "Unable to cd to '$ACTION_PATH'"
+
+# If we set ACTION_COMMIT that's because we're running self-tests.
+# Ensure we're using the same commit that was pushed in case there's
+# another push to the branch since the workflow started.
+if [[ -n "${ACTION_COMMIT:-}" ]]; then
+	git reset --hard "$ACTION_COMMIT"
+fi
 
 # Ensure that config defined in the usage of this action
 # doesn't impact the build of the action's own CLI.
