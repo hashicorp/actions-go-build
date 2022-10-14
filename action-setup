@@ -62,7 +62,11 @@ export BIN_NAME="actions-go-build"
 
 RUN="${ACTION_PATH:?}/scripts/gha run"
 
-$RUN make install
+echo "DEBUG: cat Makefile"
+cat Makefile
+echo "END DEBUG"
+
+$RUN make --debug install
 
 #
 # Export environment variables for later steps.
