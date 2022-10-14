@@ -47,7 +47,7 @@ if [[ ! -d "$ACTION_ROOT/.git" ]]; then
 		git config --global "url.http://$GITHUB_TOKEN@github.com/.insteadOf" = https://github.com/
 	fi
 
-	if [[ "$ACTION_REF" =~ /[a-f0-9]{40}] ]]; then
+	if [[ "$ACTION_REF" =~ [a-f0-9]{40} ]]; then
 		# It's a commit.
 		ACTION_COMMIT="$ACTION_REF"
 		git clone "$ACTION_REPO" "$ACTION_ROOT"
