@@ -83,6 +83,8 @@ runs:
 
     - name: Action Setup
       shell: bash
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       working-directory: ${{ github.action_path }}
       run: ./action-setup
 
