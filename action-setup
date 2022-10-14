@@ -37,23 +37,23 @@ echo "DEBUG: ACTION_PATH=$ACTION_PATH"
 
 echo "DEBUG: ACTION_REF=$ACTION_REF"
 
-# Go to the directory containing the directory containing the action.
-cd "$ACTION_PATH/.." || exit 1
+# Clone the repo if needed.
+if [[ ! -d "$ACTION_PATH/.git" ]]; then
+	# Go to the directory containing the directory containing the action.
+	cd "$ACTION_PATH/.." || exit 1
 
-# Destroy the action from orbit.
-rm -rf "$ACTION_PATH"
-
-set -x
-
-# Clone the action repository.
-git clone "$ACTION_REPO" "$ACTION_PATH"
-cd "$ACTION_PATH" || exit 1
-git fetch --all
-git reset --hard "$ACTION_REF"
+	# Destroy the action from orbit.
+	rm -rf "$ACTION_PATH"
+	
+	# Clone the action repository.
+	git clone --depth 1 --branch "$ACTION_REF" "$ACTION_REPO" "$ACTION_PATH"
+fi
 
 #
 # Install the CLI
 #
+
+cd "$ACTION_PATH" || exit 1
 
 # Ensure that config defined in the usage of this action
 # doesn't impact the build of the action's own CLI.
