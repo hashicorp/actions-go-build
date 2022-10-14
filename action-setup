@@ -16,9 +16,6 @@ die() { echo "$*"; exit 1; }
 #
 
 ACTION_REPO="https://github.com/hashicorp/actions-docker-build"
-
-echo "DEBUG: ACTION_REPO=$ACTION_REPO"
-
 ACTION_PATH="${GITHUB_ACTION_PATH:?}"
 ACTION_REF="$(basename "$ACTION_PATH")"
 
@@ -30,10 +27,6 @@ if [[ "$ACTION_REF" == "." ]]; then
 	# Strip the /./ from the end of action path.
 	ACTION_PATH="${ACTION_PATH%/./}"
 fi
-
-echo "DEBUG: ACTION_PATH=$ACTION_PATH"
-
-echo "DEBUG: ACTION_REF=$ACTION_REF"
 
 # Clone the repo if needed.
 if [[ ! -d "$ACTION_PATH/.git" ]]; then
@@ -61,10 +54,6 @@ export PRODUCT_VERSION_META=
 export BIN_NAME="actions-go-build"
 
 RUN="${ACTION_PATH:?}/scripts/gha run"
-
-echo "DEBUG: cat Makefile"
-cat Makefile
-echo "END DEBUG"
 
 $RUN make install
 

@@ -14,7 +14,7 @@ endif
 default: run
 
 ifeq ($(TMPDIR),)
-TMPDIR="$(RUNNER_TEMP)"
+TMPDIR := $(RUNNER_TEMP)
 endif
 ifeq ($(TMPDIR),)
 $(error Neither TMPDIR nor RUNNER_TEMP are set.)
