@@ -6,6 +6,7 @@ die() { echo "$*"; exit 1; }
 
 # When calling this script, unless from the action at the root, you should 
 # specify the name of the sub-action (i.e. its path relative to repo root).
+# It defaults to "." meaning the repo root itself.
 SUB_ACTION="${1:-.}"
 
 # This script exports some environment variables for later steps,
@@ -46,8 +47,15 @@ if [[ ! -d "$ACTION_ROOT/.git" ]]; then
 		git config --global "url.http://$GITHUB_TOKEN@github.com/.insteadOf" = https://github.com/
 	fi
 
-	# Clone the action repository.
-	git clone --depth 1 --branch "$ACTION_REF" "$ACTION_REPO" "$ACTION_ROOT"
+	if [[ "$ACTION_REF" =~ /[a-f0-9]{40}] ]]; then
+		# It's a commit.
+		ACTION_COMMIT="$ACTION_REF"
+		git clone "$ACTION_REPO" "$ACTION_ROOT"
+	else
+		# It's a branch or tag ref.
+		# Clone the action repository.
+		git clone --depth 1 --branch "$ACTION_REF" "$ACTION_REPO" "$ACTION_ROOT"
+	fi
 fi
 
 #
@@ -60,6 +68,7 @@ cd "$ACTION_ROOT" || die "Unable to cd to '$ACTION_ROOT'"
 # Ensure we're using the same commit that was pushed in case there's
 # another push to the branch since the workflow started.
 if [[ -n "${ACTION_COMMIT:-}" ]]; then
+	git fetch origin "$ACTION_COMMIT"
 	git reset --hard "$ACTION_COMMIT"
 fi
 
