@@ -72,12 +72,6 @@ inputs:
     required: false
     default: 0
 
-  require_clean:
-    description: >
-      Fail the build unless the worktree is clean. (Highly recommended.)
-    required: false
-    default: true
-
 runs:
   using: composite
   steps:
@@ -158,10 +152,8 @@ runs:
     # Primary Build
     - name: Run Primary Build
       shell: bash
-      env:
-        FLAGS: -clean=${{ inputs.require_clean }}
       working-directory: ${{ inputs.work_dir }}
-      run: $RUN_CLI build $FLAGS
+      run: $RUN_CLI build
 
     # Upload Primary Build
     - name: Upload Primary Zip
@@ -175,10 +167,8 @@ runs:
     - name: Run Local Verification Build
       if: inputs.reproducible == 'assert' || inputs.reproducible == 'report'
       shell: bash
-      env:
-        FLAGS: -clean=${{ inputs.require_clean }} -verification
       working-directory: ${{ inputs.work_dir }}
-      run: $RUN_CLI build $FLAGS
+      run: $RUN_CLI build -verification
 
     # Upload Local Verification Build
     - name: Upload Local Verification Zip
