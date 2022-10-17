@@ -35,7 +35,6 @@ jobs:
           assert: ${{ matrix.want }}
           when: "the binary files are identical and there are no other files in the zip"
           instructions: |
-            cd testdata/example-app
             go build -o "$BIN_PATH" -trimpath
 
   # A single reproducible go binary along with other reproducible files.
@@ -56,7 +55,6 @@ jobs:
           assert: ${{ matrix.want }}
           when: "the binary files are identical and so are two other files in the zip"
           instructions: |
-            cd testdata/example-app
             go build -o "$BIN_PATH" -trimpath
             echo "Hello world." > "$TARGET_DIR/another-file.txt"
             echo "A fake license." > "$TARGET_DIR/LICENSE"
@@ -90,7 +88,6 @@ jobs:
           assert: ${{ matrix.want }}
           when: "the binary files are identical and so are two other files downloaded into the zip"
           instructions: |
-            cd testdata/example-app
             go build -o "$BIN_PATH" -trimpath -tags=netcgo
 
   # Test cases where the binary reproduces but the zip file does not.
@@ -111,7 +108,6 @@ jobs:
           assert: ${{ matrix.want }}
           when: "the binary files reproduce but the zip files do not"
           instructions: |
-            cd testdata/example-app
             go build -o "$BIN_PATH" -trimpath
             # Insert something random into the zipped dir.
             head -c100 < /dev/urandom > "$TARGET_DIR/random.bytes"
@@ -134,7 +130,6 @@ jobs:
           assert: ${{ matrix.want }}
           when: "neither the binary file not the zip file reproduce"
           instructions: |
-            cd testdata/example-app
             # Don't use -trimpath so we get different binaries.
             go build -o "$BIN_PATH"
 
@@ -156,5 +151,4 @@ jobs:
           assert: ${{ matrix.want }}
           when: "the binary file is not written to the correct path"
           instructions: |
-            cd testdata/example-app
             go build -o "$BIN_PATH.wrong" -trimpath
