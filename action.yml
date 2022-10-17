@@ -159,7 +159,7 @@ runs:
     - name: Run Primary Build
       shell: bash
       env:
-        FLAGS: -clean=${{ !inputs.allow_dirty }}
+        FLAGS: -clean=${{ ! inputs.allow_dirty }}
       working-directory: ${{ inputs.work_dir }}
       run: $RUN_CLI build $FLAGS
 
@@ -176,7 +176,7 @@ runs:
       if: inputs.reproducible == 'assert' || inputs.reproducible == 'report'
       shell: bash
       env:
-        FLAGS: -clean=${{ !inputs.allow_dirty }} -verification
+        FLAGS: -clean=${{ ! inputs.allow_dirty }} -verification
       working-directory: ${{ inputs.work_dir }}
       run: $RUN_CLI build $FLAGS
 
