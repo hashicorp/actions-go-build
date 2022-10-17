@@ -2,6 +2,7 @@ package build
 
 import (
 	"fmt"
+	"strings"
 
 	"github.com/hashicorp/actions-go-build/pkg/crt"
 	"github.com/hashicorp/actions-go-build/pkg/digest"
@@ -24,15 +25,29 @@ type Config struct {
 	Reproducible bool
 }
 
+func ensureExtension(s, ext string) string {
+	if strings.HasSuffix(s, ext) {
+		return s
+	}
+	return s + ext
+}
+
 // NewConfig expects product, params, and paths to be fully initialized.
 func NewConfig(product crt.Product, params Parameters, paths Paths, creator crt.Tool, reproducible bool) (Config, error) {
-	return Config{
+	c := Config{
 		Product:      product,
 		Parameters:   params,
 		Paths:        paths,
 		Tool:         creator,
 		Reproducible: reproducible,
-	}, nil
+	}
+
+	// For windows, append .exe to the bin name if not already there.
+	if strings.ToLower(c.Parameters.OS) == "windows" {
+		c.Product.ExecutableName = ensureExtension(c.Product.ExecutableName, ".exe")
+	}
+
+	return c, nil
 }
 
 func CompoundID(things ...any) string {
