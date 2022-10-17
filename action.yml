@@ -72,11 +72,11 @@ inputs:
     required: false
     default: 0
 
-  allow_dirty:
+  require_clean:
     description: >
-      Allow building a dirty work tree. (Not recommended.)
+      Fail the build unless the worktree is clean. (Highly recommended.)
     required: false
-    default: false
+    default: true
 
 runs:
   using: composite
@@ -159,7 +159,7 @@ runs:
     - name: Run Primary Build
       shell: bash
       env:
-        FLAGS: -clean=${{ ! inputs.allow_dirty }}
+        FLAGS: -clean=${{ inputs.require_clean }}
       working-directory: ${{ inputs.work_dir }}
       run: $RUN_CLI build $FLAGS
 
@@ -176,7 +176,7 @@ runs:
       if: inputs.reproducible == 'assert' || inputs.reproducible == 'report'
       shell: bash
       env:
-        FLAGS: -clean=${{ ! inputs.allow_dirty }} -verification
+        FLAGS: -clean=${{ inputs.require_clean }} -verification
       working-directory: ${{ inputs.work_dir }}
       run: $RUN_CLI build $FLAGS
 
