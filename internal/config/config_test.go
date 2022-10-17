@@ -219,7 +219,7 @@ func TestEnsureExtension(t *testing.T) {
 	}{
 		{"", "", ""},
 		{"blah", ".exe", "blah.exe"},
-		{"blah.exe", ".exe", "blay.exe"},
+		{"blah.exe", ".exe", "blah.exe"},
 	}
 
 	for _, c := range cases {
