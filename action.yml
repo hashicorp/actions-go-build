@@ -72,6 +72,12 @@ inputs:
     required: false
     default: 0
 
+  allow_dirty:
+    description: >
+      Allow building a dirty work tree. (Not recommended.)
+    required: false
+    default: false
+
 runs:
   using: composite
   steps:
@@ -152,8 +158,10 @@ runs:
     # Primary Build
     - name: Run Primary Build
       shell: bash
+      env:
+        FLAGS: -clean=${{ !inputs.allow_dirty }}
       working-directory: ${{ inputs.work_dir }}
-      run: $RUN_CLI build
+      run: $RUN_CLI build $FLAGS
 
     # Upload Primary Build
     - name: Upload Primary Zip
@@ -167,8 +175,10 @@ runs:
     - name: Run Local Verification Build
       if: inputs.reproducible == 'assert' || inputs.reproducible == 'report'
       shell: bash
+      env:
+        FLAGS: -clean=${{ !inputs.allow_dirty }} -verification
       working-directory: ${{ inputs.work_dir }}
-      run: $RUN_CLI build -verification
+      run: $RUN_CLI build $FLAGS
 
     # Upload Local Verification Build
     - name: Upload Local Verification Zip
