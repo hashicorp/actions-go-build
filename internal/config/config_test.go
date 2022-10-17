@@ -1,6 +1,7 @@
 package config
 
 import (
+	"fmt"
 	"testing"
 	"time"
 
@@ -209,4 +210,27 @@ func standardParameters() build.Parameters {
 		Arch:      "amd64",
 		ZipName:   "lockbox_1.2.3_linux_amd64.zip",
 	}
+}
+
+func TestEnsureExtension(t *testing.T) {
+
+	cases := []struct {
+		in, ext, want string
+	}{
+		{"", "", ""},
+		{"blah", ".exe", "blah.exe"},
+		{"blah.exe", ".exe", "blay.exe"},
+	}
+
+	for _, c := range cases {
+		in, ext, want := c.in, c.ext, c.want
+		name := fmt.Sprintf("%s+%s", in, ext)
+		t.Run(name, func(t *testing.T) {
+			got := ensureExtension(in, ext)
+			if got != want {
+				t.Errorf("got %s=%s; want %s", name, got, want)
+			}
+		})
+	}
+
 }

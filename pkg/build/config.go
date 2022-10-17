@@ -2,7 +2,6 @@ package build
 
 import (
 	"fmt"
-	"strings"
 
 	"github.com/hashicorp/actions-go-build/pkg/crt"
 	"github.com/hashicorp/actions-go-build/pkg/digest"
@@ -33,11 +32,6 @@ func NewConfig(product crt.Product, params Parameters, paths Paths, creator crt.
 		Paths:        paths,
 		Tool:         creator,
 		Reproducible: reproducible,
-	}
-
-	// For windows, append .exe to the bin name if not already there.
-	if strings.ToLower(c.Parameters.OS) == "windows" {
-		c.Product.ExecutableName = ensureExtension(c.Product.ExecutableName, ".exe")
 	}
 
 	return c, nil
@@ -101,11 +95,4 @@ func (c Config) VerificationRoot() string {
 
 func (c Config) RemotePrimaryRoot() string {
 	return newDirsFromConfig(c, false).RemoteBuildRoot()
-}
-
-func ensureExtension(s, ext string) string {
-	if strings.HasSuffix(s, ext) {
-		return s
-	}
-	return s + ext
 }
