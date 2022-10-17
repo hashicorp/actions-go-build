@@ -39,6 +39,9 @@ inputs:
     description: Passed through to action.
     default: amd64
     required: false
+  work_dir:
+    description: Passed through to action.
+    default: testdata/example-app
 
 runs:
   using: composite
@@ -66,6 +69,7 @@ runs:
         arch: ${{ inputs.arch }}
         reproducible: ${{ inputs.reproducible }}
         instructions: ${{ inputs.instructions }}
+        work_dir: ${{ inputs.work_dir }}
       continue-on-error: true
     - if: inputs.assert == 'success'
       name: Assert The Action Succeeded
