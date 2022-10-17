@@ -134,7 +134,7 @@ jobs:
 |  `work_dir`&nbsp;_(optional)_              |  The working directory, to run the instructions in. Defaults to the current directory.                    |
 |  **`instructions`**&nbsp;_(required)_      |  Build instructions to generate the binary. See [Build Instructions](#build-instructions) for more info.  |
 |  `debug`&nbsp;_(optional)_                 |  Enable debug-level logging.                                                                              |
-|  `allow_dirty`&nbsp;_(optional)_           |  Allow building a dirty work tree. (Not recommended.)                                                     |
+|  `require_clean`&nbsp;_(optional)_         |  Fail the build unless the worktree is clean. (Highly recommended.)                                       |
 <!-- end:insert:dev/docs/inputs_doc -->
 
 ### Build Instructions
