@@ -105,6 +105,10 @@ func (c Config) init(rc crt.RepoContext, creator crt.Tool) (Config, error) {
 		return c, err
 	}
 
+	if strings.ToLower(c.Parameters.OS) == "windows" {
+		c.Product.ExecutableName = ensureExtension(c.Product.ExecutableName, ".exe")
+	}
+
 	primaryPaths := build.NewPrimaryDirs(c.Product, c.Parameters, creator)
 	verificationPaths := build.NewVerificationDirs(c.Product, c.Parameters, creator)
 
@@ -128,10 +132,6 @@ func (c Config) init(rc crt.RepoContext, creator crt.Tool) (Config, error) {
 
 	if c.VerificationResult == "" {
 		c.VerificationResult = verificationPaths.VerificationResultCachePath(build.ID(c))
-	}
-
-	if strings.ToLower(c.Parameters.OS) == "windows" {
-		c.Product.ExecutableName = ensureExtension(c.Product.ExecutableName, ".exe")
 	}
 
 	return c, nil
