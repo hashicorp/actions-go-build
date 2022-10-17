@@ -25,13 +25,6 @@ type Config struct {
 	Reproducible bool
 }
 
-func ensureExtension(s, ext string) string {
-	if strings.HasSuffix(s, ext) {
-		return s
-	}
-	return s + ext
-}
-
 // NewConfig expects product, params, and paths to be fully initialized.
 func NewConfig(product crt.Product, params Parameters, paths Paths, creator crt.Tool, reproducible bool) (Config, error) {
 	c := Config{
@@ -108,4 +101,11 @@ func (c Config) VerificationRoot() string {
 
 func (c Config) RemotePrimaryRoot() string {
 	return newDirsFromConfig(c, false).RemoteBuildRoot()
+}
+
+func ensureExtension(s, ext string) string {
+	if strings.HasSuffix(s, ext) {
+		return s
+	}
+	return s + ext
 }
