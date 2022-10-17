@@ -3,6 +3,7 @@ package config
 import (
 	"context"
 	"fmt"
+	"strings"
 
 	"github.com/hashicorp/actions-go-build/pkg/build"
 	"github.com/hashicorp/actions-go-build/pkg/crt"
@@ -129,7 +130,18 @@ func (c Config) init(rc crt.RepoContext, creator crt.Tool) (Config, error) {
 		c.VerificationResult = verificationPaths.VerificationResultCachePath(build.ID(c))
 	}
 
+	if strings.ToLower(c.Parameters.OS) == "windows" {
+		c.Product.ExecutableName = ensureExtension(c.Product.ExecutableName, ".exe")
+	}
+
 	return c, nil
+}
+
+func ensureExtension(s, ext string) string {
+	if strings.HasSuffix(s, ext) {
+		return s
+	}
+	return s + ext
 }
 
 func (c Config) resolveReproducible() (string, error) {
