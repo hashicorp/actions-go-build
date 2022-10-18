@@ -7,6 +7,7 @@ import (
 	"os"
 	"path"
 	"path/filepath"
+	"strings"
 
 	"github.com/hashicorp/actions-go-build/internal/unzipper"
 	"github.com/hashicorp/composite-action-framework-go/pkg/fs"
@@ -24,7 +25,14 @@ func NewRemoteBuild(c Config, options ...Option) (Build, error) {
 	if c.Product.IsDirty() {
 		return nil, fmt.Errorf("cannot verify a dirty build remotely")
 	}
-	sourceURL := fmt.Sprintf("https://github.com/%s/archive/%s.zip", c.Product.Repository, c.Product.Revision)
+
+	parts := strings.Split(c.Product.Module, "/")
+	if len(parts) < 3 {
+		return nil, fmt.Errorf("module %q not supported, must be in the format %q", c.Product.Module, "github.com/<user>/<repo>...")
+	}
+	user, repo, revision := parts[1], parts[2], c.Product.Revision
+
+	sourceURL := fmt.Sprintf("https://github.com/%s/%s/archive/%s.zip", user, repo, revision)
 	core, err := newCore("remote build", c, options...)
 	if err != nil {
 		return nil, err

@@ -27,6 +27,11 @@ runs:
       with:
         go-version: 1.18
 
+    - name: Action Setup
+      shell: bash
+      working-directory: ${{ github.action_path }}/..
+      run: ./action-setup verify
+
     - name: Set some needed environment variables.
       shell: bash
       run: |
@@ -46,16 +51,6 @@ runs:
         # Write a newline to step summary to try to prevent weird
         # ghost summaries appearing when this is run in a matrix.
         echo > "$GITHUB_STEP_SUMMARY"
-
-    # Compile the CLI inline. We should work to remove this step by using
-    # precompiled binaries for tagged versions (maybe stored as release
-    # assets).
-    - name: Install the CLI
-      shell: bash
-      working-directory: ${{ env.ACTION_ROOT }}
-      run: |
-        # Install the CLI
-        $RUN make install
 
     # Read build config
     - name: Read config from result file.

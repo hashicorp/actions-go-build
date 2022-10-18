@@ -1,0 +1,94 @@
+#!/usr/bin/env bash
+
+set -euo pipefail
+
+die() { echo "$*"; exit 1; }
+
+# When calling this script, unless from the action at the root, you should 
+# specify the name of the sub-action (i.e. its path relative to repo root).
+# It defaults to "." meaning the repo root itself.
+SUB_ACTION="${1:-.}"
+
+# This script exports some environment variables for later steps,
+# and clones this entire repository into the action path.
+#
+# When actions are used, the repository itself is not present by
+# default, however the repository itself is required by this action
+# in order for it to build its own CLI.
+
+#
+# Clone the action repository.
+#
+
+ACTION_REPO="https://github.com/hashicorp/actions-go-build"
+ACTION_PATH="${GITHUB_ACTION_PATH:?}"
+ACTION_ROOT="${ACTION_PATH%"/$SUB_ACTION"}"
+ACTION_REF="$(basename "$ACTION_ROOT")"
+
+# If the ref is just "." then that means we're referencing the action
+# from the self-tests rather than from a remote repo. Therefore the
+# action ref is just the same as the current github.sha.
+if [[ "$ACTION_REF" == "." ]]; then
+	ACTION_COMMIT="$GITHUB_SHA"
+	ACTION_REF="$GITHUB_REF_NAME"
+	# Strip the /./ from the end of action path.
+	ACTION_ROOT="${ACTION_ROOT%/./}"
+fi
+
+# Clone the repo if needed.
+if [[ ! -d "$ACTION_ROOT/.git" ]]; then
+	# Go to the directory containing the directory containing the action.
+	cd "$ACTION_ROOT/.." || die "Unable to cd to '$ACTION_ROOT/..'"
+
+	# Destroy the action from orbit.
+	rm -rf "$ACTION_ROOT"
+
+	if [[ -n "${GITHUB_TOKEN:-}" ]]; then
+		git config --global "url.http://$GITHUB_TOKEN@github.com/.insteadOf" = https://github.com/
+	fi
+
+	if [[ "$ACTION_REF" =~ [a-f0-9]{40} ]]; then
+		# It's a commit.
+		ACTION_COMMIT="$ACTION_REF"
+		git clone "$ACTION_REPO" "$ACTION_ROOT"
+	else
+		# It's a branch or tag ref.
+		# Clone the action repository.
+		git clone --depth 1 --branch "$ACTION_REF" "$ACTION_REPO" "$ACTION_ROOT"
+	fi
+fi
+
+#
+# Install the CLI
+#
+
+cd "$ACTION_ROOT" || die "Unable to cd to '$ACTION_ROOT'"
+
+# If we set ACTION_COMMIT that's because we're running self-tests.
+# Ensure we're using the same commit that was pushed in case there's
+# another push to the branch since the workflow started.
+if [[ -n "${ACTION_COMMIT:-}" ]]; then
+	git fetch origin "$ACTION_COMMIT"
+	git reset --hard "$ACTION_COMMIT"
+fi
+
+# Ensure that config defined in the usage of this action
+# doesn't impact the build of the action's own CLI.
+export PRODUCT_REPOSITORY="actions-go-build"
+export PRODUCT_NAME="actions-go-build"
+export PRODUCT_VERSION_META=
+export BIN_NAME="actions-go-build"
+
+RUN="${ACTION_ROOT:?}/scripts/gha run"
+
+$RUN make install
+
+#
+# Export environment variables for later steps.
+#
+
+{
+  echo "TMPDIR=${RUNNER_TEMP:?}"
+  echo "RUN=$RUN"
+  echo "RUN_CLI=env DEBUG=true ${ACTION_ROOT:?}/scripts/gha run actions-go-build"
+} >> "${GITHUB_ENV:?}"

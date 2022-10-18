@@ -14,7 +14,7 @@ endif
 default: run
 
 ifeq ($(TMPDIR),)
-TMPDIR="$(RUNNER_TEMP)"
+TMPDIR := $(RUNNER_TEMP)
 endif
 ifeq ($(TMPDIR),)
 $(error Neither TMPDIR nor RUNNER_TEMP are set.)
@@ -105,6 +105,7 @@ cli: $(CLI)
 	@echo "Build successful."
 	$(CLI) --version
 
+.PHONY: install
 ifneq ($(GITHUB_PATH),)
 install: $(CLI)
 	@echo "$(dir $(CURDIR)/$(CLI))" >> "$(GITHUB_PATH)"

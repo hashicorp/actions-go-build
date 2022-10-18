@@ -77,58 +77,17 @@ runs:
   steps:
 
     # Setup Go for CLI compilation.
-    - uses: actions/setup-go@v2
+    - uses: actions/setup-go@v3
       with:
         go-version: 1.18
 
-    - name: Set some needed environment variables.
-      shell: bash
-      run: |
-        # Set environment.
-        {
-          echo "TMPDIR=$RUNNER_TEMP"
-          echo "RUN=${{ github.action_path }}/scripts/gha run"
-          echo "RUN_CLI=env DEBUG=true ${{ github.action_path }}/scripts/gha run actions-go-build"
-        } >> "$GITHUB_ENV"
-
-    # Compile the CLI inline. We should work to remove this step by using
-    # precompiled binaries for tagged versions (maybe stored as release
-    # assets).
-    - name: Install the CLI
+    - name: Action Setup
       shell: bash
       working-directory: ${{ github.action_path }}
-      env:
-        ACTION_REPO: https://github.com/hashicorp/actions-go-build
-        ACTION_REF: ${{ github.action_ref }}
-        ACTION_PATH: ${{ github.action_path }}
-      run: |
-        # Install the CLI
-        # Make sure we have the git repo cloned.
-        cd ..
-        ACTION_PATH="${ACTION_PATH%/./}"
-
-        # ACTION_REF is always populated when this action is used by
-        # external repositories. In the case that it's empty, that means
-        # we're running the action's self-tests, where the ref should be
-        # github.sha to make sure we're running tests agains the current
-        # commit.
-        [[ -n "$ACTION_REF" ]] || ACTION_REF="${{ github.sha }}"
-        rm -rf "$ACTION_PATH"
-        git clone "$ACTION_REPO" "$ACTION_PATH"
-        cd "$ACTION_PATH"
-        git reset --hard "$ACTION_REF"
-
-        # Ensure that config defined in the usage of this action
-        # doesn't impact the build of the action's own CLI.
-        export PRODUCT_REPOSITORY="actions-go-build"
-        export PRODUCT_NAME="actions-go-build"
-        export PRODUCT_VERSION_META=
-        export BIN_NAME="actions-go-build"
-
-        $RUN make install
+      run: ./action-setup
 
     # Setup Go
-    - uses: actions/setup-go@v2
+    - uses: actions/setup-go@v3
       with:
         go-version: ${{ inputs.go_version }}
 
