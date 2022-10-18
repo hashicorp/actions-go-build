@@ -26,13 +26,15 @@ type Config struct {
 
 // NewConfig expects product, params, and paths to be fully initialized.
 func NewConfig(product crt.Product, params Parameters, paths Paths, creator crt.Tool, reproducible bool) (Config, error) {
-	return Config{
+	c := Config{
 		Product:      product,
 		Parameters:   params,
 		Paths:        paths,
 		Tool:         creator,
 		Reproducible: reproducible,
-	}, nil
+	}
+
+	return c, nil
 }
 
 func CompoundID(things ...any) string {
