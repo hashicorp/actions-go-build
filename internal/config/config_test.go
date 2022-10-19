@@ -11,9 +11,6 @@ import (
 	"github.com/hashicorp/go-version"
 )
 
-func init() {
-}
-
 func TestConfig_init_ok(t *testing.T) {
 
 	// Ensure we get stable paths.
