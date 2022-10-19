@@ -101,14 +101,13 @@ func TestConfig_init_ok(t *testing.T) {
 			if got.Verification.BuildRoot == "" {
 				t.Errorf("got empty VerificationBuildRoot")
 			}
+
 			// Force got and want build roots and build instructions to be empty so we
 			// can assert equality on everything else.
 			got.Verification = Paths{}
 			want.Verification = Paths{}
 			got.Primary = Paths{}
 			want.Primary = Paths{}
-			got.Parameters.Instructions = ""
-			want.Parameters.Instructions = ""
 			got.VerificationResult = ""
 			want.VerificationResult = ""
 
@@ -205,10 +204,11 @@ func standardUnintializedConfig() Config {
 
 func standardParameters() build.Parameters {
 	return build.Parameters{
-		GoVersion: "1.18",
-		OS:        "linux",
-		Arch:      "amd64",
-		ZipName:   "lockbox_1.2.3_linux_amd64.zip",
+		GoVersion:    "1.18",
+		OS:           "linux",
+		Arch:         "amd64",
+		ZipName:      "lockbox_1.2.3_linux_amd64.zip",
+		Instructions: `go build -o "$BIN_PATH" -trimpath -buildvcs=false`,
 	}
 }
 
