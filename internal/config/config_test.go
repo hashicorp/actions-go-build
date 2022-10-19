@@ -11,7 +11,19 @@ import (
 	"github.com/hashicorp/go-version"
 )
 
+func init() {
+}
+
 func TestConfig_init_ok(t *testing.T) {
+
+	// Ensure we get stable paths.
+	build.TempDirFunc = func() string { return "/test/temp/dir" }
+	build.ConfigIDFunc = func(build.Config) string { return "<build-config-id>" }
+	build.CacheKeyFunc = func(...any) string { return "<compound-cache-key>" }
+	crt.SourceHashFunc = func(string, []string) (string, error) { return "<sourcehash>", nil }
+
+	ConfigIDFunc = func(Config) string { return "<config-id>" }
+
 	cases := []struct {
 		description string
 		inputs      Config
@@ -35,6 +47,7 @@ func TestConfig_init_ok(t *testing.T) {
 				c.Product.Version.Core = "1.2.3"
 				c.Product.Version.Meta = "ent"
 				c.Parameters.ZipName = "lockbox_1.2.3+ent_linux_amd64.zip"
+				c.VerificationResult = "/test/temp/dir/<tool-name>/<tool-version>/<tool-revision>/verification/<compound-cache-key>/cache/verificationresult/dadgarcorp/lockbox/lockbox/<source-hash>/<config-id>/lockbox_1.2.3+ent_linux_amd64.zip.json"
 			}),
 		},
 		{
@@ -48,6 +61,7 @@ func TestConfig_init_ok(t *testing.T) {
 				c.Product.Version.Core = "1.2.3"
 				c.Product.Version.Meta = "ent.hsm"
 				c.Parameters.ZipName = "lockbox_1.2.3+ent.hsm_linux_amd64.zip"
+				c.VerificationResult = "/test/temp/dir/<tool-name>/<tool-version>/<tool-revision>/verification/<compound-cache-key>/cache/verificationresult/dadgarcorp/lockbox/lockbox/<source-hash>/<config-id>/lockbox_1.2.3+ent.hsm_linux_amd64.zip.json"
 			}),
 		},
 		{
@@ -58,6 +72,8 @@ func TestConfig_init_ok(t *testing.T) {
 			testRepoContext(),
 			testConfig(func(c *Config) {
 				c.Parameters.ZipName = "blarglefish.zip"
+
+				c.VerificationResult = "/test/temp/dir/<tool-name>/<tool-version>/<tool-revision>/verification/<compound-cache-key>/cache/verificationresult/dadgarcorp/lockbox/lockbox/<source-hash>/<config-id>/blarglefish.zip.json"
 			}),
 		},
 		{
@@ -78,7 +94,6 @@ func TestConfig_init_ok(t *testing.T) {
 			testRepoContext(),
 			testConfig(func(c *Config) {
 				c.Primary.BuildRoot = "/other/dir/work"
-				c.Verification.BuildRoot = "/other/dir/verification"
 			}),
 		},
 	}
@@ -87,30 +102,14 @@ func TestConfig_init_ok(t *testing.T) {
 		description, inputs, rc, want := c.description, c.inputs, c.rc, c.want
 		t.Run(description, func(t *testing.T) {
 			tool := crt.Tool{
-				Name:     "thisaction",
-				Version:  "0.0.0",
-				Revision: "cabba9e",
+				Name:     "<tool-name>",
+				Version:  "<tool-version>",
+				Revision: "<tool-revision>",
 			}
 			got, err := inputs.init(rc, tool)
 			if err != nil {
 				t.Fatal(err)
 			}
-
-			// Test the verification build root separately because it's
-			// a temp directory with an unpredictable name.
-			if got.Verification.BuildRoot == "" {
-				t.Errorf("got empty VerificationBuildRoot")
-			}
-
-			// Force got and want build roots and build instructions to be empty so we
-			// can assert equality on everything else.
-			got.Verification = Paths{}
-			want.Verification = Paths{}
-			got.Primary = Paths{}
-			want.Primary = Paths{}
-			got.VerificationResult = ""
-			want.VerificationResult = ""
-
 			assert.Equal(t, got, want)
 		})
 	}
@@ -151,8 +150,8 @@ func standardProduct() crt.Product {
 			Core: "1.2.3",
 			Meta: "",
 		},
-		SourceHash:   "deadbeef",
-		Revision:     "cabba9e",
+		SourceHash:   "<source-hash>",
+		Revision:     "<commit-sha>",
 		RevisionTime: standardCommitTimeRFC3339(),
 	}
 }
@@ -170,8 +169,8 @@ func standardRepoContext() crt.RepoContext {
 		RepoName:    "dadgarcorp/lockbox",
 		Dir:         "/some/dir/work",
 		RootDir:     "/some/dir/work",
-		CommitSHA:   "cabba9e",
-		SourceHash:  "deadbeef",
+		CommitSHA:   "<commit-sha>",
+		SourceHash:  "<source-hash>",
 		CommitTime:  standardCommitTimestamp(),
 		CoreVersion: *version.Must(version.NewVersion("1.2.3")),
 	}
@@ -182,13 +181,20 @@ func standardConfig() Config {
 		Product:      standardProduct(),
 		Parameters:   standardParameters(),
 		Reproducible: "assert",
-		Primary:      Paths{BuildRoot: "/some/dir/work"},
-		Verification: Paths{BuildRoot: "/some/dir/verification"},
-		Tool: crt.Tool{
-			Name:     "thisaction",
-			Version:  "0.0.0",
-			Revision: "cabba9e",
+		Primary: Paths{
+			BuildRoot:   "/some/dir/work",
+			BuildResult: "/test/temp/dir/<tool-name>/<tool-version>/<tool-revision>/primary/<compound-cache-key>/cache/buildresult/dadgarcorp/lockbox/lockbox/<source-hash>",
 		},
+		Verification: Paths{
+			BuildRoot:   "/test/temp/dir/<tool-name>/<tool-version>/<tool-revision>/verification/<compound-cache-key>/cache/source/dadgarcorp/lockbox/lockbox/<source-hash>",
+			BuildResult: "/test/temp/dir/<tool-name>/<tool-version>/<tool-revision>/verification/<compound-cache-key>/cache/buildresult/dadgarcorp/lockbox/lockbox/<source-hash>",
+		},
+		Tool: crt.Tool{
+			Name:     "<tool-name>",
+			Version:  "<tool-version>",
+			Revision: "<tool-revision>",
+		},
+		VerificationResult: "/test/temp/dir/<tool-name>/<tool-version>/<tool-revision>/verification/<compound-cache-key>/cache/verificationresult/dadgarcorp/lockbox/lockbox/<source-hash>/<config-id>/lockbox_1.2.3_linux_amd64.zip.json",
 	}
 }
 

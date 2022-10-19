@@ -58,7 +58,7 @@ func GetRepoContext(dir string, ignoreDirs []string) (RepoContext, error) {
 		return RepoContext{}, err
 	}
 
-	sourceHash, err := getSourceHash(dir, ignoreDirs)
+	sourceHash, err := SourceHashFunc(dir, ignoreDirs)
 	if err != nil {
 		return RepoContext{}, err // blah
 	}
@@ -96,6 +96,10 @@ func GetRepoContext(dir string, ignoreDirs []string) (RepoContext, error) {
 var (
 	ErrNoVersionFile        = errors.New("no VERSION file found")
 	ErrMultipleVersionFiles = errors.New("multiple VERSION files found")
+
+	// SourceHashFunc can be overridden in tests to generate stable
+	// source hashes.
+	SourceHashFunc = getSourceHash
 )
 
 func getSourceHash(dir string, ignoreDirs []string) (string, error) {
