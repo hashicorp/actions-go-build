@@ -11,29 +11,6 @@ Changed:
   - Windows executables automatically have a .exe extension.
   - Default verification result filenames now end with .verificationresult.json
 
-<!-- RECENT COMMITS TO JOG YOUR MEMORY (DELETE THIS SECTION WHEN DONE)...
-commit accb06a4171bc63d5e56d328743f7d776a8d880e
-Author: Sam Salisbury <samsalisbury@gmail.com>
-Date:   Wed Oct 19 13:35:25 2022 +0100
-
-    add tests for verification result path
-    
-    - This required being able to override some functions which produce
-      unpredictable or OS-dependent results.
-
-commit b3586d040b4c6d3d27618be252c45f3a62c966c3
-Author: Sam Salisbury <samsalisbury@gmail.com>
-Date:   Wed Oct 19 10:59:59 2022 +0100
-
-    config tests: assert over instructions
-
-commit 505d8fafdce8c61c2a210409f7ebe6058052c6fd
-Author: Sam Salisbury <samsalisbury@gmail.com>
-Date:   Wed Oct 19 10:52:05 2022 +0100
-
-    better default verification result filename
- END RECENT COMMITS TO JOG YOUR MEMORY (DELETE THIS SECTION WHEN DONE)... -->
-
 ## [v0.1.5](https://github.com/hashicorp/actions-go-build/releases/tag/v0.1.5) - October 12, 2022
 
 - Fix detection of Go version. Don't assume it's the same as the version that built
