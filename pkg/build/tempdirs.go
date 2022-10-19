@@ -70,8 +70,8 @@ func (d TempDirs) BuildResultCacheDir(extension ...string) string {
 	return d.cacheDir("buildresult", extension...)
 }
 
-func (d TempDirs) VerificationResultCachePath(configID string) string {
-	return d.cacheDir("verificationresult", configID+".json")
+func (d TempDirs) VerificationResultCachePath(configID, zipName string) string {
+	return d.cacheDir("verificationresult", configID, zipName+".json")
 }
 
 func (d TempDirs) cacheDir(kind string, extension ...string) string {

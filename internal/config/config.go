@@ -131,7 +131,7 @@ func (c Config) init(rc crt.RepoContext, creator crt.Tool) (Config, error) {
 	c.Tool = creator
 
 	if c.VerificationResult == "" {
-		c.VerificationResult = verificationPaths.VerificationResultCachePath(build.ID(c))
+		c.VerificationResult = verificationPaths.VerificationResultCachePath(build.ID(c), c.Parameters.ZipName)
 	}
 
 	return c, nil
