@@ -6,6 +6,7 @@ import (
 	"path/filepath"
 
 	"github.com/hashicorp/actions-go-build/pkg/crt"
+	"github.com/hashicorp/actions-go-build/pkg/digest"
 )
 
 type TempDirs struct {
@@ -19,7 +20,14 @@ type cacheKey struct {
 	tool       crt.Tool
 }
 
-func (ck cacheKey) Key() string { return CompoundID(ck.product, ck.parameters, ck.tool) }
+// TempDirFunc is the function used by this package to get the system temp dir.
+// You can override this for testing purposes to get platform-independent paths.
+var TempDirFunc = os.TempDir
+
+// CacheKeyFunc can be overridden by tests to generate stable strings.
+var CacheKeyFunc = digest.CompoundID
+
+func (ck cacheKey) Key() string { return CacheKeyFunc(ck.product, ck.parameters, ck.tool) }
 
 func newDirsFromConfig(c Config, verification bool) TempDirs {
 	if verification {
@@ -70,8 +78,8 @@ func (d TempDirs) BuildResultCacheDir(extension ...string) string {
 	return d.cacheDir("buildresult", extension...)
 }
 
-func (d TempDirs) VerificationResultCachePath(configID string) string {
-	return d.cacheDir("verificationresult", configID+".json")
+func (d TempDirs) VerificationResultCachePath(configID, zipName string) string {
+	return d.cacheDir("verificationresult", configID, zipName+".json")
 }
 
 func (d TempDirs) cacheDir(kind string, extension ...string) string {
@@ -79,7 +87,7 @@ func (d TempDirs) cacheDir(kind string, extension ...string) string {
 }
 
 func (d TempDirs) tempDirPath(elem ...string) string {
-	return prefixPath(elem, os.TempDir(), d.tool.Name, d.tool.Version, d.tool.Revision, d.kind, d.Key())
+	return prefixPath(elem, TempDirFunc(), d.tool.Name, d.tool.Version, d.tool.Revision, d.kind, d.Key())
 }
 
 func productIDSegments(p crt.Product) []string {

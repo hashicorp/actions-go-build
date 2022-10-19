@@ -2,7 +2,6 @@ package build
 
 import (
 	"errors"
-	"os"
 	"strings"
 	"testing"
 
@@ -154,7 +153,7 @@ func (m *mockBuild) Config() Config {
 			Instructions: "test",
 		},
 		Paths: Paths{
-			MetaDir: os.TempDir(),
+			MetaDir: TempDirFunc(),
 		},
 	}
 }

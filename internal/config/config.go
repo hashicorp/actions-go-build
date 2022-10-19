@@ -7,8 +7,12 @@ import (
 
 	"github.com/hashicorp/actions-go-build/pkg/build"
 	"github.com/hashicorp/actions-go-build/pkg/crt"
+	"github.com/hashicorp/actions-go-build/pkg/digest"
 	"github.com/sethvargo/go-envconfig"
 )
+
+// ConfigIDFunc can be overridden in tests to provide a stable ID.
+var ConfigIDFunc = func(c Config) string { return digest.ID(c) }
 
 // Config represents the action configuration.
 type Config struct {
@@ -110,6 +114,11 @@ func (c Config) init(rc crt.RepoContext, creator crt.Tool) (Config, error) {
 	}
 
 	primaryPaths := build.NewPrimaryDirs(c.Product, c.Parameters, creator)
+
+	if c.Primary.BuildResult == "" {
+		c.Primary.BuildResult = primaryPaths.BuildResultCacheDir()
+	}
+
 	verificationPaths := build.NewVerificationDirs(c.Product, c.Parameters, creator)
 
 	// Default the primary build root to the current directory.
@@ -120,10 +129,6 @@ func (c Config) init(rc crt.RepoContext, creator crt.Tool) (Config, error) {
 		c.Verification.BuildRoot = verificationPaths.RemoteBuildRoot()
 	}
 
-	if c.Primary.BuildResult == "" {
-		c.Primary.BuildResult = primaryPaths.BuildResultCacheDir()
-	}
-
 	if c.Verification.BuildResult == "" {
 		c.Verification.BuildResult = verificationPaths.BuildResultCacheDir()
 	}
@@ -131,7 +136,7 @@ func (c Config) init(rc crt.RepoContext, creator crt.Tool) (Config, error) {
 	c.Tool = creator
 
 	if c.VerificationResult == "" {
-		c.VerificationResult = verificationPaths.VerificationResultCachePath(build.ID(c))
+		c.VerificationResult = verificationPaths.VerificationResultCachePath(ConfigIDFunc(c), c.Parameters.ZipName)
 	}
 
 	return c, nil

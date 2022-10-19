@@ -9,6 +9,7 @@ Instead, edit the files in dev/changes/, then run 'make docs' to update this fil
 Changed:
 
   - Windows executables automatically have a .exe extension.
+  - Default verification result filenames now end with .verificationresult.json
 
 ## [v0.1.5](https://github.com/hashicorp/actions-go-build/releases/tag/v0.1.5) - October 12, 2022
 

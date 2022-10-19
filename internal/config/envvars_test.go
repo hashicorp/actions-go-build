@@ -84,9 +84,9 @@ func standardBuildconfig() build.Config {
 			MetaDir:   "/meta",
 		},
 		Tool: crt.Tool{
-			Name:     "thisaction",
-			Version:  "0.0.0",
-			Revision: "cabba9e",
+			Name:     "<tool-name>",
+			Version:  "<tool-version>",
+			Revision: "<tool-revision>",
 		},
 		Reproducible: true,
 	}
