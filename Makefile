@@ -1,6 +1,7 @@
 SHELL := /usr/bin/env bash -euo pipefail -c
 
 PRODUCT_NAME := actions-go-build
+DESTDIR ?= /usr/local/bin
 
 # Set AUTOCLEAR=1 to have the terminal cleared before running builds,
 # tests, and installs.
@@ -114,9 +115,9 @@ install: $(CLI)
 else
 install: $(CLI)
 	@$(CLEAR)
-	@mv "$<" /usr/local/bin/
+	@mv "$<" "$(DESTDIR)"
 	@V="$$($(CLINAME) version -short)" && \
-		echo "# $(CLINAME) v$$V installed to /usr/local/bin"
+		echo "# $(CLINAME) v$$V installed to $(DESTDIR)"
 endif
 
 .PHONY: mod/framework/update
