@@ -73,6 +73,7 @@ env:
 
 .PHONY: $(TMP_BUILD)
 $(TMP_BUILD):
+	# Running tests...
 	@$(RUN_TESTS_QUIET)
 	@echo "# Creating temporary build." 1>&2
 	@rm -f "$(TMP_BUILD)"
@@ -91,8 +92,6 @@ $(TMP_BUILD):
 .PHONY: $(CLI)
 $(CLI):
 	@$(CLEAR)
-	# Running tests...
-	@$(RUN_TESTS_QUIET)
 	# First build:   Plain go build...
 	@$(MAKE) $(TMP_BUILD)
 	# Second build:  Using first build to build self...
