@@ -1,6 +1,7 @@
 SHELL := /usr/bin/env bash -euo pipefail -c
 
 PRODUCT_NAME := actions-go-build
+DESTDIR ?= /usr/local/bin
 
 # Set AUTOCLEAR=1 to have the terminal cleared before running builds,
 # tests, and installs.
@@ -20,7 +21,8 @@ ifeq ($(TMPDIR),)
 $(error Neither TMPDIR nor RUNNER_TEMP are set.)
 endif
 
-RUN_TESTS_QUIET := @$(MAKE) test > /dev/null 2>&1 || { echo "Tests failed, please run 'make test'."; exit 1; }
+TEST_LOG := $(TMPDIR)/go_tests.log
+RUN_TESTS_QUIET := @$(MAKE) test > "$(TEST_LOG)" 2>&1 || { cat "$(TEST_LOG)" ; exit 1; }
 
 # Always just install the git hooks unless in CI (GHA sets CI=true as do many CI providers).
 ifeq ($(CI),true)
@@ -72,6 +74,7 @@ env:
 
 .PHONY: $(TMP_BUILD)
 $(TMP_BUILD):
+	# Running tests...
 	@$(RUN_TESTS_QUIET)
 	@echo "# Creating temporary build." 1>&2
 	@rm -f "$(TMP_BUILD)"
@@ -90,8 +93,6 @@ $(TMP_BUILD):
 .PHONY: $(CLI)
 $(CLI):
 	@$(CLEAR)
-	# Running tests...
-	@$(RUN_TESTS_QUIET)
 	# First build:   Plain go build...
 	@$(MAKE) $(TMP_BUILD)
 	# Second build:  Using first build to build self...
@@ -114,9 +115,9 @@ install: $(CLI)
 else
 install: $(CLI)
 	@$(CLEAR)
-	@mv "$<" /usr/local/bin/
+	@mv "$<" "$(DESTDIR)"
 	@V="$$($(CLINAME) version -short)" && \
-		echo "# $(CLINAME) v$$V installed to /usr/local/bin"
+		echo "# $(CLINAME) v$$V installed to $(DESTDIR)"
 endif
 
 .PHONY: mod/framework/update
