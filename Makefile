@@ -74,8 +74,6 @@ env:
 
 .PHONY: $(TMP_BUILD)
 $(TMP_BUILD):
-	# Running tests...
-	@$(RUN_TESTS_QUIET)
 	@echo "# Creating temporary build." 1>&2
 	@rm -f "$(TMP_BUILD)"
 	@mkdir -p "$(dir $(TMP_BUILD))"
@@ -96,6 +94,8 @@ $(CLI): export GOOS :=
 $(CLI): export GOARCH :=
 $(CLI):
 	@$(CLEAR)
+	# Running tests...
+	@$(RUN_TESTS_QUIET)
 	# First build:   Plain go build...
 	@$(MAKE) $(TMP_BUILD)
 	# Second build:  Using first build to build self...
@@ -148,6 +148,8 @@ compile:
 	@go build ./...
 
 .PHONY: test/go
+test/go: export GOOS :=
+test/go: export GOARCH :=
 test/go: compile
 	@go test $(GO_TEST_FLAGS) ./...
 
