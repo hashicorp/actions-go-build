@@ -91,6 +91,9 @@ $(TMP_BUILD):
 #
 # Thus, each version of actions-go-build is built using itself.
 .PHONY: $(CLI)
+# Ensure we build the CLI for the host platform, not the target platform.
+$(CLI): export GOOS :=
+$(CLI): export GOARCH :=
 $(CLI):
 	@$(CLEAR)
 	# First build:   Plain go build...
