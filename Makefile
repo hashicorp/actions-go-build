@@ -49,10 +49,29 @@ endif
 CURR_REVISION    := $(DIRTY)$(CURR_REVISION)
 PRODUCT_REVISION ?= $(CURR_REVISION)
 
+CLINAME   := $(PRODUCT_NAME)
+CLI       := dist/$(CLINAME)
+TMP_BUILD := $(TMPDIR)/temp-build/$(CLINAME)
+RUNCLI    := @$(TMP_BUILD)
+
+# GO_TARGETS are targets that need to invoke the go command to build
+# or test the CLI.
+GO_TARGETS := $(TMP_BUILD) $(CLI) test/go
+# Unset some go configuration for go targets so that build-specific
+# config from product repos doesn't influence the building of the CLI
+# itself, which should always be built and tested for the host platform,
+# not the target platform.
+$(GO_TARGETS): export GOOS :=
+$(GO_TARGETS): export GOARCH :=
+
 build:
 	go build ./...
 
 test: test/go
+
+.PHONY: test/go
+test/go: compile
+	@go test $(GO_TEST_FLAGS) ./...
 
 cover: GO_TEST_FLAGS := -coverprofile=coverage.profile
 cover: test/go
@@ -60,10 +79,15 @@ cover: test/go
 
 test/update: test/go/update
 
-CLINAME   := $(PRODUCT_NAME)
-CLI       := dist/$(CLINAME)
-TMP_BUILD := $(TMPDIR)/temp-build/$(CLINAME)
-RUNCLI    := @$(TMP_BUILD)
+.PHONY: test/go/update
+test/go/update: export UPDATE_TESTDATA := true
+test/go/update: test/go
+	@echo "Test data updated."
+
+.PHONY: compile
+compile:
+	@$(CLEAR)
+	@go build ./...
 
 .PHONY: env
 env:
@@ -90,8 +114,6 @@ $(TMP_BUILD):
 # Thus, each version of actions-go-build is built using itself.
 .PHONY: $(CLI)
 # Ensure we build the CLI for the host platform, not the target platform.
-$(CLI): export GOOS :=
-$(CLI): export GOARCH :=
 $(CLI):
 	@$(CLEAR)
 	# Running tests...
@@ -136,22 +158,6 @@ run: $(TMP_BUILD)
 	@$${QUIET:-false} || $(CLEAR)
 	@$${QUIET:-false} || echo "\$$ $(notdir $<) $(RUN)"
 	$(RUNCLI) $(RUN)
-
-.PHONY: test/go/update
-test/go/update: export UPDATE_TESTDATA := true
-test/go/update: test/go
-	@echo "Test data updated."
-
-.PHONY: compile
-compile:
-	@$(CLEAR)
-	@go build ./...
-
-.PHONY: test/go
-test/go: export GOOS :=
-test/go: export GOARCH :=
-test/go: compile
-	@go test $(GO_TEST_FLAGS) ./...
 
 .PHONY: docs
 docs: readme changelog
