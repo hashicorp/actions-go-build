@@ -1,5 +1,25 @@
 #!/usr/bin/env bash
 
+# This script builds the CLI and runs the command you pass.
+#
+# When you're making changes to the CLI, it is often useful to quickly run
+# a command against your local development version to check that it's behaving
+# roughly as you expect. That's the main purpose of this script.
+#
+# We also use this script when generating documentation (e.g. for the README).
+# By running the CLI program and getting its output we can ensure that certain
+# parts of the README do not go out of date with respect to the code itself.
+#
+# By default this script prints the command to be run before running it.
+# You can suppress this by passing the -q flag.
+#
+# Usage Examples:
+#   
+#   ./run version            # Compile the CLI and run the version subcommand.
+#   ./run build -rebuild     # Compile the CLI and run the build command with the -rebuild flag.
+#   ./run -q build -rebuild  # Same as above but without printing the command itself.
+#   ./run -q inspect -describe-build-env  # Example actually in use for generating docs.
+
 set -Eeuo pipefail
 
 if [[ "${1:-}" == "-q" ]]; then
