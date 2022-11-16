@@ -40,6 +40,9 @@ type Config struct {
 	// Debug enables debug logging.
 	Debug bool `env:"DEBUG"`
 
+	// TargetDir can be used to override the primary target dir.
+	TargetDir string `env:"TARGET_DIR"`
+
 	Primary      Paths `env:",prefix=PRIMARY_"`
 	Verification Paths `env:",prefix=VERIFICATION_"`
 
@@ -50,6 +53,8 @@ type Paths struct {
 	// BuildRoot is the absolute path where the instructions are run for this build.
 	// We read it from the environment only to support testing.
 	BuildRoot string `env:"BUILD_ROOT"`
+	// TargetDir can be used to overwrite the target output directory.
+	TargetDir string `env:"TARGET_DIR"`
 	// BuildResult is the absolute path where the build result will be written.
 	// This is the same as the cache path for that build result.
 	// We do not read BuildResult from the environment.
@@ -76,7 +81,10 @@ func FromEnvironment(creator crt.Tool, dir string) (Config, error) {
 // buildConfig returns a BuildConfig based on this Config, rooted at root.
 // The root must be an absolute path.
 func (c Config) buildConfig(root string) (build.Config, error) {
-	paths, err := build.NewBuildPaths(root, c.Product.ExecutableName, c.Parameters.ZipName)
+	// If c.TargetDir is empty here then this option is a no-op,
+	// we just pass it through rather than wrapping in a conditional.
+	opts := build.WithTargetDir(c.TargetDir)
+	paths, err := build.NewBuildPaths(root, c.Product.ExecutableName, c.Parameters.ZipName, opts)
 	if err != nil {
 		return build.Config{}, err
 	}
