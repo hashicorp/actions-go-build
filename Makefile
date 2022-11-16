@@ -49,20 +49,24 @@ endif
 CURR_REVISION    := $(DIRTY)$(CURR_REVISION)
 PRODUCT_REVISION ?= $(CURR_REVISION)
 
-CLINAME   := $(PRODUCT_NAME)
-CLI       := dist/$(CLINAME)
-TMP_BUILD := $(TMPDIR)/temp-build/$(CLINAME)
-RUNCLI    := @$(TMP_BUILD)
+CLINAME            := $(PRODUCT_NAME)
+CLI                := dist/$(CLINAME)
+TMP_BUILD          := $(TMPDIR)/temp-build/$(CLINAME)
+INTERMEDIATE_BUILD := $(TMPDIR)/intermediate-build/$(CLINAME)
+RUNCLI             := @$(TMP_BUILD)
 
-# GO_TARGETS are targets that need to invoke the go command to build
-# or test the CLI.
-GO_TARGETS := $(TMP_BUILD) $(CLI) test/go
-# Unset some go configuration for go targets so that build-specific
-# config from product repos doesn't influence the building of the CLI
-# itself, which should always be built and tested for the host platform,
-# not the target platform.
-$(GO_TARGETS): export GOOS :=
-$(GO_TARGETS): export GOARCH :=
+# INTERMEDIATE_BUILD is a build of actions-go-build that was built solely for
+# the purpose of being used to build another version of itself. It always targets
+# the host platform. We build the tool using itself to ensure that it is constantly
+# being dogfooded and the developers are able to spot issues early as they are
+# likely to block development work and releases.
+
+# HOST_PLATFORM_TARGETS are targets that must always produce output compatible with
+# the current host platform. We therefore unset the GOOS and GOARCH variable to allow
+# the defaults to shine through.
+HOST_PLATFORM_TARGETS := $(TMP_BUILD) $(INTERMEDIATE_BUILD) test/go
+$(HOST_PLATFORM_TARGETS): export GOOS :=
+$(HOST_PLATFORM_TARGETS): export GOARCH :=
 
 build:
 	go build ./...
@@ -71,7 +75,7 @@ test: test/go
 
 .PHONY: test/go
 test/go: compile
-	@go test $(GO_TEST_FLAGS) ./...
+	go test $(GO_TEST_FLAGS) ./...
 
 cover: GO_TEST_FLAGS := -coverprofile=coverage.profile
 cover: test/go
@@ -96,13 +100,6 @@ env:
 	@echo "  PRODUCT_REVISION=$$PRODUCT_REVISION"
 	@echo "  PRODUCT_REVISION_TIME=$$PRODUCT_REVISION_TIME"
 
-.PHONY: $(TMP_BUILD)
-$(TMP_BUILD):
-	@echo "# Creating temporary build." 1>&2
-	@rm -f "$(TMP_BUILD)"
-	@mkdir -p "$(dir $(TMP_BUILD))"
-	@go build -o "$(TMP_BUILD)"
-
 # When building the binary, we first do a plain 'go build' to build a temporary
 # binary that contains no version info. Then we use that version of the binary
 # to build this product with all the version info added automatically from the
@@ -112,19 +109,27 @@ $(TMP_BUILD):
 # correct tool version injected into the build.
 #
 # Thus, each version of actions-go-build is built using itself.
-.PHONY: $(CLI)
-# Ensure we build the CLI for the host platform, not the target platform.
-$(CLI):
-	@$(CLEAR)
-	# Running tests...
+
+.PHONY: $(TMP_BUILD)
+$(TMP_BUILD):
+	@echo "# Running tests..." 1>&2
 	@$(RUN_TESTS_QUIET)
-	# First build:   Plain go build...
-	@$(MAKE) $(TMP_BUILD)
-	# Second build:  Using first build to build self...
+	@echo "# Creating temporary build..." 1>&2
+	@rm -f "$(TMP_BUILD)"
+	@mkdir -p "$(dir $(TMP_BUILD))"
+	@go build -o "$(TMP_BUILD)"
+
+.PHONY: $(INTERMEDIATE_BUILD)
+$(INTERMEDIATE_BUILD): export TARGET_DIR := $(dir $(INTERMEDIATE_BUILD))
+$(INTERMEDIATE_BUILD): $(TMP_BUILD)
+	@echo "# Creating intermediate build..." 1>&2
 	@$(TMP_BUILD) build -rebuild
-	# Third build:   Using second (self-built) build to build self...
-	@"$@" build -rebuild
-	# Verifying reproducibility of self...
+
+.PHONY: $(CLI)
+$(CLI): $(INTERMEDIATE_BUILD)
+	@echo "# Creating final build." 1>&2
+	@$(INTERMEDIATE_BUILD) build -rebuild
+	@echo "# Verifying reproducibility of self..." 1>&2
 	@./$@ verify
 
 cli: $(CLI)
@@ -132,14 +137,19 @@ cli: $(CLI)
 	$(CLI) --version
 
 .PHONY: install
+# Ensure install always targets the host platform.
+install: export GOOS :=
+install: export GOARCH :=
+
 ifneq ($(GITHUB_PATH),)
+# install for GitHub Actions.
 install: $(CLI)
 	@echo "$(dir $(CURDIR)/$(CLI))" >> "$(GITHUB_PATH)"
 	@echo "Command '$(CLINAME)' installed to GITHUB_PATH"
-	PATH="$$(cat $(GITHUB_PATH))" $(CLINAME) --version
+	@PATH="$$(cat $(GITHUB_PATH))" $(CLINAME) --version
 else
+# install for local use.
 install: $(CLI)
-	@$(CLEAR)
 	@mv "$<" "$(DESTDIR)"
 	@V="$$($(CLINAME) version -short)" && \
 		echo "# $(CLINAME) v$$V installed to $(DESTDIR)"
@@ -210,7 +220,7 @@ release:
 	@./dev/release/create
 
 version: version/check
-	@LATEST="$(shell $(GH) release list -L 1 | grep Latest | cut -f1)"; \
+	@LATEST="$(shell $(GH) release list -L 1 --exclude-drafts | grep Latest | cut -f1)"; \
 		echo "Working on v$(CURR_VERSION) (Latest public release: $$LATEST)"
 .PHONY: version
 
