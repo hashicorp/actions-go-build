@@ -2,6 +2,7 @@ package main
 
 import (
 	"os"
+	"strings"
 
 	_ "embed"
 
@@ -31,6 +32,21 @@ func main() {
 	os.Exit(status)
 }
 
+// Commands returns all the commands, optionally prefixed by a set of space-separated
+// prefixes (useful when embedding them into other CLI tools).
+func Commands(prefix ...string) map[string]cli.CommandFactory {
+	p := strings.Join(prefix, " ")
+	if len(p) > 0 {
+		p += " "
+	}
+	return map[string]cli.CommandFactory{
+		p + "build":   makeCommand(commands.Build),
+		p + "config":  makeCommand(commands.Config),
+		p + "inspect": makeCommand(commands.Inspect),
+		p + "verify":  makeCommand(commands.Verify),
+	}
+}
+
 func makeCLI(thisTool crt.Product, args []string) *cli.CLI {
 
 	versionCommand, version := commands.MakeVersionCommand(thisTool)
@@ -39,13 +55,8 @@ func makeCLI(thisTool crt.Product, args []string) *cli.CLI {
 
 	c.Args = args
 
-	c.Commands = map[string]cli.CommandFactory{
-		"build":   makeCommand(commands.Build),
-		"config":  makeCommand(commands.Config),
-		"inspect": makeCommand(commands.Inspect),
-		"verify":  makeCommand(commands.Verify),
-		"version": makeCommand(versionCommand),
-	}
+	c.Commands = Commands()
+	c.Commands["version"] = makeCommand(versionCommand)
 
 	return c
 }
