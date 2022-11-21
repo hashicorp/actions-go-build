@@ -37,7 +37,6 @@ func TestConfig_BuildConfig_ok(t *testing.T) {
 			"/blah",
 			testBuildConfig(func(bc *build.Config) {
 				bc.Paths.WorkDir = "/blah"
-				bc.Paths.TargetDir = "/blah/dist"
 				bc.Paths.BinPath = "/blah/dist/lockbox"
 				bc.Paths.ZipPath = "/blah/out/lockbox_1.2.3_linux_amd64.zip"
 				bc.Paths.MetaDir = "/blah/meta"
@@ -51,7 +50,6 @@ func TestConfig_BuildConfig_ok(t *testing.T) {
 			"/blah",
 			testBuildConfig(func(bc *build.Config) {
 				bc.Paths.WorkDir = "/blah"
-				bc.Paths.TargetDir = "/blah/dist"
 				bc.Paths.BinPath = "/blah/dist/lockbox"
 				bc.Paths.ZipPath = "/blah/out/blargle.zip"
 				bc.Paths.MetaDir = "/blah/meta"
@@ -77,11 +75,10 @@ func standardBuildconfig() build.Config {
 		Product:    standardProduct(),
 		Parameters: standardParameters(),
 		Paths: build.Paths{
-			WorkDir:   "/",
-			TargetDir: "/dist",
-			BinPath:   "/dist/lockbox",
-			ZipPath:   "/out/lockbox_1.2.3_linux_amd64.zip",
-			MetaDir:   "/meta",
+			WorkDir: "/",
+			BinPath: "/dist/lockbox",
+			ZipPath: "/out/lockbox_1.2.3_linux_amd64.zip",
+			MetaDir: "/meta",
 		},
 		Tool: crt.Tool{
 			Name:     "<tool-name>",

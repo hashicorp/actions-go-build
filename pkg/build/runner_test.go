@@ -134,11 +134,10 @@ func standardConfig(workDir string) Config {
 			Arch:         "amd64",
 		},
 		Paths: Paths{
-			WorkDir:   workDir,
-			TargetDir: filepath.Join(workDir, "dist"),
-			BinPath:   filepath.Join(workDir, "dist", "lockbox"),
-			ZipPath:   filepath.Join(workDir, "out", "lockbox_1.2.3_amd64.zip"),
-			MetaDir:   filepath.Join(workDir, "meta"),
+			WorkDir: workDir,
+			BinPath: filepath.Join(workDir, "dist", "lockbox"),
+			ZipPath: filepath.Join(workDir, "out", "lockbox_1.2.3_amd64.zip"),
+			MetaDir: filepath.Join(workDir, "meta"),
 		},
 	}
 }

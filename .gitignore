@@ -2,3 +2,4 @@ bin/
 dist/
 out/
 meta/
+actions-go-build

@@ -121,18 +121,18 @@ func (b *core) Steps() []Step {
 		newStep("asserting executable written", b.assertExecutableWritten),
 
 		newStep("setting mtimes", func() error {
-			return fs.SetMtimes(b.Config().Paths.TargetDir, productRevisionTimestamp)
+			return fs.SetMtimes(b.Config().Paths.TargetDir(), productRevisionTimestamp)
 		}),
 
 		newStep(fmt.Sprintf("creating zip file %q", b.Config().Paths.ZipPath), func() error {
-			return zipper.ZipToFile(b.Config().Paths.TargetDir, b.Config().Paths.ZipPath, b.Settings.Log)
+			return zipper.ZipToFile(b.Config().Paths.TargetDir(), b.Config().Paths.ZipPath, b.Settings.Log)
 		}),
 	}
 }
 
 func (b *core) createDirectories() error {
 	c := b.config
-	return fs.Mkdirs(c.Paths.TargetDir, c.Paths.ZipDir(), c.Paths.MetaDir)
+	return fs.Mkdirs(c.Paths.TargetDir(), c.Paths.ZipDir(), c.Paths.MetaDir)
 }
 
 func (b *core) assertExecutableWritten() error {

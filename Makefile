@@ -48,21 +48,45 @@ endif
 
 CURR_REVISION    := $(DIRTY)$(CURR_REVISION)
 PRODUCT_REVISION ?= $(CURR_REVISION)
+CLINAME          := $(PRODUCT_NAME)
 
-CLINAME   := $(PRODUCT_NAME)
-CLI       := dist/$(CLINAME)
+# Release versions of the CLI are built in three phases:
+#
+#    1) TMP_BUILD             - No build metadata.
+#    2) INTERMEDIATE_BUILD    - Some build metadata.
+#    3) RELEASE_BUILD         - All build metadata.
+#
+# See comments below for more explanation.
+
+# TMP_BUILD is a build of the CLI done using just `go build ...`. This is used to bootstrap
+# compiling the CLI using itself, for dogfooding purposes. The TMP_BUILD contains none of the
+# automatically generated metadata like the version or revision. It is used to build the
+# intermediate build...
 TMP_BUILD := $(TMPDIR)/temp-build/$(CLINAME)
-RUNCLI    := @$(TMP_BUILD)
 
-# GO_TARGETS are targets that need to invoke the go command to build
-# or test the CLI.
-GO_TARGETS := $(TMP_BUILD) $(CLI) test/go
-# Unset some go configuration for go targets so that build-specific
-# config from product repos doesn't influence the building of the CLI
-# itself, which should always be built and tested for the host platform,
-# not the target platform.
-$(GO_TARGETS): export GOOS :=
-$(GO_TARGETS): export GOARCH :=
+# INTERMEDIATE_BUILD is a build of the CLI done using the TMP_BUILD build. Because it used
+# TMP_BUILD (i.e. the code in this repo) to build itself, it contains automatically generated
+# metadata like the version and revision. However, it does not contain the metadata about the
+# version of actions-go-build that built it because TMP_BUILD doesn't have that metadata
+# available to inject.
+INTERMEDIATE_BUILD := $(TMPDIR)/intermediate-build/$(CLINAME)
+
+# RELEASE_BUILD is the final build of the CLI, done using the INTERMEDIATE_BUILD. Because
+# INTERMEDIATE_BUILD contains build metadata (e.g. version and revision), it is able to inject
+# that information, into this final build as "tool metadata". Thus we can track the provanance of
+# this binary  just like we are able to with any product binaries also built using this tool.
+RELEASE_BUILD := dist/$(CLINAME)
+
+# HOST_PLATFORM_TARGETS are targets that must always produce output compatible with
+# the current host platform. We therefore unset the GOOS and GOARCH variable to allow
+# the defaults to shine through.
+HOST_PLATFORM_TARGETS := $(TMP_BUILD) $(INTERMEDIATE_BUILD) test/go
+$(HOST_PLATFORM_TARGETS): export GOOS :=
+$(HOST_PLATFORM_TARGETS): export GOARCH :=
+
+#
+# Targets
+#
 
 build:
 	go build ./...
@@ -71,7 +95,7 @@ test: test/go
 
 .PHONY: test/go
 test/go: compile
-	@go test $(GO_TEST_FLAGS) ./...
+	go test $(GO_TEST_FLAGS) ./...
 
 cover: GO_TEST_FLAGS := -coverprofile=coverage.profile
 cover: test/go
@@ -96,13 +120,6 @@ env:
 	@echo "  PRODUCT_REVISION=$$PRODUCT_REVISION"
 	@echo "  PRODUCT_REVISION_TIME=$$PRODUCT_REVISION_TIME"
 
-.PHONY: $(TMP_BUILD)
-$(TMP_BUILD):
-	@echo "# Creating temporary build." 1>&2
-	@rm -f "$(TMP_BUILD)"
-	@mkdir -p "$(dir $(TMP_BUILD))"
-	@go build -o "$(TMP_BUILD)"
-
 # When building the binary, we first do a plain 'go build' to build a temporary
 # binary that contains no version info. Then we use that version of the binary
 # to build this product with all the version info added automatically from the
@@ -112,34 +129,47 @@ $(TMP_BUILD):
 # correct tool version injected into the build.
 #
 # Thus, each version of actions-go-build is built using itself.
-.PHONY: $(CLI)
-# Ensure we build the CLI for the host platform, not the target platform.
-$(CLI):
-	@$(CLEAR)
-	# Running tests...
+
+.PHONY: $(TMP_BUILD)
+$(TMP_BUILD):
+	@echo "# Running tests..." 1>&2
 	@$(RUN_TESTS_QUIET)
-	# First build:   Plain go build...
-	@$(MAKE) $(TMP_BUILD)
-	# Second build:  Using first build to build self...
+	@echo "# Creating temporary build..." 1>&2
+	@rm -f "$(TMP_BUILD)"
+	@mkdir -p "$(dir $(TMP_BUILD))"
+	@go build -o "$(TMP_BUILD)"
+
+.PHONY: $(INTERMEDIATE_BUILD)
+$(INTERMEDIATE_BUILD): export TARGET_DIR := $(dir $(INTERMEDIATE_BUILD))
+$(INTERMEDIATE_BUILD): $(TMP_BUILD)
+	@echo "# Creating intermediate build..." 1>&2
 	@$(TMP_BUILD) build -rebuild
-	# Third build:   Using second (self-built) build to build self...
-	@"$@" build -rebuild
-	# Verifying reproducibility of self...
+
+.PHONY: $(RELEASE_BUILD)
+$(RELEASE_BUILD): $(INTERMEDIATE_BUILD)
+	@echo "# Creating final build." 1>&2
+	@$(INTERMEDIATE_BUILD) build -rebuild
+	@echo "# Verifying reproducibility of self..." 1>&2
 	@./$@ verify
 
-cli: $(CLI)
+cli: $(RELEASE_BUILD)
 	@echo "Build successful."
-	$(CLI) --version
+	$(RELEASE_BUILD) --version
 
 .PHONY: install
+# Ensure install always targets the host platform.
+install: export GOOS :=
+install: export GOARCH :=
+
 ifneq ($(GITHUB_PATH),)
-install: $(CLI)
-	@echo "$(dir $(CURDIR)/$(CLI))" >> "$(GITHUB_PATH)"
+# install for GitHub Actions.
+install: $(RELEASE_BUILD)
+	@echo "$(dir $(CURDIR)/$(RELEASE_BUILD))" >> "$(GITHUB_PATH)"
 	@echo "Command '$(CLINAME)' installed to GITHUB_PATH"
-	PATH="$$(cat $(GITHUB_PATH))" $(CLINAME) --version
+	@PATH="$$(cat $(GITHUB_PATH))" $(CLINAME) --version
 else
-install: $(CLI)
-	@$(CLEAR)
+# install for local use.
+install: $(RELEASE_BUILD)
 	@mv "$<" "$(DESTDIR)"
 	@V="$$($(CLINAME) version -short)" && \
 		echo "# $(CLINAME) v$$V installed to $(DESTDIR)"
@@ -157,7 +187,7 @@ mod/framework/update:
 run: $(TMP_BUILD)
 	@$${QUIET:-false} || $(CLEAR)
 	@$${QUIET:-false} || echo "\$$ $(notdir $<) $(RUN)"
-	$(RUNCLI) $(RUN)
+	@$(TMP_BUILD) $(RUN)
 
 .PHONY: docs
 docs: readme changelog
@@ -210,7 +240,7 @@ release:
 	@./dev/release/create
 
 version: version/check
-	@LATEST="$(shell $(GH) release list -L 1 | grep Latest | cut -f1)"; \
+	@LATEST="$(shell $(GH) release list -L 1 --exclude-drafts | grep Latest | cut -f1)"; \
 		echo "Working on v$(CURR_VERSION) (Latest public release: $$LATEST)"
 .PHONY: version
 

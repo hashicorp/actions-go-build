@@ -87,7 +87,7 @@ func BuildSpecificBuildEnvDefinitions() []EnvVar {
 		{
 			"TARGET_DIR",
 			"Absolute path to the zip contents directory.",
-			func(c Config) string { return c.Paths.TargetDir },
+			func(c Config) string { return c.Paths.TargetDir() },
 		},
 		{
 			"BIN_PATH",

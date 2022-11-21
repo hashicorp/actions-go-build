@@ -24,7 +24,6 @@
     },
     "Paths": {
       "WorkDir": "/Users/sam/src/github.com/hashicorp/actions-go-build",
-      "TargetDir": "/Users/sam/src/github.com/hashicorp/actions-go-build/dist",
       "BinPath": "/Users/sam/src/github.com/hashicorp/actions-go-build/dist/actions-go-build",
       "ZipPath": "/Users/sam/src/github.com/hashicorp/actions-go-build/out/actions-go-build_0.1.4_darwin_arm64.zip",
       "MetaDir": "/Users/sam/src/github.com/hashicorp/actions-go-build/meta"

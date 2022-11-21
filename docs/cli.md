@@ -11,11 +11,17 @@ so it can be used as a regular part of the day-to-day development of application
 Some things you might want to use the tool for when working locally.
 
 ```shell
-# Check that the project I'm currently working on is reproducible.
+# Just build the `main` package in the current directory.
+$ actions-go-build build
+
+# Check that the `main` package in the current directory is reproducible.
 $ actions-go-build verify
 
-# Just build the project I'm currently working on.
-$ actions-go-build build
+# Build the `main` package in ./cmd/product1
+$ actions-go-build build ./cmd/product1
+
+# Check that the `main` package in ./cmd/product1 is reproducible.
+$ actions-go-build verify ./cmd/product1
 
 # Export a build result json file for the project I'm working on.
 $ actions-go-build build -o my.buildresult.json
