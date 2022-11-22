@@ -150,7 +150,7 @@ $(INTERMEDIATE_BUILD): $(TMP_BUILD)
 $(RELEASE_BUILD): $(INTERMEDIATE_BUILD)
 	@echo "# Creating final build." 1>&2
 	@$(INTERMEDIATE_BUILD) build -rebuild $(RELEASE_BUILD_FLAGS)
-	@echo "# Verifying reproducibility of self..." 1>&2
+	@echo "# Verifying reproducibility of release build..." 1>&2
 	@./$@ verify
 
 cli: $(RELEASE_BUILD)
