@@ -12,6 +12,9 @@ else
 	CLEAR :=
 endif
 
+SOURCE_ID := .git/source-id
+_ := $(shell SOURCE_ID=$(SOURCE_ID) ./dev/update-source-id)"
+
 default: run
 
 ifeq ($(TMPDIR),)
@@ -130,8 +133,7 @@ env:
 #
 # Thus, each version of actions-go-build is built using itself.
 
-.PHONY: $(TMP_BUILD)
-$(TMP_BUILD):
+$(TMP_BUILD): $(SOURCE_ID)
 	@echo "# Running tests..." 1>&2
 	@$(RUN_TESTS_QUIET)
 	@echo "# Creating temporary build..." 1>&2
@@ -139,7 +141,6 @@ $(TMP_BUILD):
 	@mkdir -p "$(dir $(TMP_BUILD))"
 	@go build -o "$(TMP_BUILD)"
 
-.PHONY: $(INTERMEDIATE_BUILD)
 $(INTERMEDIATE_BUILD): export TARGET_DIR := $(dir $(INTERMEDIATE_BUILD))
 $(INTERMEDIATE_BUILD): $(TMP_BUILD)
 	@echo "# Creating intermediate build..." 1>&2
@@ -148,7 +149,7 @@ $(INTERMEDIATE_BUILD): $(TMP_BUILD)
 .PHONY: $(RELEASE_BUILD)
 $(RELEASE_BUILD): $(INTERMEDIATE_BUILD)
 	@echo "# Creating final build." 1>&2
-	@$(INTERMEDIATE_BUILD) build -rebuild
+	@$(INTERMEDIATE_BUILD) build -rebuild $(RELEASE_BUILD_FLAGS)
 	@echo "# Verifying reproducibility of self..." 1>&2
 	@./$@ verify
 
@@ -236,8 +237,28 @@ endif
 endif
 
 .PHONY: release
-release:
+release: release-builds
 	@./dev/release/create
+
+#
+# Release build targets
+#
+define RELEASE_BUILD_TARGETS
+
+RELEASE_BUILDS := $(RELEASE_BUILDS) build/$(1)
+
+build/$(1): export OS   := $(word 1,$(subst /, ,$(1)))
+build/$(1): export ARCH := $(word 2,$(subst /, ,$(1)))
+build/$(1): RELEASE_BUILD_FLAGS := -clean
+build/$(1): $(RELEASE_BUILD)
+
+endef
+
+RELEASE_PLATFORMS := linux/amd64 linux/arm64 darwin/amd64 darwin/arm64
+$(eval $(foreach P,$(RELEASE_PLATFORMS),$(call RELEASE_BUILD_TARGETS,$(P))))
+
+release-builds: $(RELEASE_BUILDS)
+
 
 version: version/check
 	@LATEST="$(shell $(GH) release list -L 1 --exclude-drafts | grep Latest | cut -f1)"; \

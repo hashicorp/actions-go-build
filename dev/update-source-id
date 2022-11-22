@@ -1,0 +1,9 @@
+#!/usr/bin/env bash
+
+set -Eeuo pipefail
+
+# Update the 
+
+NEW="$(./dev/source-id)"
+CURR="$(cat "$SOURCE_ID" 2>/dev/null || echo none)"
+[[ "$NEW" == "$CURR" ]] || echo "$NEW" > "$SOURCE_ID"
