@@ -2,8 +2,11 @@
 
 set -Eeuo pipefail
 
-# Update the 
+# Update the source ID
+
+SOURCE_ID="${SOURCE_ID:-.git/source-id}"
 
 NEW="$(./dev/source-id)"
 CURR="$(cat "$SOURCE_ID" 2>/dev/null || echo none)"
 [[ "$NEW" == "$CURR" ]] || echo "$NEW" > "$SOURCE_ID"
+echo "$NEW"

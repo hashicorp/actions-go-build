@@ -12,8 +12,8 @@ else
 	CLEAR :=
 endif
 
-SOURCE_ID := .git/source-id
-_ := $(shell SOURCE_ID=$(SOURCE_ID) ./dev/update-source-id)"
+SOURCE_ID       := .git/source-id
+SOURCE_ID_VALUE := $(shell SOURCE_ID=$(SOURCE_ID) ./dev/update-source-id)
 
 default: run
 
@@ -61,24 +61,26 @@ CLINAME          := $(PRODUCT_NAME)
 #
 # See comments below for more explanation.
 
+TMP_BASE := $(TMPDIR)/actions-go-build.builds/$(SOURCE_ID_VALUE)
+
 # TMP_BUILD is a build of the CLI done using just `go build ...`. This is used to bootstrap
 # compiling the CLI using itself, for dogfooding purposes. The TMP_BUILD contains none of the
 # automatically generated metadata like the version or revision. It is used to build the
 # intermediate build...
-TMP_BUILD := $(TMPDIR)/temp-build/$(CLINAME)
+TMP_BUILD := $(TMP_BASE)/bootstrap/$(CLINAME)
 
 # INTERMEDIATE_BUILD is a build of the CLI done using the TMP_BUILD build. Because it used
 # TMP_BUILD (i.e. the code in this repo) to build itself, it contains automatically generated
 # metadata like the version and revision. However, it does not contain the metadata about the
 # version of actions-go-build that built it because TMP_BUILD doesn't have that metadata
 # available to inject.
-INTERMEDIATE_BUILD := $(TMPDIR)/intermediate-build/$(CLINAME)
+INTERMEDIATE_BUILD := $(TMP_BASE)/intermediate/$(CLINAME)
 
 # RELEASE_BUILD is the final build of the CLI, done using the INTERMEDIATE_BUILD. Because
 # INTERMEDIATE_BUILD contains build metadata (e.g. version and revision), it is able to inject
 # that information, into this final build as "tool metadata". Thus we can track the provanance of
 # this binary  just like we are able to with any product binaries also built using this tool.
-RELEASE_BUILD := dist/$(CLINAME)
+RELEASE_BUILD := dist/$(OS)/$(ARCH)/$(CLINAME)
 
 # HOST_PLATFORM_TARGETS are targets that must always produce output compatible with
 # the current host platform. We therefore unset the GOOS and GOARCH variable to allow
@@ -86,6 +88,8 @@ RELEASE_BUILD := dist/$(CLINAME)
 HOST_PLATFORM_TARGETS := $(TMP_BUILD) $(INTERMEDIATE_BUILD) test/go
 $(HOST_PLATFORM_TARGETS): export GOOS :=
 $(HOST_PLATFORM_TARGETS): export GOARCH :=
+
+HOST_PLATFORM_TARGET_ENV := GOOS= GOARCH= OS= ARCH=
 
 #
 # Targets
@@ -98,7 +102,7 @@ test: test/go
 
 .PHONY: test/go
 test/go: compile
-	go test $(GO_TEST_FLAGS) ./...
+	@$(HOST_PLATFORM_TARGET_ENV) go test $(GO_TEST_FLAGS) ./...
 
 cover: GO_TEST_FLAGS := -coverprofile=coverage.profile
 cover: test/go
@@ -139,19 +143,26 @@ $(TMP_BUILD): $(SOURCE_ID)
 	@echo "# Creating temporary build..." 1>&2
 	@rm -f "$(TMP_BUILD)"
 	@mkdir -p "$(dir $(TMP_BUILD))"
-	@go build -o "$(TMP_BUILD)"
+	@$(HOST_PLATFORM_TARGET_ENV) go build -o "$(TMP_BUILD)"
+
+RUN_QUIET = OUT="$$($(1) 2>&1)" || { \
+				echo "Command Failed: $(notdir $(1))"; echo "$$OUT"; exit 1; \
+			} 
 
 $(INTERMEDIATE_BUILD): export TARGET_DIR := $(dir $(INTERMEDIATE_BUILD))
 $(INTERMEDIATE_BUILD): $(TMP_BUILD)
 	@echo "# Creating intermediate build..." 1>&2
-	@$(TMP_BUILD) build -rebuild
+	@$(call RUN_QUIET,$(HOST_PLATFORM_TARGET_ENV) $(TMP_BUILD) build -rebuild)
 
 .PHONY: $(RELEASE_BUILD)
+$(RELEASE_BUILD): export TARGET_DIR = dist/$(OS)/$(ARCH)
 $(RELEASE_BUILD): $(INTERMEDIATE_BUILD)
 	@echo "# Creating final build." 1>&2
-	@$(INTERMEDIATE_BUILD) build -rebuild $(RELEASE_BUILD_FLAGS)
+	@rm -rf "$(TARGET_DIR)"
+	@$(call RUN_QUIET,$(INTERMEDIATE_BUILD) build -rebuild $(RELEASE_BUILD_FLAGS))
 	@echo "# Verifying reproducibility of release build..." 1>&2
-	@./$@ verify
+	@$(call RUN_QUIET,TARGET_DIR= $(INTERMEDIATE_BUILD) verify)
+	# Release build for $(OS)/$(ARCH) succeeded.
 
 cli: $(RELEASE_BUILD)
 	@echo "Build successful."
@@ -245,20 +256,27 @@ release: release-builds
 #
 define RELEASE_BUILD_TARGETS
 
-RELEASE_BUILDS := $(RELEASE_BUILDS) build/$(1)
+$(info $(1))
+
+RELEASE_BUILDS := $(RELEASE_BUILDS) release/build/$(1)
 
 build/$(1): export OS   := $(word 1,$(subst /, ,$(1)))
 build/$(1): export ARCH := $(word 2,$(subst /, ,$(1)))
-build/$(1): RELEASE_BUILD_FLAGS := -clean
 build/$(1): $(RELEASE_BUILD)
+
+# release/build/<platform> requires clean
+
+release/build/$(1): export OS   := $(word 1,$(subst /, ,$(1)))
+release/build/$(1): export ARCH := $(word 2,$(subst /, ,$(1)))
+release/build/$(1): RELEASE_BUILD_FLAGS := -clean
+release/build/$(1): $(RELEASE_BUILD)
 
 endef
 
 RELEASE_PLATFORMS := linux/amd64 linux/arm64 darwin/amd64 darwin/arm64
 $(eval $(foreach P,$(RELEASE_PLATFORMS),$(call RELEASE_BUILD_TARGETS,$(P))))
 
-release-builds: $(RELEASE_BUILDS)
-
+release/build: $(RELEASE_BUILDS)
 
 version: version/check
 	@LATEST="$(shell $(GH) release list -L 1 --exclude-drafts | grep Latest | cut -f1)"; \
