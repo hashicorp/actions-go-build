@@ -57,7 +57,7 @@ CLINAME          := $(PRODUCT_NAME)
 #
 #    1) TMP_BUILD             - No build metadata.
 #    2) INTERMEDIATE_BUILD    - Some build metadata.
-#    3) RELEASE_BUILD         - All build metadata.
+#    3) FINAL_BUILD           - All build metadata.
 #
 # See comments below for more explanation.
 
@@ -76,11 +76,11 @@ TMP_BUILD := $(TMP_BASE)/bootstrap/$(CLINAME)
 # available to inject.
 INTERMEDIATE_BUILD := $(TMP_BASE)/intermediate/$(CLINAME)
 
-# RELEASE_BUILD is the final build of the CLI, done using the INTERMEDIATE_BUILD. Because
+# FINAL_BUILD is the final build of the CLI, done using the INTERMEDIATE_BUILD. Because
 # INTERMEDIATE_BUILD contains build metadata (e.g. version and revision), it is able to inject
 # that information, into this final build as "tool metadata". Thus we can track the provanance of
 # this binary  just like we are able to with any product binaries also built using this tool.
-RELEASE_BUILD := dist/$(OS)/$(ARCH)/$(CLINAME)
+FINAL_BUILD := dist/$(OS)/$(ARCH)/$(CLINAME)
 
 # HOST_PLATFORM_TARGETS are targets that must always produce output compatible with
 # the current host platform. We therefore unset the GOOS and GOARCH variable to allow
@@ -150,23 +150,24 @@ RUN_QUIET = OUT="$$($(1) 2>&1)" || { \
 			} 
 
 $(INTERMEDIATE_BUILD): export TARGET_DIR := $(dir $(INTERMEDIATE_BUILD))
-$(INTERMEDIATE_BUILD): $(TMP_BUILD)
+$(INTERMEDIATE_BUILD): | $(TMP_BUILD)
 	@echo "# Creating intermediate build..." 1>&2
 	@$(call RUN_QUIET,$(HOST_PLATFORM_TARGET_ENV) $(TMP_BUILD) build -rebuild)
 
-.PHONY: $(RELEASE_BUILD)
-$(RELEASE_BUILD): export TARGET_DIR = dist/$(OS)/$(ARCH)
-$(RELEASE_BUILD): $(INTERMEDIATE_BUILD)
-	@echo "# Creating final build." 1>&2
-	@rm -rf "$(TARGET_DIR)"
-	@$(call RUN_QUIET,$(INTERMEDIATE_BUILD) build -rebuild $(RELEASE_BUILD_FLAGS))
-	@echo "# Verifying reproducibility of release build..." 1>&2
-	@$(call RUN_QUIET,TARGET_DIR= $(INTERMEDIATE_BUILD) verify)
-	# Release build for $(OS)/$(ARCH) succeeded.
 
-cli: $(RELEASE_BUILD)
+.PHONY: $(FINAL_BUILD)
+$(FINAL_BUILD): export TARGET_DIR = dist/$(OS)/$(ARCH)
+$(FINAL_BUILD): $(INTERMEDIATE_BUILD)
+	@echo "# Creating final build..." 1>&2
+	@rm -rf "$(TARGET_DIR)"
+	@$(call RUN_QUIET,$(INTERMEDIATE_BUILD) build -rebuild $(FINAL_BUILD_FLAGS))
+	@echo "# Verifying reproducibility of final build..." 1>&2
+	@$(call RUN_QUIET,TARGET_DIR= $(INTERMEDIATE_BUILD) verify)
+	# $(BUILD_TYPE) build for $(OS)/$(ARCH) succeeded.
+
+cli: $(FINAL_BUILD)
 	@echo "Build successful."
-	$(RELEASE_BUILD) --version
+	$(FINAL_BUILD) --version
 
 .PHONY: install
 # Ensure install always targets the host platform.
@@ -175,13 +176,13 @@ install: export GOARCH :=
 
 ifneq ($(GITHUB_PATH),)
 # install for GitHub Actions.
-install: $(RELEASE_BUILD)
-	@echo "$(dir $(CURDIR)/$(RELEASE_BUILD))" >> "$(GITHUB_PATH)"
+install: $(FINAL_BUILD)
+	@echo "$(dir $(CURDIR)/$(FINAL_BUILD))" >> "$(GITHUB_PATH)"
 	@echo "Command '$(CLINAME)' installed to GITHUB_PATH"
 	@PATH="$$(cat $(GITHUB_PATH))" $(CLINAME) --version
 else
 # install for local use.
-install: $(RELEASE_BUILD)
+install: $(FINAL_BUILD)
 	@mv "$<" "$(DESTDIR)"
 	@V="$$($(CLINAME) version -short)" && \
 		echo "# $(CLINAME) v$$V installed to $(DESTDIR)"
@@ -254,27 +255,33 @@ release: release-builds
 #
 # Release build targets
 #
-define RELEASE_BUILD_TARGETS
-
-$(info $(1))
+define FINAL_BUILD_TARGETS
 
 RELEASE_BUILDS := $(RELEASE_BUILDS) release/build/$(1)
+DEV_BUILDS     := $(DEV_BUILDS) build/$(1)
+
+# build/<platform> does not require a clean worktree and results in a "Development" build.
 
 build/$(1): export OS   := $(word 1,$(subst /, ,$(1)))
 build/$(1): export ARCH := $(word 2,$(subst /, ,$(1)))
-build/$(1): $(RELEASE_BUILD)
+build/$(1): BUILD_TYPE := Development
+build/$(1): $(FINAL_BUILD)
 
-# release/build/<platform> requires clean
+# release/build/<platform> requires a clean worktree and results in a "Release" build.
 
 release/build/$(1): export OS   := $(word 1,$(subst /, ,$(1)))
 release/build/$(1): export ARCH := $(word 2,$(subst /, ,$(1)))
-release/build/$(1): RELEASE_BUILD_FLAGS := -clean
-release/build/$(1): $(RELEASE_BUILD)
+release/build/$(1): FINAL_BUILD_FLAGS := -clean
+release/build/$(1): BUILD_TYPE := Release
+release/build/$(1): $(FINAL_BUILD)
 
 endef
 
-RELEASE_PLATFORMS := linux/amd64 linux/arm64 darwin/amd64 darwin/arm64
-$(eval $(foreach P,$(RELEASE_PLATFORMS),$(call RELEASE_BUILD_TARGETS,$(P))))
+TARGET_PLATFORMS := linux/amd64 linux/arm64 darwin/amd64 darwin/arm64
+$(eval $(foreach P,$(TARGET_PLATFORMS),$(call FINAL_BUILD_TARGETS,$(P))))
+
+.PHONY: $(RELEASE_BUILDS)
+.PHONY: $(DEV_BUILDS)
 
 release/build: $(RELEASE_BUILDS)
 
