@@ -25,21 +25,24 @@ func New(w io.Writer, logFunc func(string, ...any)) *Zipper {
 	}
 }
 
-// ZipDir zips the contents of dir to the provided writer, and flattens any
-// directory hierarchy, so the resultant zip has just a flat list of
-// files. Filename conflicts result in error.
+// ZipDir zips the file contents of dir to the provided writer, and ignores files
+// contained in subdirectories.
 // It aims to produce reproducible zips by writing entries in a predictable
 // order.
-//
-// It is intended to perform the same function as calling 'zip -Xrj $zipFile $dir'
 func (z *Zipper) ZipDir(dir string) error {
 	z.log("Zipping %q", dir)
 	if err := filepath.WalkDir(dir, func(path string, d fs.DirEntry, err error) error {
 		if err != nil {
 			return err
 		}
-		if d.IsDir() {
+		if path == dir {
+			// We want to scan inside the root dir only, so
+			// return null to allow us to keep walking.
 			return nil
+		}
+		if d.IsDir() {
+			// Any other dirs are skipped entirely.
+			return fs.SkipDir
 		}
 		name := filepath.Base(path)
 
@@ -95,8 +98,7 @@ func (z *Zipper) writeEntry(name string, source *os.File) error {
 	return err
 }
 
-// ZipToFile is a convenience function meant to be equivalent to using the command line:
-// 'zip -Xrj $zipFile $dir`
+// ZipToFile is a convenience function that zips straight to a file.
 func ZipToFile(dir, zipFile string, logFunc func(string, ...any)) error {
 	f, err := os.Create(zipFile)
 	if err != nil {
