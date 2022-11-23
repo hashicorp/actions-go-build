@@ -127,20 +127,23 @@ env:
 	@echo "  PRODUCT_REVISION=$$PRODUCT_REVISION"
 	@echo "  PRODUCT_REVISION_TIME=$$PRODUCT_REVISION_TIME"
 
-# When building the binary, we first do a plain 'go build' to build a temporary
+# When building the binary, we first do a plain 'go build' to build a bootstrap
 # binary that contains no version info. Then we use that version of the binary
-# to build this product with all the version info added automatically from the
+# to build this product with all its own version info added automatically from the
 # build context.
 #
 # We then use _that_ binary to build yet another binary, this time with the
-# correct tool version injected into the build.
+# correct tool version injected into the build. So it now contains the version of
+# actions-go-build that built this verison of actions-go-build as well (these
+# versions are the same).
 #
-# Thus, each version of actions-go-build is built using itself.
+# By performing all three builds, we are fully dogfooding the build process, and
+# ensuring that the version we are releasing has been used to produce itself.
 
 $(BOOTSTRAP_BUILD): $(SOURCE_ID)
 	@echo "# Running tests..." 1>&2
 	@$(RUN_TESTS_QUIET)
-	@echo "# Creating temporary build..." 1>&2
+	@echo "# Creating bootstrap build..." 1>&2
 	@rm -f "$(BOOTSTRAP_BUILD)"
 	@mkdir -p "$(dir $(BOOTSTRAP_BUILD))"
 	@$(HOST_PLATFORM_TARGET_ENV) go build -o "$(BOOTSTRAP_BUILD)"
