@@ -55,7 +55,7 @@ CLINAME          := $(PRODUCT_NAME)
 
 # Release versions of the CLI are built in three phases:
 #
-#    1) TMP_BUILD             - No build metadata.
+#    1) BOOTSTRAP_BUILD       - No build metadata.
 #    2) INTERMEDIATE_BUILD    - Some build metadata.
 #    3) FINAL_BUILD           - All build metadata.
 #
@@ -63,16 +63,16 @@ CLINAME          := $(PRODUCT_NAME)
 
 TMP_BASE := $(TMPDIR)/actions-go-build.builds/$(SOURCE_ID_VALUE)
 
-# TMP_BUILD is a build of the CLI done using just `go build ...`. This is used to bootstrap
-# compiling the CLI using itself, for dogfooding purposes. The TMP_BUILD contains none of the
+# BOOTSTRAP_BUILD is a build of the CLI done using just `go build ...`. This is used to bootstrap
+# compiling the CLI using itself, for dogfooding purposes. The BOOTSTRAP_BUILD contains none of the
 # automatically generated metadata like the version or revision. It is used to build the
 # intermediate build...
-TMP_BUILD := $(TMP_BASE)/bootstrap/$(CLINAME)
+BOOTSTRAP_BUILD := $(TMP_BASE)/bootstrap/$(CLINAME)
 
-# INTERMEDIATE_BUILD is a build of the CLI done using the TMP_BUILD build. Because it used
-# TMP_BUILD (i.e. the code in this repo) to build itself, it contains automatically generated
+# INTERMEDIATE_BUILD is a build of the CLI done using the BOOTSTRAP_BUILD build. Because it used
+# BOOTSTRAP_BUILD (i.e. the code in this repo) to build itself, it contains automatically generated
 # metadata like the version and revision. However, it does not contain the metadata about the
-# version of actions-go-build that built it because TMP_BUILD doesn't have that metadata
+# version of actions-go-build that built it because BOOTSTRAP_BUILD doesn't have that metadata
 # available to inject.
 INTERMEDIATE_BUILD := $(TMP_BASE)/intermediate/$(CLINAME)
 
@@ -85,7 +85,7 @@ FINAL_BUILD := dist/$(OS)/$(ARCH)/$(CLINAME)
 # HOST_PLATFORM_TARGETS are targets that must always produce output compatible with
 # the current host platform. We therefore unset the GOOS and GOARCH variable to allow
 # the defaults to shine through.
-HOST_PLATFORM_TARGETS := $(TMP_BUILD) $(INTERMEDIATE_BUILD) test/go
+HOST_PLATFORM_TARGETS := $(BOOTSTRAP_BUILD) $(INTERMEDIATE_BUILD) test/go
 $(HOST_PLATFORM_TARGETS): export GOOS :=
 $(HOST_PLATFORM_TARGETS): export GOARCH :=
 
@@ -137,22 +137,22 @@ env:
 #
 # Thus, each version of actions-go-build is built using itself.
 
-$(TMP_BUILD): $(SOURCE_ID)
+$(BOOTSTRAP_BUILD): $(SOURCE_ID)
 	@echo "# Running tests..." 1>&2
 	@$(RUN_TESTS_QUIET)
 	@echo "# Creating temporary build..." 1>&2
-	@rm -f "$(TMP_BUILD)"
-	@mkdir -p "$(dir $(TMP_BUILD))"
-	@$(HOST_PLATFORM_TARGET_ENV) go build -o "$(TMP_BUILD)"
+	@rm -f "$(BOOTSTRAP_BUILD)"
+	@mkdir -p "$(dir $(BOOTSTRAP_BUILD))"
+	@$(HOST_PLATFORM_TARGET_ENV) go build -o "$(BOOTSTRAP_BUILD)"
 
 RUN_QUIET = OUT="$$($(1) 2>&1)" || { \
 				echo "Command Failed: $(notdir $(1))"; echo "$$OUT"; exit 1; \
 			} 
 
 $(INTERMEDIATE_BUILD): export TARGET_DIR := $(dir $(INTERMEDIATE_BUILD))
-$(INTERMEDIATE_BUILD): | $(TMP_BUILD)
+$(INTERMEDIATE_BUILD): | $(BOOTSTRAP_BUILD)
 	@echo "# Creating intermediate build..." 1>&2
-	@$(call RUN_QUIET,$(HOST_PLATFORM_TARGET_ENV) $(TMP_BUILD) build -rebuild)
+	@$(call RUN_QUIET,$(HOST_PLATFORM_TARGET_ENV) $(BOOTSTRAP_BUILD) build -rebuild)
 
 
 .PHONY: $(FINAL_BUILD)
@@ -163,7 +163,7 @@ $(FINAL_BUILD): $(INTERMEDIATE_BUILD)
 	@$(call RUN_QUIET,$(INTERMEDIATE_BUILD) build -rebuild $(FINAL_BUILD_FLAGS))
 	@echo "# Verifying reproducibility of final build..." 1>&2
 	@$(call RUN_QUIET,TARGET_DIR= $(INTERMEDIATE_BUILD) verify)
-	# $(BUILD_TYPE) build for $(OS)/$(ARCH) succeeded.
+	@if [[ -n "$(OS)" ]]; then echo "# $(BUILD_TYPE) build for $(OS)/$(ARCH) succeeded."; fi
 
 cli: $(FINAL_BUILD)
 	@echo "Build successful."
@@ -197,10 +197,10 @@ mod/framework/update:
 # which is usful for quickly seeing its output whilst developing.
 
 .PHONY: run
-run: $(TMP_BUILD)
+run: $(BOOTSTRAP_BUILD)
 	@$${QUIET:-false} || $(CLEAR)
 	@$${QUIET:-false} || echo "\$$ $(notdir $<) $(RUN)"
-	@$(TMP_BUILD) $(RUN)
+	@$(BOOTSTRAP_BUILD) $(RUN)
 
 .PHONY: docs
 docs: readme changelog
