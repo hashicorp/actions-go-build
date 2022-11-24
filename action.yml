@@ -90,6 +90,7 @@ runs:
     - uses: actions/setup-go@v3
       with:
         go-version: ${{ inputs.go_version }}
+        cache: true
 
     # Read config.
     - name: Read config from inputs; export to GITHUB_ENV
