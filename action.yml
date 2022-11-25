@@ -81,7 +81,7 @@ runs:
       with:
         go-version: 1.18
         cache: true
-        cache-dependency-path: ${{ github.action_path }}/go.sum
+        cache-dependency-path: ../../_actions/hashicorp/actions-go-build/cache-go-dependencies/go.sum
 
     - name: Action Setup
       shell: bash
