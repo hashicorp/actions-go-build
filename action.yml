@@ -80,15 +80,17 @@ runs:
     - uses: actions/setup-go@v3
       with:
         go-version: 1.18
-        
-    - name: clean mod cache
-      shell: bash
-      run: go clean -cache -modcache -i -r -x
-    
+
+
     - name: Action Setup
       shell: bash
       working-directory: ${{ github.action_path }}
       run: ./action-setup
+      
+    - name: clean mod cache
+      shell: bash
+      run: go clean -cache -modcache -i -r -x
+    
 
     # Setup Go
     - uses: actions/setup-go@v3
