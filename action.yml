@@ -80,9 +80,11 @@ runs:
     - uses: actions/setup-go@v3
       with:
         go-version: 1.18
-        cache: true
-        cache-dependency-path: ../../_actions/hashicorp/actions-go-build/cache-go-dependencies/go.sum
-
+        
+    - name: clean mod cache
+.     shell: bash
+      run: go clean -modcache
+    
     - name: Action Setup
       shell: bash
       working-directory: ${{ github.action_path }}
