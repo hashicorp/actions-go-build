@@ -82,7 +82,7 @@ runs:
         go-version: 1.18
         
     - name: clean mod cache
-.     shell: bash
+      shell: bash
       run: go clean -modcache
     
     - name: Action Setup
