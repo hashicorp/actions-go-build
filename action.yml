@@ -83,7 +83,7 @@ runs:
         
     - name: clean mod cache
       shell: bash
-      run: go clean -modcache
+      run: go clean -cache -modcache -i -r
     
     - name: Action Setup
       shell: bash
