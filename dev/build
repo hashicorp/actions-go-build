@@ -93,13 +93,6 @@ all() { local PLATFORM="${1:-$HOST_PLATFORM}" BIN_PATH="${BIN_PATH:-}" BOOTSTRAP
 	fi
 	# Verify the final build.
 	VERIFICATION="$(BIN_PATH="" verify "$FINAL_HOST" "$RESULT")" || return 1
-	F_SHA="$(sha "$FINAL")" || return 1
-	V_SHA="$(sha "$VERIFICATION")" || return 1
-	[[ "$F_SHA" == "$V_SHA" ]] || {
-		log "FINAL:        %s" "$FINAL"
-		log "VERIFICATION: %s" "$VERIFICATION"
-		return "$(err "SHA mismatch:\n  FINAL:        %s\n  VERIFICATION: %s" "$F_SHA" "$V_SHA")"
-	}
 	log "Success; binary written to $FINAL"
 }
 
