@@ -137,7 +137,6 @@ _build() { local TYPE="$1" PLATFORM="$2" BIN_PATH="${BIN_PATH:-}"; shift 2
 	export BIN_PATH
 	log "Building %s %s/%s binary..." "$TYPE" "$OS" "$ARCH"
 	OS="$OS" ARCH="$ARCH" BIN_PATH="$BIN_PATH" "$@" || return 1
-	[[ -f "$BIN_PATH" ]] || return "$(err "Binary file not created: %s", "$BIN_PATH")"
 	echo "$BIN_PATH"
 }
 
