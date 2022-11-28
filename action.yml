@@ -89,9 +89,10 @@ runs:
       
     - name: clean mod cache
       shell: bash
-      run: go clean -modcache
+      run: |
+        go clean -modcache
+        unset GOEXPERIMENT
     
-
     # Setup Go
     - uses: actions/setup-go@v3
       with:
