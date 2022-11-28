@@ -29,10 +29,8 @@ is_verbose() { enabled VERBOSE || enabled DEBUG; }
 debug()   { is_debug   || return 0; local F="DEBUG: $1"; shift; log "$F" "$@"; }
 verbose() { is_verbose || return 0; local F="INFO: $1"; shift; log "$F" "$@"; }
 run() {
-	if is_verbose; then
-		# shellcheck disable=SC2001 # using sed not bash find/replace.
-		log "RUNNING: $(sed "s,$TMP_ROOT,\$TMP_ROOT,g" <<< "$*")"
-	fi
+	# shellcheck disable=SC2001 # using sed not bash find/replace.
+	log "\$ $(sed "s,$TMP_ROOT,\$TMP_ROOT,g" <<< "$*")"
 	/usr/bin/env "$@"
 }
 
@@ -81,14 +79,22 @@ all() { local PLATFORM="${1:-$HOST_PLATFORM}" BIN_PATH="${BIN_PATH:-}" BOOTSTRAP
 	# Build bootstrap and intermediate for the host platform always as we need
 	# to execute them here. Always build them to their default path, not the specified BIN_PATH,
 	# as we reserve that for the final build.
-	BOOTSTRAP="$(BIN_PATH="" bootstrap "$HOST_PLATFORM")"
-	INTERMEDIATE="$(BIN_PATH="" intermediate "$BOOTSTRAP" "$HOST_PLATFORM")"
+	BOOTSTRAP="$(BIN_PATH="" bootstrap)" || return 
+	INTERMEDIATE="$(BIN_PATH="" intermediate "$BOOTSTRAP")" || return 1
+	FINAL_HOST_RESULT="$(tmpfile "final/$HOST_PLATFORM/result.json")"
+	FINAL_HOST="$(final "$INTERMEDIATE" "$FINAL_HOST_RESULT" "$HOST_PLATFORM")" || return 1
 	# Build the final build according to the requested platform.
-	FINAL="$(final "$INTERMEDIATE" "$PLATFORM")"
+	if [[ "$PLATFORM" == "$HOST_PLATFORM" ]]; then
+		FINAL="$FINAL_HOST"
+		RESULT="$FINAL_HOST_RESULT"
+	else
+		RESULT="$(tmpfile "final/$PLATFORM/result.json")"
+		FINAL="$(final "$FINAL_HOST" "$RESULT" "$PLATFORM")" || return 1
+	fi
 	# Verify the final build.
-	VERIFICATION="$(BIN_PATH="" verify "$FINAL" "$PLATFORM")"
-	F_SHA="$(sha "$FINAL")"
-	V_SHA="$(sha "$VERIFICATION")"
+	VERIFICATION="$(BIN_PATH="" verify "$FINAL_HOST" "$RESULT")" || return 1
+	F_SHA="$(sha "$FINAL")" || return 1
+	V_SHA="$(sha "$VERIFICATION")" || return 1
 	[[ "$F_SHA" == "$V_SHA" ]] || {
 		log "FINAL:        %s" "$FINAL"
 		log "VERIFICATION: %s" "$VERIFICATION"
@@ -99,22 +105,22 @@ all() { local PLATFORM="${1:-$HOST_PLATFORM}" BIN_PATH="${BIN_PATH:-}" BOOTSTRAP
 
 # bootstrap produces a bootstrap build at BIN_PATH, or a default path,
 # and prints the path of the built binary.
-bootstrap() { local PLATFORM="${1:-$HOST_PLATFORM}" BIN_PATH="${BIN_PATH:-}"
-	_build bootstrap "$PLATFORM" _go_build
+bootstrap() { local BIN_PATH="${BIN_PATH:-}" RESULT="${2:-}"
+	_build bootstrap "$HOST_PLATFORM" _go_build
 }
 
 # intermediate produces an intermediate build given a bootstrap build.
-intermediate() { local BOOTSTRAP="$1" PLATFORM="${2:-$HOST_PLATFORM}" BIN_PATH="${BIN_PATH:-}"
-	_build intermediate "$PLATFORM" _self_build "$BOOTSTRAP" build
+intermediate() { local BOOTSTRAP="$1" RESULT="${2:-/dev/null}" BIN_PATH="${BIN_PATH:-}"
+	_build intermediate "$HOST_PLATFORM" _self_build "$BOOTSTRAP" "$RESULT"
 }
 
 # final produces a final build given an intermediate build.
-final() { local INTERMEDIATE="$1" PLATFORM="${2:-$HOST_PLATFORM}" BIN_PATH="${BIN_PATH:-}"
-	_build final "$PLATFORM" _self_build "$INTERMEDIATE"  build
+final() { local INTERMEDIATE="$1" RESULT="$2" PLATFORM="${3:-$HOST_PLATFORM}"
+	_build final "$PLATFORM" _self_build "$INTERMEDIATE" "$RESULT"
 }
 
-verify() { local FINAL="$1" PLATFORM="${2:-$HOST_PLATFORM}" BIN_PATH="${BIN_PATH:-}"
-	_build verification "$PLATFORM" _self_build "$FINAL" verify
+verify() { local FINAL="$1" RESULT_IN="$2" RESULT_OUT="${3:-}"
+	run "$FINAL" verify -q "$RESULT_IN"
 }
 
 #
@@ -125,17 +131,17 @@ verify() { local FINAL="$1" PLATFORM="${2:-$HOST_PLATFORM}" BIN_PATH="${BIN_PATH
 _build() { local TYPE="$1" PLATFORM="$2" BIN_PATH="${BIN_PATH:-}"; shift 2
 	verbose "TMP_ROOT=$TMP_ROOT"
 	assert_supported_platform "$PLATFORM"
-	OS="$(cut -d'/' -f1 <<< "$PLATFORM")"
-	ARCH="$(cut -d'/' -f2 <<< "$PLATFORM")"
-	BIN_PATH="$(get_bin_path "$TYPE" "$PLATFORM")"
+	OS="$(cut -d'/' -f1 <<< "$PLATFORM")" || return 1
+	ARCH="$(cut -d'/' -f2 <<< "$PLATFORM")" || return 1
+	BIN_PATH="$(get_bin_path "$TYPE" "$PLATFORM")" || return 1
 	log "Building %s %s/%s binary..." "$TYPE" "$OS" "$ARCH"
-	rm -f "$BIN_PATH"
-	OS="$OS" ARCH="$ARCH" BIN_PATH="$BIN_PATH" "$@"
+	OS="$OS" ARCH="$ARCH" BIN_PATH="$BIN_PATH" "$@" || return 1
 	[[ -f "$BIN_PATH" ]] || return "$(err "Binary file not created: %s", "$BIN_PATH")"
 	echo "$BIN_PATH"
 }
 
-_self_build() { local USING="$1"; shift; local ARGS=("$@" -rebuild)
+_self_build() { local USING="$1" RESULT_PATH="$2"; shift 2
+	local ARGS=("$@" -rebuild -json)
 	if is_debug; then
 		ARGS+=(-debug)
 	elif is_verbose; then
@@ -146,22 +152,28 @@ _self_build() { local USING="$1"; shift; local ARGS=("$@" -rebuild)
 	TARGET_DIR="$(dirname "$BIN_PATH")"
 	BIN_NAME="$(basename "$BIN_PATH")"
 	export TARGET_DIR BIN_NAME
-	run "$USING" "${ARGS[@]}"
+	run "$USING" build "${ARGS[@]}" > "$RESULT_PATH"
 }
 
 _go_build() { PACKAGE="${1:-.}"
 	GOOS="$OS" GOARCH="$ARCH" run go build -o "$BIN_PATH" "$PACKAGE"
 }
 
-# tmpdir creates a temp directory, ensures it is empty, and prints its path.
-tmpdir() { local D="$TMP_ROOT/$1"; rm -rf "$D" &&  mkdir -p "$D" && echo "$D"; }
+# tmpdir creates a temp directory and prints its path.
+tmpdir() { local D="$TMP_ROOT/$1" && mkdir -p "$D" && echo "$D"; }
+
+tmpfile() { local D R F
+	D="$(dirname "$1")"
+	R="$(tmpdir "$D")"
+	F="$R/$(basename "$1")"
+	rm -rf "$F"
+	echo "$F"
+}
 
 get_bin_path() { local KIND="$1" PLATFORM="$2"
 	[[ -z "${BIN_PATH:-}" ]] || { echo "$BIN_PATH" && return 0; }
 	[[ -z "${TARGET_DIR:-}" ]] || { echo "$TARGET_DIR/$BIN_NAME" && return 0; }
-	local DIR
-	DIR="$(tmpdir "$KIND/$PLATFORM")"
-	echo "$DIR/$BIN_NAME"
+	tmpfile "$KIND/$PLATFORM/dist/$BIN_NAME"
 }
 
 is_supported_platform() { local P="$1"
