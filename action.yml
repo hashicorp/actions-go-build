@@ -75,13 +75,16 @@ inputs:
 runs:
   using: composite
   steps:
+  
+    - name: unset GOEXPERIMENT
+      shell: bash
+      run: unset GOEXPERIMENT
 
     # Setup Go for CLI compilation.
     - uses: actions/setup-go@v3
       with:
         go-version: 1.18
-
-
+        
     - name: Action Setup
       shell: bash
       working-directory: ${{ github.action_path }}
@@ -91,7 +94,6 @@ runs:
       shell: bash
       run: |
         go clean -modcache
-        unset GOEXPERIMENT
     
     # Setup Go
     - uses: actions/setup-go@v3
