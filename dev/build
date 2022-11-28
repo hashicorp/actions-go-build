@@ -120,7 +120,7 @@ final() { local INTERMEDIATE="$1" RESULT="$2" PLATFORM="${3:-$HOST_PLATFORM}"
 }
 
 verify() { local FINAL="$1" RESULT_IN="$2" RESULT_OUT="${3:-/dev/null}"
-	_build verification "$PLATFORM" _self_build "$INTERMEDIATE" "$RESULT_OUT" verify "$RESULT_IN"
+	_build verification "$HOST_PLATFORM" _self_build "$INTERMEDIATE" "$RESULT_OUT" verify "$RESULT_IN"
 }
 
 #
