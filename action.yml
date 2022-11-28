@@ -75,11 +75,6 @@ inputs:
 runs:
   using: composite
   steps:
-  
-    - name: unset GOEXPERIMENT
-      shell: bash
-      run: unset GOEXPERIMENT
-
     # Setup Go for CLI compilation.
     - uses: actions/setup-go@v3
       with:
@@ -97,6 +92,8 @@ runs:
     
     # Setup Go
     - uses: actions/setup-go@v3
+      env:
+        GOEXPERIMENT: ""
       with:
         go-version: ${{ inputs.go_version }}
         cache: true
