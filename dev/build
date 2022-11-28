@@ -30,7 +30,9 @@ debug()   { is_debug   || return 0; local F="DEBUG: $1"; shift; log "$F" "$@"; }
 verbose() { is_verbose || return 0; local F="INFO: $1"; shift; log "$F" "$@"; }
 run() {
 	# shellcheck disable=SC2001 # using sed not bash find/replace.
-	log "\$ $(sed "s,$TMP_ROOT,\$TMP_ROOT,g" <<< "$*")"
+	if is_verbose; then
+		log "\$ $(sed "s,$TMP_ROOT,\$TMP_ROOT,g" <<< "$*")"
+	fi
 	/usr/bin/env "$@"
 }
 
@@ -44,7 +46,9 @@ Makefile.funcs.main() {
 	[[ $CODE == 0 ]] || die "Script exited with code $CODE before main func could run."
 	[[ ${#@} != 0 ]] || { log "No arguments passed."; exit; }; local FUNC="$1"; shift
 	declare -F | cut -d' ' -f3 | grep -qE "^$FUNC\$" || die "Function '%s' not defined." "$FUNC"
+	rm -rf "${TMP_ROOT:?}"
 	"$FUNC" "$@"
+	
 }
 #
 # End Header
@@ -83,6 +87,8 @@ all() { local PLATFORM="${1:-$HOST_PLATFORM}" BIN_PATH="${BIN_PATH:-}" BOOTSTRAP
 	INTERMEDIATE="$(BIN_PATH="" intermediate "$BOOTSTRAP")" || return 1
 	FINAL_HOST_RESULT="$(tmpfile "final/$HOST_PLATFORM/result.json")"
 	FINAL_HOST="$(final "$INTERMEDIATE" "$FINAL_HOST_RESULT" "$HOST_PLATFORM")" || return 1
+	# Verify the final build for the host platform.
+	VERIFICATION="$(BIN_PATH="" verify "$FINAL_HOST")" || return 1
 	# Build the final build according to the requested platform.
 	if [[ "$PLATFORM" == "$HOST_PLATFORM" ]]; then
 		FINAL="$FINAL_HOST"
@@ -91,8 +97,6 @@ all() { local PLATFORM="${1:-$HOST_PLATFORM}" BIN_PATH="${BIN_PATH:-}" BOOTSTRAP
 		RESULT="$(tmpfile "final/$PLATFORM/result.json")"
 		FINAL="$(final "$FINAL_HOST" "$RESULT" "$PLATFORM")" || return 1
 	fi
-	# Verify the final build.
-	VERIFICATION="$(BIN_PATH="" verify "$FINAL_HOST" "$RESULT")" || return 1
 	log "Success; binary written to $FINAL"
 }
 
@@ -104,16 +108,20 @@ bootstrap() { local BIN_PATH="${BIN_PATH:-}" RESULT="${2:-}"
 
 # intermediate produces an intermediate build given a bootstrap build.
 intermediate() { local BOOTSTRAP="$1" RESULT="${2:-/dev/null}" BIN_PATH="${BIN_PATH:-}"
-	_build intermediate "$HOST_PLATFORM" _self_build "$BOOTSTRAP" "$RESULT" build
+	_build intermediate "$HOST_PLATFORM" _self_build "$BOOTSTRAP" build "$RESULT"
 }
 
 # final produces a final build given an intermediate build.
 final() { local INTERMEDIATE="$1" RESULT="$2" PLATFORM="${3:-$HOST_PLATFORM}"
-	_build final "$PLATFORM" _self_build "$INTERMEDIATE" "$RESULT" build
+	_build final "$PLATFORM" _self_build "$INTERMEDIATE" build "$RESULT"
 }
 
-verify() { local FINAL="$1" RESULT_IN="$2" RESULT_OUT="${3:-/dev/null}"
-	_build verification "$HOST_PLATFORM" _self_build "$FINAL" "$RESULT_OUT" verify "$RESULT_IN"
+verify() { local FINAL="$1" RESULT_OUT="${2:-/dev/null}"
+	_build verification "$HOST_PLATFORM" _self_build "$FINAL" verify "$RESULT_OUT"
+}
+
+verify_remote() { local FINAL="$1" RESULT_IN="$2" RESULT_OUT="${3:-/dev/null}"
+	_build verification "$HOST_PLATFORM" _self_build "$FINAL" verify "$RESULT_OUT" "$RESULT_IN"
 }
 
 #
@@ -133,19 +141,19 @@ _build() { local TYPE="$1" PLATFORM="$2" BIN_PATH="${BIN_PATH:-}"; shift 2
 	echo "$BIN_PATH"
 }
 
-_self_build() { local USING="$1" RESULT_PATH="$2"; shift 2
-	local ARGS=("$@" -rebuild -json)
+_self_build() { local USING="$1" SUBCOMMAND="$2" RESULT_PATH="$3"; shift 3
+	local FLAGS=(-rebuild -json)
 	if is_debug; then
-		ARGS+=(-debug)
+		FLAGS+=(-debug)
 	elif is_verbose; then
-		ARGS+=(-v)
+		FLAGS+=(-v)
 	else
-		ARGS+=(-q)
+		FLAGS+=(-q)
 	fi
 	TARGET_DIR="$(dirname "$BIN_PATH")"
 	BIN_NAME="$(basename "$BIN_PATH")"
 	export TARGET_DIR BIN_NAME
-	run "$USING" "${ARGS[@]}" > "$RESULT_PATH"
+	run "$USING" "$SUBCOMMAND" "${FLAGS[@]}" "$@" > "$RESULT_PATH"
 }
 
 _go_build() { PACKAGE="${1:-.}"
