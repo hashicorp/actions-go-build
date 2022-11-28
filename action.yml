@@ -77,6 +77,8 @@ runs:
   steps:
     # Setup Go for CLI compilation.
     - uses: actions/setup-go@v3
+      env:
+        GOEXPERIMENT: ""
       with:
         go-version: 1.18
         
@@ -92,8 +94,6 @@ runs:
     
     # Setup Go
     - uses: actions/setup-go@v3
-      env:
-        GOEXPERIMENT: ""
       with:
         go-version: ${{ inputs.go_version }}
         cache: true
