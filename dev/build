@@ -111,16 +111,16 @@ bootstrap() { local BIN_PATH="${BIN_PATH:-}" RESULT="${2:-}"
 
 # intermediate produces an intermediate build given a bootstrap build.
 intermediate() { local BOOTSTRAP="$1" RESULT="${2:-/dev/null}" BIN_PATH="${BIN_PATH:-}"
-	_build intermediate "$HOST_PLATFORM" _self_build "$BOOTSTRAP" "$RESULT"
+	_build intermediate "$HOST_PLATFORM" _self_build "$BOOTSTRAP" "$RESULT" build
 }
 
 # final produces a final build given an intermediate build.
 final() { local INTERMEDIATE="$1" RESULT="$2" PLATFORM="${3:-$HOST_PLATFORM}"
-	_build final "$PLATFORM" _self_build "$INTERMEDIATE" "$RESULT"
+	_build final "$PLATFORM" _self_build "$INTERMEDIATE" "$RESULT" build
 }
 
-verify() { local FINAL="$1" RESULT_IN="$2" RESULT_OUT="${3:-}"
-	run "$FINAL" verify -q "$RESULT_IN"
+verify() { local FINAL="$1" RESULT_IN="$2" RESULT_OUT="${3:-/dev/null}"
+	_build verification "$PLATFORM" _self_build "$INTERMEDIATE" "$RESULT_OUT" verify "$RESULT_IN"
 }
 
 #
@@ -152,7 +152,7 @@ _self_build() { local USING="$1" RESULT_PATH="$2"; shift 2
 	TARGET_DIR="$(dirname "$BIN_PATH")"
 	BIN_NAME="$(basename "$BIN_PATH")"
 	export TARGET_DIR BIN_NAME
-	run "$USING" build "${ARGS[@]}" > "$RESULT_PATH"
+	run "$USING" "${ARGS[@]}" > "$RESULT_PATH"
 }
 
 _go_build() { PACKAGE="${1:-.}"
