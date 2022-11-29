@@ -1,5 +1,6 @@
 #!/usr/bin/env bash
 
+# shellcheck disable=SC2030,SC2031 # We modify exported vars in subshells on purpose in this script.
 
 # build
 #
@@ -41,15 +42,20 @@ run() {
 # Set exit trap if this file was directly invoked rather than sourced.
 # https://stackoverflow.com/questions/2683279/how-to-detect-if-a-script-is-being-sourced
 (return 0 2>/dev/null) || trap 'Makefile.funcs.main "$@"' EXIT
+Makefile.funcs.func_exists() { declare -F | cut -d' ' -f3 | grep -qE "^$1\$"; }
 Makefile.funcs.main() {
 	local CODE=$?; trap - EXIT
 	[[ $CODE == 0 ]] || die "Script exited with code $CODE before main func could run."
-	[[ ${#@} != 0 ]] || { log "No arguments passed."; exit; }; local FUNC="$1"; shift
-	declare -F | cut -d' ' -f3 | grep -qE "^$FUNC\$" || die "Function '%s' not defined." "$FUNC"
+	[[ ${#@} != 0 ]] || {
+		Makefile.funcs.func_exists default || die "No arguments passed and no default function."
+		default "$@"; return
+	}
+	local FUNC="$1"; shift
+	Makefile.funcs.func_exists "$FUNC" || die "Function '%s' not defined." "$FUNC"
 	rm -rf "${TMP_ROOT:?}"
-	"$FUNC" "$@"
-	
+	"$FUNC" "$@"	
 }
+
 #
 # End Header
 
@@ -76,45 +82,64 @@ HOST_PLATFORM="$(go env GOHOSTOS)/$(go env GOHOSTARCH)"
 # Define top-level functions.
 #
 
-# all performs a complete build from source code -> bootstrap -> intermediate -> final ->
-# verification, and also performs a basic check that the verification build has the
-# same SHA as the final build.
-all() { local PLATFORM="${1:-$HOST_PLATFORM}" BIN_PATH="${BIN_PATH:-}" BOOTSTRAP INTERMEDIATE FINAL
-	# Build bootstrap and intermediate for the host platform always as we need
-	# to execute them here. Always build them to their default path, not the specified BIN_PATH,
-	# as we reserve that for the final build.
-	BOOTSTRAP="$(BIN_PATH="" bootstrap)" || return 
-	INTERMEDIATE="$(BIN_PATH="" intermediate "$BOOTSTRAP")" || return 1
-	FINAL_HOST_RESULT="$(tmpfile "final/$HOST_PLATFORM/result.json")"
-	FINAL_HOST="$(final "$INTERMEDIATE" "$FINAL_HOST_RESULT" "$HOST_PLATFORM")" || return 1
-	# Verify the final build for the host platform.
-	VERIFICATION="$(BIN_PATH="" verify "$FINAL_HOST")" || return 1
-	# Build the final build according to the requested platform.
-	if [[ "$PLATFORM" == "$HOST_PLATFORM" ]]; then
-		FINAL="$FINAL_HOST"
-		RESULT="$FINAL_HOST_RESULT"
-	else
-		RESULT="$(tmpfile "final/$PLATFORM/result.json")"
-		FINAL="$(final "$FINAL_HOST" "$RESULT" "$PLATFORM")" || return 1
-	fi
-	log "Success; binary written to $FINAL"
-}
+# the default function is what's called when the script is invoked with no args.
+default() { from_scratch "$@"; }
 
-# bootstrap produces a bootstrap build at BIN_PATH, or a default path,
-# and prints the path of the built binary.
-bootstrap() { local BIN_PATH="${BIN_PATH:-}" RESULT="${2:-}"
-	_build bootstrap "$HOST_PLATFORM" _go_build
+# from_scratch performs a complete build:
+#
+#   source code -> bootstrap -> intermediate -> final -> verification
+#
+from_scratch() ( local PLATFORM="${1:-$HOST_PLATFORM}"
+	export FINAL_HOST_RESULT RESULT
+	RESULT="$(tmpfile "final/$PLATFORM/result.json")"
+	BOOTSTRAPPED="$(bootstrap)" || return 1
+	if [[ "$PLATFORM" == "$HOST_PLATFORM" ]]; then
+		log "==> Target platform is the same as host platform, all done."
+		FINAL="$BOOTSTRAPPED"
+	else
+		log "==> Building for target plaform: $PLATFORM"
+		FINAL="$(final "$BOOTSTRAPPED" "$RESULT" "$PLATFORM")" || return 1
+	fi
+
+	log "Success; binary written to $FINAL"
+)
+
+# bootstrap produces a bootstrapped build from source for the host platform, ready to build
+# actions-go-build binaries for all the other platforms.
+bootstrap() ( 
+	log "==> Building local bootstrap chain for host platform: $HOST_PLATFORM"
+	# Always use default target paths for the intial and intermediate builds.
+	INTERMEDIATE="$(
+		set -Eeuo pipefail
+		export BIN_PATH="" TARGET_DIR="" PLATFORM="$HOST_PLATFORM"
+		INITIAL="$(initial)"
+		INTERMEDIATE="$(intermediate "$INITIAL")"
+		verify "$INTERMEDIATE" > /dev/null || exit 1
+		echo "$INTERMEDIATE"
+	)"
+	FINAL_HOST_RESULT="$(tmpfile "final/$HOST_PLATFORM/result.json")"
+	FINAL_HOST="$(final "$INTERMEDIATE" "$FINAL_HOST_RESULT" "$HOST_PLATFORM")" || exit 1
+	# Verify the final build for the host platform.
+	# Print the path to the bootstrapped binary...
+	echo "$FINAL_HOST"
+)
+
+# initial produces an initial bootstrap build using just 'go build'.
+initial() {
+	_build initial "$HOST_PLATFORM" _go_build
 }
 
 # intermediate produces an intermediate build given a bootstrap build.
-intermediate() { local BOOTSTRAP="$1" RESULT="${2:-/dev/null}" BIN_PATH="${BIN_PATH:-}"
-	_build intermediate "$HOST_PLATFORM" _self_build "$BOOTSTRAP" build "$RESULT"
+intermediate() { local INITIAL="$1" RESULT="${2:-/dev/null}"
+	_build intermediate "$HOST_PLATFORM" _self_build "$INITIAL" build "$RESULT"
 }
 
 # final produces a final build given an intermediate build.
-final() { local INTERMEDIATE="$1" RESULT="$2" PLATFORM="${3:-$HOST_PLATFORM}"
+final() ( local INTERMEDIATE="$1" RESULT="$2" PLATFORM="${3:-$HOST_PLATFORM}"
+	export TARGET_DIR="${TARGET_DIR:-dist/$PLATFORM}"
+	export BIN_PATH="${BIN_PATH:-}"
 	_build final "$PLATFORM" _self_build "$INTERMEDIATE" build "$RESULT"
-}
+)
 
 verify() { local FINAL="$1" RESULT_OUT="${2:-/dev/null}"
 	_build verification "$HOST_PLATFORM" _self_build "$FINAL" verify "$RESULT_OUT"
@@ -129,7 +154,7 @@ verify_remote() { local FINAL="$1" RESULT_IN="$2" RESULT_OUT="${3:-/dev/null}"
 #
 
 # _build performs a build and outputs the absolute path to the built binary.
-_build() { local TYPE="$1" PLATFORM="$2" BIN_PATH="${BIN_PATH:-}"; shift 2
+_build() { local TYPE="$1" PLATFORM="$2" BIN_PATH="${BIN_PATH:-}" TARGET_DIR="${TARGET_DIR:-}"; shift 2
 	verbose "TMP_ROOT=$TMP_ROOT"
 	assert_supported_platform "$PLATFORM"
 	OS="$(cut -d'/' -f1 <<< "$PLATFORM")" || return 1
@@ -137,11 +162,20 @@ _build() { local TYPE="$1" PLATFORM="$2" BIN_PATH="${BIN_PATH:-}"; shift 2
 	BIN_PATH="$(get_bin_path "$TYPE" "$PLATFORM")" || return 1
 	export BIN_PATH
 	log "Building %s %s/%s binary..." "$TYPE" "$OS" "$ARCH"
-	OS="$OS" ARCH="$ARCH" BIN_PATH="$BIN_PATH" "$@" || return 1
+	OS="$OS" ARCH="$ARCH" BIN_PATH="$BIN_PATH" "$@" 1>&2 || return 1
 	echo "$BIN_PATH"
 }
 
+# _self_build performs a build of actions-go-build using actions-go-build.
+# USING is the path to the actions-go-build binary to use for this build.
 _self_build() { local USING="$1" SUBCOMMAND="$2" RESULT_PATH="$3"; shift 3
+	if [[ -z "$USING" ]]; then
+		return "$(err "USING is empty")"
+	fi
+	# if USING is a relative path, make it invokable by prefixing with ./
+	if [[ "${USING:0:1}" != / ]]; then
+		USING="./$USING"
+	fi
 	local FLAGS=(-rebuild -json)
 	if is_debug; then
 		FLAGS+=(-debug)
