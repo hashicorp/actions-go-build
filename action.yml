@@ -1,3 +1,6 @@
+# Copyright (c) HashiCorp, Inc.
+# SPDX-License-Identifier: MPL-2.0
+
 name: Go Build
 author: Release Engineering <team-rel-eng@hashicorp.com>
 description: Define a reproducible build. Currently only supports Go builds.
