@@ -85,6 +85,15 @@ HOST_PLATFORM="$(go env GOHOSTOS)/$(go env GOHOSTARCH)"
 # the default function is what's called when the script is invoked with no args.
 default() { from_scratch "$@"; }
 
+all_from_scratch() {
+	export FINAL_HOST_RESULT RESULT
+	BOOTSTRAPPED="$(bootstrap_default_path)" || return 1
+	log "==> Building final distribution binaries..."
+	for P in "${SUPPORTED_PLATFORMS[@]}"; do
+		FINAL="$(final "$BOOTSTRAPPED" "$P")"
+	done
+}
+
 # from_scratch performs a complete build:
 #
 #   source code -> bootstrap -> intermediate -> final -> verification
@@ -92,13 +101,13 @@ default() { from_scratch "$@"; }
 from_scratch() ( local PLATFORM="${1:-$HOST_PLATFORM}"
 	export FINAL_HOST_RESULT RESULT
 	RESULT="$(tmpfile "final/$PLATFORM/result.json")"
-	BOOTSTRAPPED="$(bootstrap)" || return 1
+	BOOTSTRAPPED="$(bootstrap_default_path)" || return 1
 	if [[ "$PLATFORM" == "$HOST_PLATFORM" ]]; then
 		log "==> Target platform is the same as host platform, all done."
 		FINAL="$BOOTSTRAPPED"
 	else
 		log "==> Building for target plaform: $PLATFORM"
-		FINAL="$(final "$BOOTSTRAPPED" "$RESULT" "$PLATFORM")" || return 1
+		FINAL="$(final "$BOOTSTRAPPED" "$PLATFORM" "$RESULT")" || return 1
 	fi
 
 	log "Success; binary written to $FINAL"
@@ -106,8 +115,8 @@ from_scratch() ( local PLATFORM="${1:-$HOST_PLATFORM}"
 
 # bootstrap produces a bootstrapped build from source for the host platform, ready to build
 # actions-go-build binaries for all the other platforms.
-bootstrap() ( 
-	log "==> Building local bootstrap chain for host platform: $HOST_PLATFORM"
+bootstrap() ( export BIN_PATH="${1:-}"
+	log "==> Building local bootstrap build chain for host platform: $HOST_PLATFORM"
 	# Always use default target paths for the intial and intermediate builds.
 	INTERMEDIATE="$(
 		set -Eeuo pipefail
@@ -118,11 +127,15 @@ bootstrap() (
 		echo "$INTERMEDIATE"
 	)"
 	FINAL_HOST_RESULT="$(tmpfile "final/$HOST_PLATFORM/result.json")"
-	FINAL_HOST="$(final "$INTERMEDIATE" "$FINAL_HOST_RESULT" "$HOST_PLATFORM")" || exit 1
+	FINAL_HOST="$(final "$INTERMEDIATE" "$HOST_PLATFORM" "$FINAL_HOST_RESULT")" || exit 1
 	# Verify the final build for the host platform.
 	# Print the path to the bootstrapped binary...
 	echo "$FINAL_HOST"
 )
+
+bootstrap_default_path() {
+	bootstrap "$(get_default_bin_path bootstrap "$HOST_PLATFORM")"
+}
 
 # initial produces an initial bootstrap build using just 'go build'.
 initial() {
@@ -135,7 +148,7 @@ intermediate() { local INITIAL="$1" RESULT="${2:-/dev/null}"
 }
 
 # final produces a final build given an intermediate build.
-final() ( local INTERMEDIATE="$1" RESULT="$2" PLATFORM="${3:-$HOST_PLATFORM}"
+final() ( local INTERMEDIATE="$1" PLATFORM="${2:-$HOST_PLATFORM}" RESULT="${3:-/dev/null}"	
 	export TARGET_DIR="${TARGET_DIR:-dist/$PLATFORM}"
 	export BIN_PATH="${BIN_PATH:-}"
 	_build final "$PLATFORM" _self_build "$INTERMEDIATE" build "$RESULT"
@@ -168,7 +181,7 @@ _build() { local TYPE="$1" PLATFORM="$2" BIN_PATH="${BIN_PATH:-}" TARGET_DIR="${
 
 # _self_build performs a build of actions-go-build using actions-go-build.
 # USING is the path to the actions-go-build binary to use for this build.
-_self_build() { local USING="$1" SUBCOMMAND="$2" RESULT_PATH="$3"; shift 3
+_self_build() { local USING="$1" SUBCOMMAND="$2" RESULT_PATH="${3:-/dev/null}"; shift 3
 	if [[ -z "$USING" ]]; then
 		return "$(err "USING is empty")"
 	fi
@@ -205,10 +218,14 @@ tmpfile() { local D R F
 	echo "$F"
 }
 
+get_default_bin_path() { local KIND="$1" PLATFORM="$2"
+	tmpfile "$KIND/$PLATFORM/dist/$BIN_NAME"
+}
+
 get_bin_path() { local KIND="$1" PLATFORM="$2"
 	[[ -z "${BIN_PATH:-}" ]] || { echo "$BIN_PATH" && return 0; }
 	[[ -z "${TARGET_DIR:-}" ]] || { echo "$TARGET_DIR/$BIN_NAME" && return 0; }
-	tmpfile "$KIND/$PLATFORM/dist/$BIN_NAME"
+	get_default_bin_path "$KIND" "$PLATFORM"
 }
 
 is_supported_platform() { local P="$1"
