@@ -35,7 +35,8 @@ _This is intended for internal HashiCorp use only; Internal folks please refer t
 This Action can run on both Ubuntu and macOS runners.
 
 The core functionality is contained in a Go CLI, which you can also install and
-use locally. See [the CLI docs](docs/cli.md) for local usage.
+use locally. See [the CLI docs](docs/cli.md) for local usage. Ensure that [actions/setup-go](https://github.com/actions/setup-go)
+is pointed to use the `v3` tag. Go version compiliation errors will appear if the `v2` tag is used. 
 
 ### Examples
 
