@@ -85,6 +85,11 @@ HOST_PLATFORM="$(go env GOHOSTOS)/$(go env GOHOSTARCH)"
 # the default function is what's called when the script is invoked with no args.
 default() { from_scratch "$@"; }
 
+# list supported platforms
+platforms() {
+	for P in "${SUPPORTED_PLATFORMS[@]}"; do echo "$P"; done
+}
+
 all_from_scratch() {
 	export FINAL_HOST_RESULT RESULT
 	BOOTSTRAPPED="$(bootstrap_default_path)" || return 1
@@ -167,13 +172,15 @@ verify_remote() { local FINAL="$1" RESULT_IN="$2" RESULT_OUT="${3:-/dev/null}"
 #
 
 # _build performs a build and outputs the absolute path to the built binary.
-_build() { local TYPE="$1" PLATFORM="$2" BIN_PATH="${BIN_PATH:-}" TARGET_DIR="${TARGET_DIR:-}"; shift 2
+_build() { local TYPE="$1" PLATFORM="$2"; shift 2
 	verbose "TMP_ROOT=$TMP_ROOT"
 	assert_supported_platform "$PLATFORM"
 	OS="$(cut -d'/' -f1 <<< "$PLATFORM")" || return 1
 	ARCH="$(cut -d'/' -f2 <<< "$PLATFORM")" || return 1
-	BIN_PATH="$(get_bin_path "$TYPE" "$PLATFORM")" || return 1
-	export BIN_PATH
+	if [[ -z "${BIN_PATH:-}" ]]; then
+		BIN_PATH="$(get_bin_path "$TYPE" "$PLATFORM")" || return 1
+	fi
+	export BIN_PATH TARGET_DIR
 	log "Building %s %s/%s binary..." "$TYPE" "$OS" "$ARCH"
 	OS="$OS" ARCH="$ARCH" BIN_PATH="$BIN_PATH" "$@" 1>&2 || return 1
 	echo "$BIN_PATH"
@@ -218,7 +225,7 @@ tmpfile() { local D R F
 	echo "$F"
 }
 
-get_default_bin_path() { local KIND="$1" PLATFORM="$2"
+get_default_bin_path() { local KIND="$1" PLATFORM="${2:-$HOST_PLATFORM}"
 	tmpfile "$KIND/$PLATFORM/dist/$BIN_NAME"
 }
 

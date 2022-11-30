@@ -143,30 +143,20 @@ env:
 $(BOOTSTRAP_BUILD): $(SOURCE_ID)
 	@echo "# Running tests..." 1>&2
 	@$(RUN_TESTS_QUIET)
-	@echo "# Creating bootstrap build..." 1>&2
-	@rm -f "$(BOOTSTRAP_BUILD)"
-	@mkdir -p "$(dir $(BOOTSTRAP_BUILD))"
-	@$(HOST_PLATFORM_TARGET_ENV) go build -o "$(BOOTSTRAP_BUILD)"
+	@BIN_PATH="$@" ./dev/build initial > /dev/null
 
 RUN_QUIET = OUT="$$($(1) 2>&1)" || { \
 				echo "Command Failed: $(notdir $(1))"; echo "$$OUT"; exit 1; \
 			} 
 
-$(INTERMEDIATE_BUILD): export TARGET_DIR := $(dir $(INTERMEDIATE_BUILD))
-$(INTERMEDIATE_BUILD): | $(BOOTSTRAP_BUILD)
-	@echo "# Creating intermediate build..." 1>&2
-	@$(call RUN_QUIET,$(HOST_PLATFORM_TARGET_ENV) $(BOOTSTRAP_BUILD) build -rebuild)
+$(INTERMEDIATE_BUILD): $(BOOTSTRAP_BUILD)
+	@BIN_PATH="$@" ./dev/build intermediate "$<" > /dev/null
 
 
 .PHONY: $(FINAL_BUILD)
-$(FINAL_BUILD): export TARGET_DIR = dist/$(OS)/$(ARCH)
 $(FINAL_BUILD): $(INTERMEDIATE_BUILD)
 	@echo "# Creating final build..." 1>&2
-	@rm -rf "$(TARGET_DIR)"
-	@$(call RUN_QUIET,$(INTERMEDIATE_BUILD) build -rebuild $(FINAL_BUILD_FLAGS))
-	@echo "# Verifying reproducibility of final build..." 1>&2
-	@$(call RUN_QUIET,TARGET_DIR= $(INTERMEDIATE_BUILD) verify)
-	@if [[ -n "$(OS)" ]]; then echo "# $(BUILD_TYPE) build for $(OS)/$(ARCH) succeeded."; fi
+	@BIN_PATH="$@" ./dev/build final "$<"
 
 cli: $(FINAL_BUILD)
 	@echo "Build successful."
