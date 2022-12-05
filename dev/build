@@ -9,12 +9,14 @@
 # Relased versions of actions-go-build are always built using themselves.
 # The build happens in four stages:
 #
-# 1. Bootstrap - this build is created using a standard 'go build' invocation.
+# 1. Initial - this build is created using a standard 'go build' invocation.
 # 2. Intermediate - built using the bootstrap build. It contains its own version metadata.
-# 3. Final - built using the intermediate build. It additionally contains version metadata
+# 3. Bootstrapped - built using the intermediate build. It additionally contains version metadata
 #    about the version of actions-go-build that built it. This metadata is also available
 #    to the builds produced by end users.
-# 4. Verification of reproducibility - the final build is run to verify itself for reproducibility.
+# 4. Final - this build happens using the fully bootstrapped build. Final builds can be for any
+#    platform, whereas all initial, intermediate, and bootstrapped builds are always for the
+#    host platform.
 
 # Enable "safe mode"
 set -Eeuo pipefail
