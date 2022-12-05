@@ -257,9 +257,13 @@ build/$(1): $$(BOOTSTRAPPED_BUILD)
 	@./dev/build dev "$$<" "$1" > /dev/null
 DEV_BUILDS := $$(DEV_BUILDS) build/$(1)
 
+dist/$1/actions-go-build \
+out/actions-go-build_$(CURR_VERSION)_$(subst /,_,$1).zip \
+zip/$(1) \
 release/build/$(1): $$(BOOTSTRAPPED_BUILD)
 	@./dev/build release "$$<" "$1" > /dev/null
 RELEASE_BUILDS := $$(RELEASE_BUILDS) release/build/$(1)
+RELEASE_ZIPS := $$(ZIPS) out/actions-go-build_$(CURR_VERSION)_$(subst /,_,$1).zip
 
 endef
 
@@ -271,7 +275,8 @@ $(eval $(foreach P,$(TARGET_PLATFORMS),$(call FINAL_BUILD_TARGETS,$(P))))
 
 build: $(DEV_BUILDS)
 
-release/build: $(RELEASE_BUILDS)
+release/build: $(RELEASE_ZIPS)
+	@echo "$<"
 
 version: version/check
 	@LATEST="$(shell $(GH) release list -L 1 --exclude-drafts | grep Latest | cut -f1)"; \
