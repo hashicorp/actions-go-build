@@ -132,7 +132,7 @@ bootstrap() ( export BIN_PATH="${1:-}"
 		echo "$INTERMEDIATE"
 	)"
 	FINAL_HOST_RESULT="$(tmpfile "final/$HOST_PLATFORM/result.json")"
-	FINAL_HOST="$(final "$INTERMEDIATE" "$HOST_PLATFORM" "$FINAL_HOST_RESULT")" || exit 1
+	FINAL_HOST="$(bootstrapped "$INTERMEDIATE" "$HOST_PLATFORM" "$FINAL_HOST_RESULT")" || exit 1
 	# Verify the final build for the host platform.
 	# Print the path to the bootstrapped binary...
 	echo "$FINAL_HOST"
@@ -151,6 +151,13 @@ initial() {
 intermediate() { local INITIAL="$1" RESULT="${2:-/dev/null}"
 	_build intermediate "$HOST_PLATFORM" _self_build "$INITIAL" build "$RESULT"
 }
+
+# final produces a final build given an intermediate build.
+bootstrapped() ( local INTERMEDIATE="$1" PLATFORM="${2:-$HOST_PLATFORM}" RESULT="${3:-/dev/null}"	
+	export TARGET_DIR="${TARGET_DIR:-dist/$PLATFORM}"
+	export BIN_PATH="${BIN_PATH:-}"
+	_build bootstrapped "$PLATFORM" _self_build "$INTERMEDIATE" build "$RESULT"
+)
 
 # final produces a final build given an intermediate build.
 final() ( local INTERMEDIATE="$1" PLATFORM="${2:-$HOST_PLATFORM}" RESULT="${3:-/dev/null}"	
