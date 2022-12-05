@@ -144,7 +144,7 @@ bootstrap_default_path() {
 	bootstrap "$(get_default_bin_path bootstrap "$HOST_PLATFORM")"
 }
 
-# initial produces an initial bootstrap build using just 'go build'.
+# initial produces an initial build using just 'go build'.
 initial() {
 	_build initial "$HOST_PLATFORM" _go_build
 }
@@ -154,18 +154,30 @@ intermediate() { local INITIAL="$1" RESULT="${2:-/dev/null}"
 	_build intermediate "$HOST_PLATFORM" _self_build "$INITIAL" build "$RESULT"
 }
 
-# final produces a final build given an intermediate build.
+# bootstrapped produces the bootstrapped build given an intermediate build.
 bootstrapped() ( local INTERMEDIATE="$1" PLATFORM="${2:-$HOST_PLATFORM}" RESULT="${3:-/dev/null}"	
 	export TARGET_DIR="${TARGET_DIR:-dist/$PLATFORM}"
 	export BIN_PATH="${BIN_PATH:-}"
 	_build bootstrapped "$PLATFORM" _self_build "$INTERMEDIATE" build "$RESULT"
 )
 
-# final produces a final build given an intermediate build.
-final() ( local INTERMEDIATE="$1" PLATFORM="${2:-$HOST_PLATFORM}" RESULT="${3:-/dev/null}"	
+# final produces a final build given a bootstraped build.
+final() ( local BOOTSTRAPPED="$1" PLATFORM="${2:-$HOST_PLATFORM}" RESULT="${3:-/dev/null}"	
 	export TARGET_DIR="${TARGET_DIR:-dist/$PLATFORM}"
 	export BIN_PATH="${BIN_PATH:-}"
-	_build final "$PLATFORM" _self_build "$INTERMEDIATE" build "$RESULT"
+	_build final "$PLATFORM" _self_build "$BOOTSTRAPPED" build "$RESULT"
+)
+
+# dev produces a final dev build given a bootstraped build.
+dev() ( local BOOTSTRAPPED="$1" PLATFORM="${2:-$HOST_PLATFORM}" RESULT="${3:-/dev/null}"
+	final "$@"
+)
+
+# release produces a final release build given a bootstrapped build.
+# The difference from dev is that final fails if the worktree is not clean.
+release() ( local BOOTSTRAPPED="$1" PLATFORM="${2:-$HOST_PLATFORM}" RESULT="${3:-/dev/null}"
+	export REQUIRE_CLEAN_WORKTREE=true
+	final "$@"
 )
 
 verify() { local FINAL="$1" RESULT_OUT="${2:-/dev/null}"
@@ -206,6 +218,9 @@ _self_build() { local USING="$1" SUBCOMMAND="$2" RESULT_PATH="${3:-/dev/null}"; 
 		USING="./$USING"
 	fi
 	local FLAGS=(-rebuild -json)
+	if ${REQUIRE_CLEAN_WORKTREE:-false}; then
+		FLAGS+=(-clean)
+	fi
 	if is_debug; then
 		FLAGS+=(-debug)
 	elif is_verbose; then

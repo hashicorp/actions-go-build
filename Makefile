@@ -100,9 +100,6 @@ HOST_PLATFORM_TARGET_ENV := GOOS= GOARCH= OS= ARCH=
 # Targets
 #
 
-build:
-	go build ./...
-
 test: test/go
 
 .PHONY: test/go
@@ -253,13 +250,16 @@ release: release-builds
 #
 define FINAL_BUILD_TARGETS
 
-DEV_BUILDS     := $$(DEV_BUILDS) build/$(1)
 
 # build/<platform> does not require a clean worktree and results in a "Development" build.
 
-build/$(1): BUILD_TYPE := Development
 build/$(1): $$(BOOTSTRAPPED_BUILD)
-	@./dev/build final "$$<" "$1" > /dev/null
+	@./dev/build dev "$$<" "$1" > /dev/null
+DEV_BUILDS := $$(DEV_BUILDS) build/$(1)
+
+release/build/$(1): $$(BOOTSTRAPPED_BUILD)
+	@./dev/build release "$$<" "$1" > /dev/null
+RELEASE_BUILDS := $$(RELEASE_BUILDS) release/build/$(1)
 
 endef
 
@@ -269,7 +269,7 @@ $(eval $(foreach P,$(TARGET_PLATFORMS),$(call FINAL_BUILD_TARGETS,$(P))))
 .PHONY: $(RELEASE_BUILDS)
 .PHONY: $(DEV_BUILDS)
 
-build/all: $(DEV_BUILDS)
+build: $(DEV_BUILDS)
 
 release/build: $(RELEASE_BUILDS)
 
