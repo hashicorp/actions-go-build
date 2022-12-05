@@ -241,15 +241,10 @@ ifneq ($(GH_AUTHED),true)
 endif
 endif
 
-.PHONY: release
-release: release-builds
-	@./dev/release/create
-
 #
 # Release build targets
 #
 define FINAL_BUILD_TARGETS
-
 
 # build/<platform> does not require a clean worktree and results in a "Development" build.
 
@@ -263,7 +258,7 @@ zip/$(1) \
 release/build/$(1): $$(BOOTSTRAPPED_BUILD)
 	@./dev/build release "$$<" "$1" > /dev/null
 RELEASE_BUILDS := $$(RELEASE_BUILDS) release/build/$(1)
-RELEASE_ZIPS := $$(ZIPS) out/actions-go-build_$(CURR_VERSION)_$(subst /,_,$1).zip
+RELEASE_ZIPS   := $$(RELEASE_ZIPS) out/actions-go-build_$(CURR_VERSION)_$(subst /,_,$1).zip
 
 endef
 
@@ -275,8 +270,10 @@ $(eval $(foreach P,$(TARGET_PLATFORMS),$(call FINAL_BUILD_TARGETS,$(P))))
 
 build: $(DEV_BUILDS)
 
-release/build: $(RELEASE_ZIPS)
-	@echo "$<"
+release/build: $(RELEASE_BUILDS)
+
+release: $(RELEASE_ZIPS)
+	@echo "$^"
 
 version: version/check
 	@LATEST="$(shell $(GH) release list -L 1 --exclude-drafts | grep Latest | cut -f1)"; \
