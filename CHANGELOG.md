@@ -4,7 +4,11 @@ Instead, edit the files in dev/changes/, then run 'make docs' to update this fil
 -->
 # Changelog - Go Build Action
 
-## Unreleased Changes (targeting v0.1.7)
+## Unreleased Changes (targeting v0.2.0-beta)
+
+
+
+## [v0.1.7](https://github.com/hashicorp/actions-go-build/releases/tag/v0.1.7) - November 01, 2022
 
 
 
