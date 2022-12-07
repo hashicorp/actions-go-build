@@ -25,6 +25,7 @@ type RepoContext struct {
 	CommitTime  time.Time
 	CoreVersion version.Version
 	SourceHash  string
+	DirtyFiles  []string `json:"omitempty"`
 }
 
 // IsDirty returns true if the worktree is dirty, ignoring
@@ -58,7 +59,7 @@ func GetRepoContext(dir string, ignoreDirs []string) (RepoContext, error) {
 		return RepoContext{}, err
 	}
 
-	sourceHash, err := SourceHashFunc(dir, ignoreDirs)
+	worktreeState, err := WorktreeStateFunc(dir, ignoreDirs)
 	if err != nil {
 		return RepoContext{}, err // blah
 	}
@@ -89,7 +90,8 @@ func GetRepoContext(dir string, ignoreDirs []string) (RepoContext, error) {
 		CommitSHA:   sha,
 		CommitTime:  ts,
 		CoreVersion: *v,
-		SourceHash:  sourceHash,
+		SourceHash:  worktreeState.SourceHash,
+		DirtyFiles:  worktreeState.DirtyFiles,
 	}, nil
 }
 
@@ -97,22 +99,22 @@ var (
 	ErrNoVersionFile        = errors.New("no VERSION file found")
 	ErrMultipleVersionFiles = errors.New("multiple VERSION files found")
 
-	// SourceHashFunc can be overridden in tests to generate stable
-	// source hashes.
-	SourceHashFunc = getSourceHash
+	// WorktreeStateFunc can be overridden in tests to generate stable
+	// source hashes and dirty file lists.
+	WorktreeStateFunc = getWorktreeState
 )
 
-func getSourceHash(dir string, ignoreDirs []string) (string, error) {
+func getWorktreeState(dir string, ignoreDirs []string) (*git.WorktreeState, error) {
 	repo, err := git.Open(dir)
 	if err != nil {
-		return "", err
+		return nil, err
 	}
 	ignore := makeIgnorePatterns(ignoreDirs)
 	s, err := repo.WorktreeState(git.WorktreeStateIgnorePatterns(ignore...))
 	if err != nil {
-		return "", err
+		return nil, err
 	}
-	return s.SourceHash, nil
+	return &s, nil
 }
 
 func makeIgnorePatterns(dirNames []string) []string {

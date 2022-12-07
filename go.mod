@@ -4,7 +4,7 @@ go 1.18
 
 require (
 	github.com/google/go-cmp v0.5.8
-	github.com/hashicorp/composite-action-framework-go v0.0.3-0.20220825124702-4def58aae7a3
+	github.com/hashicorp/composite-action-framework-go v0.0.3-0.20221207115606-093364d928f3
 	github.com/hashicorp/go-version v1.6.0
 	github.com/mitchellh/cli v1.1.4
 	github.com/otiai10/copy v1.7.0

@@ -62,10 +62,7 @@ func assertSourceHash(p crt.Product) {
 	}
 	// It's the maintainers' jobs to make sure we don't hit this panic.
 	// It's here to avoid writing undiscoverable files to the cache.
-	if (p == crt.Product{}) {
-		log.Panicf("SourceHash is empty; Product is empty.")
-	}
-	log.Panicf("SourceHash is empty; Product is nonempty: % #v", p)
+	log.Panicf("SourceHash is empty in product: % #v", p)
 }
 
 func (d TempDirs) RemoteBuildRoot(extension ...string) string {

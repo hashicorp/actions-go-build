@@ -45,6 +45,7 @@ type Product struct {
 	// dirty, or else it's a SHA1 hash of the HEAD commit plus all the contents
 	// of all dirty files.
 	SourceHash string
+	DirtyFiles []string `json:"omitempty"`
 }
 
 func (p Product) IsDirty() bool {
@@ -119,6 +120,7 @@ func (p Product) setDefaults(rc RepoContext) (Product, error) {
 	p.Revision = rc.CommitSHA
 	p.RevisionTime = rc.CommitTime.UTC().Format(time.RFC3339)
 	p.SourceHash = rc.SourceHash
+	p.DirtyFiles = rc.DirtyFiles
 	return p, nil
 }
 

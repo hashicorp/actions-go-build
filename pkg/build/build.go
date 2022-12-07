@@ -35,13 +35,24 @@ type core struct {
 	config Config
 }
 
+func errDirtyWorktree(dirtyFiles []string) error {
+	maxDirty := 10
+	if len(dirtyFiles) > maxDirty {
+		dirtyFiles = dirtyFiles[:maxDirty]
+		dotDotDot := fmt.Sprintf("\n%d more dirty files not shown...", len(dirtyFiles)-maxDirty)
+		dirtyFiles = append(dirtyFiles, dotDotDot)
+	}
+	list := "\n" + strings.Join(dirtyFiles, "\n")
+	return fmt.Errorf("worktree dirty but build is set to clean only; dirty paths: %s", list)
+}
+
 func newCore(name string, cfg Config, options ...Option) (*core, error) {
 	s, err := newSettings(options)
 	if err != nil {
 		return nil, err
 	}
 	if s.cleanOnly && cfg.Product.IsDirty() {
-		return nil, fmt.Errorf("build config indicates a dirty worktree but clean-only is set to true")
+		return nil, errDirtyWorktree(cfg.Product.DirtyFiles)
 	}
 	return &core{
 		Settings: s,
