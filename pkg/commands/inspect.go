@@ -3,7 +3,6 @@ package commands
 import (
 	"flag"
 	"fmt"
-	"io"
 	"os"
 
 	"github.com/hashicorp/actions-go-build/pkg/build"
@@ -20,6 +19,7 @@ type inspectOpts struct {
 	buildEnv     bool
 	buildEnvDesc bool
 	zipInfo      bool
+	worktree     bool
 }
 
 func (opts *inspectOpts) Flags(fs *flag.FlagSet) {
@@ -31,6 +31,7 @@ func (opts *inspectOpts) Flags(fs *flag.FlagSet) {
 	fs.BoolVar(&opts.buildEnv, "build-env", false, "just print the build environment")
 	fs.BoolVar(&opts.buildEnvDesc, "describe-build-env", false, "describe the build environment")
 	fs.BoolVar(&opts.zipInfo, "zip-info", false, "just print the zip details")
+	fs.BoolVar(&opts.worktree, "worktree", false, "print worktree status (clean/dirty)")
 }
 
 func (opts *inspectOpts) HideFlags() []string {
@@ -69,20 +70,18 @@ var Inspect = cli.LeafCommand("inspect", "inspect things", func(opts *inspectOpt
 		return p.zipDetails()
 	}
 
+	if opts.worktree {
+		return p.worktreeStatus()
+	}
+
 	return p.printAll()
 })
-
-type printer struct {
-	w           io.Writer
-	build       build.Build
-	printTitles bool
-	prefix      string
-}
 
 func (p *printer) printAll() error {
 	p.printTitles = true
 	p.prefix = "    "
 	return firstErr(
+		p.worktreeStatus,
 		p.buildEnv,
 		p.zipDetails,
 	)
@@ -113,32 +112,30 @@ func (p *printer) zipDetails() error {
 	if err := p.title("Zip"); err != nil {
 		return err
 	}
-	p.line("ZIP_NAME=%s", p.build.Config().Parameters.ZipName)
-	return p.line("ZIP_PATH=%s", p.build.Config().Paths.ZipPath)
-}
-
-func firstErr(f ...func() error) error {
-	for _, ef := range f {
-		if err := ef(); err != nil {
-			return err
-		}
+	if err := p.line("ZIP_NAME=%s", p.build.Config().Parameters.ZipName); err != nil {
+		return err
+	}
+	if err := p.line("ZIP_PATH=%s", p.build.Config().Paths.ZipPath); err != nil {
+		return err
 	}
 	return nil
 }
 
-func (p *printer) title(s string) error {
-	if !p.printTitles {
-		return nil
+func (p *printer) worktreeStatus() error {
+	if err := p.title("Worktree Status"); err != nil {
+		return err
 	}
-	_, err := fmt.Fprintln(p.w, s+":")
-	return err
-}
-
-func (p *printer) line(s string, a ...any) error {
-	_, err := fmt.Fprintf(p.w, p.prefix+s+"\n", a...)
-	return err
-}
-
-func tabWrite[T any](p *printer, list []T, line func(T) string) error {
-	return cli.TabWrite(p.w, list, line)
+	product := p.build.Config().Product
+	if !product.IsDirty() {
+		return p.line("clean")
+	}
+	if err := p.line("dirty files:"); err != nil {
+		return err
+	}
+	for _, f := range product.DirtyFiles {
+		if err := p.line(f); err != nil {
+			return err
+		}
+	}
+	return nil
 }
