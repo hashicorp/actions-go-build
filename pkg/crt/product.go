@@ -45,7 +45,7 @@ type Product struct {
 	// dirty, or else it's a SHA1 hash of the HEAD commit plus all the contents
 	// of all dirty files.
 	SourceHash string
-	DirtyFiles []string `json:"omitempty"`
+	DirtyFiles []string `json:",omitempty"`
 }
 
 func (p Product) IsDirty() bool {
