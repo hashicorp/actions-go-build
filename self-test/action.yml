@@ -1,3 +1,6 @@
+# Copyright (c) HashiCorp, Inc.
+# SPDX-License-Identifier: MPL-2.0
+
 name: Go Build Action Self-Tests
 author: Release Engineering <team-rel-eng@hashicorp.com>
 description: Action for testing hashicorp/actions-go-build.
