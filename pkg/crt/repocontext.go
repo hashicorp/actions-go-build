@@ -25,7 +25,7 @@ type RepoContext struct {
 	CommitTime  time.Time
 	CoreVersion version.Version
 	SourceHash  string
-	DirtyFiles  []string `json:"omitempty"`
+	DirtyFiles  []string `json:",omitempty"`
 }
 
 // IsDirty returns true if the worktree is dirty, ignoring
