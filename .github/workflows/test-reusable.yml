@@ -9,6 +9,3 @@ jobs:
     
   call-workflow-public:
     uses: hashicorp/boundary/.github/workflows/enos-run.yml@main
-    
-  call-workflow-private:
-    uses: hashicorp/vault-enterprise/.github/workflows/reusable-smoke-upgrade.yml@main
