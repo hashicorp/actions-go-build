@@ -10,16 +10,13 @@ _This is intended for internal HashiCorp use only; Internal folks please refer t
 
 <!-- insert:dev/docs/table_of_contents -->
 * [Features](#features)
-* [Usage](#usage)
+* [Local Usage](#local-usage)
+* [Usage in GHA](#usage-in-gha)
   * [Examples](#examples)
   * [Inputs](#inputs)
   * [Build Instructions](#build-instructions)
   * [Ensuring Reproducibility](#ensuring-reproducibility)
 * [Development](#development)
-  * [Tests](#tests)
-  * [Documentation](#documentation)
-  * [Releasing](#releasing)
-  * [Implementation](#implementation)
 <!-- end:insert:dev/docs/table_of_contents -->
 
 ## Features
@@ -36,7 +33,7 @@ The core functionality of this action is contained in a Go CLI, which
 you can also install and use locally. See [the CLI docs](docs/cli.md)
 for more.
 
-## Usage in GitHub Actions Workflows
+## Usage in GHA
 
 This Action can run on both Ubuntu and macOS runners.
 
