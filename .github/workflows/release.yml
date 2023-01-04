@@ -8,6 +8,6 @@ jobs:
     steps:
       - uses: actions/checkout@v3
       - id: get-version
-        run: VERSION="$(make version)" && echo "::set-output name=version::$VERSION"
+        run: VERSION="$(make version)" && echo "version=$VERSION" >> $GITHUB_OUTPUT
       - name: Release ${{ steps.get-version.outputs.version }}
         run: make release
