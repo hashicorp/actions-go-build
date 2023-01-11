@@ -7,7 +7,13 @@
 
 set -Eeuo pipefail
 
-sha() { cat - | sha256sum | cut -d' ' -f1; }
+sha() {
+	local SHA256SUM=sha256sum
+	if [[ "$(uname)" == "Darwin" ]]; then
+		SHA256SUM="shasum -a 256"
+	fi
+	cat - | $SHA256SUM | cut -d' ' -f1
+}
 
 nonempty_diff_sha() { local NAME="git diff $*"
 	SHA="<empty>"
