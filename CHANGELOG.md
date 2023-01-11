@@ -4,13 +4,33 @@ Instead, edit the files in dev/changes/, then run 'make docs' to update this fil
 -->
 # Changelog - Go Build Action
 
-## Unreleased Changes (targeting v0.2.0-beta)
+## Unreleased Changes (targeting v0.1.8)
 
+### Changed:
 
+- **Dirty builds now fail early when running the action.**<br />
+  In CI, there's no good use-case for dirty builds, however dirty builds still
+  work locally when running the CLI directly.
+- **You can now set `TARGET_DIR` when running the `build` subcommand of the CLI.**<br />
+  This dictates the the output directory for the binary, as well as where to place
+  other filed that need to be included in the release zip.
+- **The `-clean` flag now produces a more useful error message when the worktree is dirty.**<br />
+  It lists the paths which are flagged as dirty, to make it much easier to debug.
+
+### Added:
+
+- New inspect flag: `-worktree` which reports on the dirty/clean status of the worktree.
+- Development documentation docs/development.md
+
+### Fixed:
+
+- No longer using the deprecated `::set-output` syntax in the action YAML.
 
 ## [v0.1.7](https://github.com/hashicorp/actions-go-build/releases/tag/v0.1.7) - November 01, 2022
 
+Fixed:
 
+- Darwin arm64 builds now succeed (#20)
 
 ## [v0.1.6](https://github.com/hashicorp/actions-go-build/releases/tag/v0.1.6) - October 19, 2022
 
