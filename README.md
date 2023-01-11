@@ -10,16 +10,13 @@ _This is intended for internal HashiCorp use only; Internal folks please refer t
 
 <!-- insert:dev/docs/table_of_contents -->
 * [Features](#features)
-* [Usage](#usage)
+* [Local Usage](#local-usage)
+* [Usage in GHA](#usage-in-gha)
   * [Examples](#examples)
   * [Inputs](#inputs)
   * [Build Instructions](#build-instructions)
   * [Ensuring Reproducibility](#ensuring-reproducibility)
 * [Development](#development)
-  * [Tests](#tests)
-  * [Documentation](#documentation)
-  * [Releasing](#releasing)
-  * [Implementation](#implementation)
 <!-- end:insert:dev/docs/table_of_contents -->
 
 ## Features
@@ -30,12 +27,15 @@ _This is intended for internal HashiCorp use only; Internal folks please refer t
 - **Reproducibility** is checked at build time.
 - **Fast feedback** if accidental nondeterminism is introduced.
 
-## Usage
+## Local Usage
+
+The core functionality of this action is contained in a Go CLI, which
+you can also install and use locally. See [the CLI docs](docs/cli.md)
+for more.
+
+## Usage in GHA
 
 This Action can run on both Ubuntu and macOS runners.
-
-The core functionality is contained in a Go CLI, which you can also install and
-use locally. See [the CLI docs](docs/cli.md) for local usage.
 
 ### Examples
 
@@ -270,72 +270,8 @@ turn this off using the `-buildvcs=false` flag.
 
 ## Development
 
-- This Action uses extensionless executable bash scripts in `scripts/` to perform each step.
-- There are also `.bash` files in `scripts/` which define functions used in the executables.
-- Both executable and library bash files have BATS tests which are defined inside files with
-  the same name plus a `.bats` extension.
+Development docs have moved to [docs/development.md](docs/development.md).
 
-### Tests
-
-**All code changes in this Action should be accompanied by new or updated tests documenting and
-preserving the new behaviour.**
-
-Run `make test` to run the BATS tests which cover the scripts.
-
-There are also tests that exercise the action itself, see
-[`.github/workflows/test.yml`](https://github.com/hashicorp/actions-go-build/blob/main/.github/workflows/test.yml).
-These tests use a reusable workflow for brevity, and assert both passing and failing conditions.
-
-The example code is also tested to ensure it really works, see
-[`.github/workflows/example.yml`](https://github.com/hashicorp/actions-go-build/blob/main/.github/workflows/example.yml)
-and
-[`.github/workflows/example-matrix.yml`](https://github.com/hashicorp/actions-go-build/blob/main/.github/workflows/example-matrix.yml).
-
-### Documentation
-
-Wherever possible, the documentation in this README is generated from source code to ensure
-that it is accurate and up-to-date. Run `make docs` to update it.
-
-#### Changelog
-
-All changes should be accompanied by a corresponding changelog entry.
-Each version has a file named `dev/changes/v<VERSION>.md` which contains
-the changes added during development of that version.
-
-### Releasing
-
-You can release a new version by running `make release`.
-This uses the version string from `dev/VERSION` to add tags,
-get the corresponding changelog entries, and create a new GitHub
-release.
-
-### Implementation
-
-#### Bash, dreaded bash.
-
-This Action is currently written in Bash.
-
-The primary reason is that Bash makes it trivial to call other programs and handle the
-results of those calls. Relying on well-known battle-tested external programs like
-`sha256sum` and `bash` itself (for executing the instructions) seems like a reasonable
-first step for this Action, because they are the tools we'd use to perform this work
-manually.
-
-For the initial development phase, well-tested Bash is also useful because of the speed
-and ease of deployment. It is present on all runners and doesn't require a compilation
-and deployment step (or alternatively installing the toolchain to perform that
-compilation).
-
-#### Future Implementation Options
-
-Once we're happy with the basic shape of this Action, there will be options to implement
-it in other ways. For example as a composite action calling Go programs to do all the work,
-or calling Go programs to do the coordination of calling external programs,
-or as a precompiled Docker image Action
-(though that would present problems for Darwin builds which rely on macOS and CGO).
-
-#### TODO
-
-- Add a reusable workflow for better optimisation (i.e. running in parallel jobs)
-- Store build metadata for external systems to use to reproduce the build.
-- See **ENGSRV-083** (internal only) for future plans.
+The core functionality of this action is contained in a Go CLI, which can also be installed
+and run locally. See [the CLI docs](docs/cli.md) for instructions on installing and using
+the CLI.

@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package crt
 
 import (
@@ -22,7 +25,7 @@ func getCoreVersion(dir string) (*version.Version, error) {
 	return getCoreVersionFromVersionFile(dir)
 }
 
-var versionSearchPath = []string{".", ".release", "dev"}
+var versionSearchPath = []string{".", ".release", "version", "dev"}
 
 func versionSearchPaths(basedir string) []string {
 	out := make([]string, len(versionSearchPath))

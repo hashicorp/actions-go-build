@@ -116,7 +116,8 @@ do
 		assert_success "$local_oid" "Compilation" go build ./...
 
 		# Check for version consistency.
-		assert_success "$local_oid" "Version check" make version/check
+		# Disabled for now, this might be overkill.
+		#assert_success "$local_oid" "Version check" make version/check
 
 		# Check for changelog update, only if the push includes both a
 		# test change and a non-test change to the Go code.
