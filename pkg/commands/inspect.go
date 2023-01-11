@@ -109,16 +109,11 @@ func (p *printer) buildEnvDesc() error {
 }
 
 func (p *printer) zipDetails() error {
-	if err := p.title("Zip"); err != nil {
-		return err
-	}
-	if err := p.line("ZIP_NAME=%s", p.build.Config().Parameters.ZipName); err != nil {
-		return err
-	}
-	if err := p.line("ZIP_PATH=%s", p.build.Config().Paths.ZipPath); err != nil {
-		return err
-	}
-	return nil
+	return firstErr(
+		func() error { return p.title("Zip") },
+		func() error { return p.line("ZIP_NAME=%s", p.build.Config().Parameters.ZipName) },
+		func() error { return p.line("ZIP_PATH=%s", p.build.Config().Paths.ZipPath) },
+	)
 }
 
 func (p *printer) worktreeStatus() error {
