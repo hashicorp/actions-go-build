@@ -3,6 +3,14 @@
 This action's core functionality is contained in a Go CLI. The `action.yml` at the root of
 this repo defines the action itself, as a composite action, that builds and then calls the CLI.
 
+## Git Push Hooks
+
+In order to prevent accidentally pushing broken code, this repo installs a git pre-push hook
+`dev/git_hooks/pre-push` by copying it to `.git/hooks/`.
+The hook checks that compilation and tests are successful, and that documentation is up-to-date.
+
+Sometimes these hooks 
+
 ## Manually Testing the CLI
 
 It's useful to be able to just run the CLI locally to manually poke around and see your changes.
@@ -43,7 +51,8 @@ assertions. This keeps the test suite nice and concise.
 ### Example Code
 
 The example code in the readme is real, working code that we run on every push.
-This ensures that it doesn't go out of date.
+This ensures that it doesn't go out of date. Some of the examples are also directly included
+in the readme.
 
 [`.github/workflows/example.yml`](.github/workflows/example.yml)
 and
