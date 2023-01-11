@@ -18,8 +18,14 @@ set -Eeuo pipefail
 	echo "$BUILDENV"
 	echo "$BUILD"
 
-	diff <(echo "$CONFIG") <(echo "$BUILDENV")
-	diff <(echo "$CONFIG") <(echo "$BUILD")
+	if [ "$CONFIG" != "$BUILDENV" ]; then
+		echo "config vs. buildenv:"
+		diff <(echo "$CONFIG") <(echo "$BUILDENV")
+	fi
+	if [ "$CONFIG" != "$BUILD" ]; then
+		echo "config vs. build:"
+		diff <(echo "$CONFIG") <(echo "$BUILD")
+	fi
 
 	[[ "$CONFIG" == "$BUILDENV" ]]
 }
