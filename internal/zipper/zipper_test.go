@@ -20,6 +20,13 @@ func TestZipper_ZipDir_ok(t *testing.T) {
 		{
 			"text.txt": "hello!",
 		},
+		{
+			"subdir/text.txt": "hello!",
+		},
+		{
+			"subdir/text.txt":         "hello!",
+			"subdir/blah/blah/hi.txt": "hello!",
+		},
 	}
 
 	for _, c := range cases {
@@ -62,6 +69,38 @@ func TestZipper_ZipDir_ok(t *testing.T) {
 
 		})
 	}
+}
+
+func TestZipper_ZipDir_err_duplicate(t *testing.T) {
+
+	cases := []files{
+		{
+			"text.txt":        "hello!",
+			"subdir/text.txt": "hello!",
+		},
+		{
+			"subdir/text.txt":      "hello!",
+			"subdir/blah/text.txt": "hello!",
+		},
+	}
+
+	for _, c := range cases {
+		inputFiles := c
+		t.Run("", func(t *testing.T) {
+			buf := &bytes.Buffer{}
+			z := New(buf, t.Logf)
+
+			dir := createTestDir(t, inputFiles)
+			err := z.ZipDir(dir)
+			if err == nil {
+				t.Fatalf("got nil error; want duplicate entry error")
+			}
+			if !strings.Contains(err.Error(), "duplicate") {
+				t.Fatalf("got error %q; want duplicate entry error", err)
+			}
+		})
+	}
+
 }
 
 func createTestDir(t *testing.T, f files) string {
