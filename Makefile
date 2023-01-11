@@ -24,6 +24,7 @@ default: run
 
 ifeq ($(TMPDIR),)
 TMPDIR := $(RUNNER_TEMP)
+export TMPDIR
 endif
 ifeq ($(TMPDIR),)
 $(error Neither TMPDIR nor RUNNER_TEMP are set.)
