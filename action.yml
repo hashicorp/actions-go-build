@@ -115,7 +115,7 @@ runs:
     - name: Run Primary Build
       shell: bash
       working-directory: ${{ inputs.work_dir }}
-      run: $RUN_CLI build
+      run: $RUN_CLI build -clean -json
 
     # Upload Primary Build
     - name: Upload Primary Zip
@@ -130,7 +130,7 @@ runs:
       if: inputs.reproducible == 'assert' || inputs.reproducible == 'report'
       shell: bash
       working-directory: ${{ inputs.work_dir }}
-      run: $RUN_CLI build -verification
+      run: $RUN_CLI build -clean -json -verification
 
     # Upload Local Verification Build
     - name: Upload Local Verification Zip

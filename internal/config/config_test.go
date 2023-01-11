@@ -10,6 +10,7 @@ import (
 
 	"github.com/hashicorp/actions-go-build/pkg/build"
 	"github.com/hashicorp/actions-go-build/pkg/crt"
+	"github.com/hashicorp/composite-action-framework-go/pkg/git"
 	"github.com/hashicorp/composite-action-framework-go/pkg/testhelpers/assert"
 	"github.com/hashicorp/go-version"
 )
@@ -20,7 +21,11 @@ func TestConfig_init_ok(t *testing.T) {
 	build.TempDirFunc = func() string { return "/test/temp/dir" }
 	build.ConfigIDFunc = func(build.Config) string { return "<build-config-id>" }
 	build.CacheKeyFunc = func(...any) string { return "<compound-cache-key>" }
-	crt.SourceHashFunc = func(string, []string) (string, error) { return "<sourcehash>", nil }
+	crt.WorktreeStateFunc = func(string, []string) (*git.WorktreeState, error) {
+		return &git.WorktreeState{
+			SourceHash: "<sourcehash>",
+		}, nil
+	}
 
 	ConfigIDFunc = func(Config) string { return "<config-id>" }
 
