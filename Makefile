@@ -273,7 +273,7 @@ build: $(DEV_BUILDS)
 release/build: $(RELEASE_BUILDS)
 
 release: $(RELEASE_ZIPS)
-	@echo "$^"
+	@for Z in $^; do echo $$Z; done
 
 version: version/check
 	@LATEST="$(shell $(GH) release list -L 1 --exclude-drafts | grep Latest | cut -f1)"; \
