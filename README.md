@@ -270,7 +270,7 @@ turn this off using the `-buildvcs=false` flag.
 
 ## Development
 
-Devlopment docs have moved to [docs/development.md](docs/deveopment.md).
+Development docs have moved to [docs/development.md](docs/development.md).
 
 The core functionality of this action is contained in a Go CLI, which can also be installed
 and run locally. See [the CLI docs](docs/cli.md) for instructions on installing and using
