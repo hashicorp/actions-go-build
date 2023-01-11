@@ -154,7 +154,6 @@ RUN_QUIET = OUT="$$($(1) 2>&1)" || { \
 $(INTERMEDIATE_BUILD): $(INITIAL_BUILD)
 	@BIN_PATH="$@" ./dev/build intermediate "$<" > /dev/null
 
-
 $(BOOTSTRAPPED_BUILD): $(INTERMEDIATE_BUILD)
 	@BIN_PATH="$@" ./dev/build bootstrapped "$<" > /dev/null
 
@@ -250,6 +249,7 @@ define FINAL_BUILD_TARGETS
 
 build/$(1): $$(BOOTSTRAPPED_BUILD)
 	@./dev/build dev "$$<" "$1" > /dev/null
+
 DEV_BUILDS := $$(DEV_BUILDS) build/$(1)
 
 dist/$1/actions-go-build \
