@@ -269,5 +269,3 @@ assert_supported_platform() { local P="$1"
 	is_supported_platform "$P" || \
 		die "Platform '%s' not supported. Pick from: %s" "$P" "${SUPPORTED_PLATFORMS[*]}"
 }
-
-sha() { sha256sum < "$1" | cut -d' ' -f1; }
