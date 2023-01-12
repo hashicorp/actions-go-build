@@ -173,7 +173,7 @@ install: $(BOOTSTRAPPED_BUILD)
 	@echo "$(dir $(CURDIR)/$(BOOTSTRAPPED_BUILD))" >> "$(GITHUB_PATH)"
 	@echo "Command '$(CLINAME)' installed to GITHUB_PATH ($(GITHUB_PATH))"
 	cat $(GITHUB_PATH)
-	ls -lah "$(cat $(GITHUB_PATH))"
+	ls -lah "$$(cat $(GITHUB_PATH))"
 	export PATH="$$(cat $(GITHUB_PATH))" && $(CLINAME) --version
 else
 # install for local use.
