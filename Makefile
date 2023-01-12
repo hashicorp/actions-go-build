@@ -170,11 +170,9 @@ install: export GOARCH :=
 ifneq ($(GITHUB_PATH),)
 # install for GitHub Actions.
 install: $(BOOTSTRAPPED_BUILD)
-	@echo "$(dir $(CURDIR)/$(BOOTSTRAPPED_BUILD))" >> "$(GITHUB_PATH)"
+	@echo "$(dir $(BOOTSTRAPPED_BUILD))" >> "$(GITHUB_PATH)"
 	@echo "Command '$(CLINAME)' installed to GITHUB_PATH ($(GITHUB_PATH))"
-	cat $(GITHUB_PATH)
-	ls -lah "$$(cat $(GITHUB_PATH))"
-	export PATH="$$(cat $(GITHUB_PATH))" && $(CLINAME) --version
+	@export PATH="$$(cat $(GITHUB_PATH))" && $(CLINAME) --version
 else
 # install for local use.
 install: $(BOOTSTRAPPED_BUILD)
