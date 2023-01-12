@@ -234,10 +234,13 @@ endif
 #
 # Release build targets
 #
+# FINAL_BUILD_TARGETS defines all the targets for platform-specific "final" builds.
+# It's a macro so that we get a consistent set of targets for each platform.
 define FINAL_BUILD_TARGETS
 
-# build/<platform> does not require a clean worktree and results in a "Development" build.
+# Inside this define, $(1) is a platform string, like "linux/amd64" or "darwin/arm64"
 
+# build/<platform> does not require a clean worktree and results in a "Development" build.
 build/$(1): $$(BOOTSTRAPPED_BUILD)
 	@./dev/build dev "$$<" "$1" > /dev/null
 
@@ -253,16 +256,22 @@ RELEASE_ZIPS   := $$(RELEASE_ZIPS) out/actions-go-build_$(CURR_VERSION)_$(subst 
 
 endef
 
+# Get the list of supported platforms defined in the build script.
 TARGET_PLATFORMS := $(shell ./dev/build platforms)
+
+# For each supported platform, call FINAL_BUILD_TARGETS to create the needed targets.
 $(eval $(foreach P,$(TARGET_PLATFORMS),$(call FINAL_BUILD_TARGETS,$(P))))
 
 .PHONY: $(RELEASE_BUILDS)
 .PHONY: $(DEV_BUILDS)
 
+# build builds a dev build for each platform.
 build: $(DEV_BUILDS)
 
+# release/build builds a release build for each platform.
 release/build: $(RELEASE_BUILDS)
 
+# release builds zip-packaged builds for each platform.
 release: $(RELEASE_ZIPS)
 	@for Z in $^; do echo $$Z; done
 
