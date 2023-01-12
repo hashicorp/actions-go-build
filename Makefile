@@ -172,7 +172,8 @@ ifneq ($(GITHUB_PATH),)
 install: $(BOOTSTRAPPED_BUILD)
 	@echo "$(dir $(CURDIR)/$(BOOTSTRAPPED_BUILD))" >> "$(GITHUB_PATH)"
 	@echo "Command '$(CLINAME)' installed to GITHUB_PATH ($(GITHUB_PATH))"
-	@export PATH="$$(cat $(GITHUB_PATH))" && $(CLINAME) --version
+	cat $(GITHUB_PATH)
+	export PATH="$$(cat $(GITHUB_PATH))" && $(CLINAME) --version
 else
 # install for local use.
 install: $(BOOTSTRAPPED_BUILD)
