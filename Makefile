@@ -135,18 +135,18 @@ env:
 
 $(INITIAL_BUILD): $(SOURCE_ID)
 	@echo "# Running tests..." 1>&2
-	@$(RUN_TESTS_QUIET)
-	@BIN_PATH="$@" ./dev/build initial > /dev/null
+	@$(RUN_TESTS_QUIET) || exit 1
+	@BIN_PATH="$@" ./dev/build initial > /dev/null || exit 1
 
 RUN_QUIET = OUT="$$($(1) 2>&1)" || { \
 				echo "Command Failed: $(notdir $(1))"; echo "$$OUT"; exit 1; \
 			} 
 
 $(INTERMEDIATE_BUILD): $(INITIAL_BUILD)
-	@BIN_PATH="$@" ./dev/build intermediate "$<" > /dev/null
+	@BIN_PATH="$@" ./dev/build intermediate "$<" > /dev/null || exit 1
 
 $(BOOTSTRAPPED_BUILD): $(INTERMEDIATE_BUILD)
-	@BIN_PATH="$@" ./dev/build bootstrapped "$<" > /dev/null
+	@BIN_PATH="$@" ./dev/build bootstrapped "$<" > /dev/null || exit 1
 
 cli: $(BOOTSTRAPPED_BUILD)
 	@echo "Build successful."
@@ -250,7 +250,7 @@ dist/$1/actions-go-build \
 out/actions-go-build_$(CURR_VERSION)_$(subst /,_,$1).zip \
 zip/$(1) \
 release/build/$(1): $$(BOOTSTRAPPED_BUILD)
-	@./dev/build release "$$<" "$1" > /dev/null
+	@./dev/build release "$$<" "$1" > /dev/null || exit 1
 RELEASE_BUILDS := $$(RELEASE_BUILDS) release/build/$(1)
 RELEASE_ZIPS   := $$(RELEASE_ZIPS) out/actions-go-build_$(CURR_VERSION)_$(subst /,_,$1).zip
 
@@ -276,7 +276,7 @@ release/zips: $(RELEASE_ZIPS)
 
 # release builds zip-packaged builds for each platform.
 release: $(RELEASE_ZIPS)
-	@./dev/release/create $(RELEASE_ZIPS)
+	@./dev/release/create $(RELEASE_ZIPS) || exit 1
 
 version: version/check
 	@LATEST="$(shell $(GH) release list -L 1 --exclude-drafts | grep Latest | cut -f1)"; \
