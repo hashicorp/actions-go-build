@@ -57,6 +57,10 @@ Makefile.funcs.main() {
 	"$FUNC" "$@"	
 }
 
+# Ensure TMPDIR is set.
+: ${TMPDIR:-$RUNNER_TEMP}
+[[ -n "$TMPDIR" ]] || die "Neither TMPDIR nor RUNNER_TEMP is set."
+
 #
 # End Header
 

@@ -7,7 +7,7 @@ jobs:
       GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
     steps:
       - uses: actions/checkout@v3
-      - id: get-version
-        run: VERSION="$(make version)" && echo "version=$VERSION" >> $GITHUB_OUTPUT
-      - name: Release ${{ steps.get-version.outputs.version }}
+      - name: Build CLI Binaries
+        run: make release/zips
+      - name: Build and Release
         run: make release

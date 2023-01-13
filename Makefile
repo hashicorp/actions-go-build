@@ -271,9 +271,12 @@ build: $(DEV_BUILDS)
 # release/build builds a release build for each platform.
 release/build: $(RELEASE_BUILDS)
 
+release/zips: $(RELEASE_ZIPS)
+	@for Z in $^; do echo $$Z; done
+
 # release builds zip-packaged builds for each platform.
 release: $(RELEASE_ZIPS)
-	@for Z in $^; do echo $$Z; done
+	@./dev/release/create $(RELEASE_ZIPS)
 
 version: version/check
 	@LATEST="$(shell $(GH) release list -L 1 --exclude-drafts | grep Latest | cut -f1)"; \
@@ -296,7 +299,7 @@ version/set:
 		exit 1; \
 	}; \
 	./dev/release/set_version "$(VERSION)" && \
-	make changelog && \
+	$(MAKE) changelog && \
 	git add dev/VERSION dev/changes/v$(VERSION).md CHANGELOG.md && \
 	git commit -m "set development version to v$(VERSION)"
 .PHONY: version/set

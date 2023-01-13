@@ -36,3 +36,12 @@ NOTES="$(envsubst < "dev/changes/$FULL_TAG.md")"
 
 log "Creating GitHub release..."
 gh release create "$FULL_TAG" --notes "$NOTES"
+
+# If no release zips were passed, we're done.
+[[ "${#@}" -eq 0 ]] && exit 0
+
+# If a list of zip files was passed, upload them as release assets.
+
+SHASUMSFILE="actions-go-build_${VERSION}_SHA256SUMS"
+sha256sum "$@" > "$SHASUMSFILE"
+gh release upload "$FULL_TAG" "$@"
