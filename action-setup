@@ -9,6 +9,14 @@ die() { echo "$*"; exit 1; }
 # It defaults to "." meaning the repo root itself.
 SUB_ACTION="${1:-.}"
 
+if [[ -z "${TMPDIR:-}" ]]; then
+	if [[ -z "$RUNNER_TEMP" ]]; then
+		die "Neither TMPDIR nor RUNNER_TEMP are set."
+	fi
+	TMPDIR="$RUNNER_TEMP"
+	export TMPDIR
+fi
+
 # This script exports some environment variables for later steps,
 # and clones this entire repository into the action path.
 #

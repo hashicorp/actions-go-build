@@ -1,5 +1,7 @@
 SHELL := /usr/bin/env bash -euo pipefail -c
 
+MAKEFLAGS := --jobs=10
+
 PRODUCT_NAME := actions-go-build
 DESTDIR ?= /usr/local/bin
 
@@ -12,10 +14,17 @@ else
 	CLEAR :=
 endif
 
+SOURCE_ID       := .git/source-id
+SOURCE_ID_VALUE := $(shell SOURCE_ID=$(SOURCE_ID) ./dev/update-source-id)
+
+# Uncomment to show the source ID.
+# $(info SOURCE_ID=$(SOURCE_ID_VALUE))
+
 default: run
 
 ifeq ($(TMPDIR),)
 TMPDIR := $(RUNNER_TEMP)
+export TMPDIR
 endif
 ifeq ($(TMPDIR),)
 $(error Neither TMPDIR nor RUNNER_TEMP are set.)
@@ -52,50 +61,51 @@ CLINAME          := $(PRODUCT_NAME)
 
 # Release versions of the CLI are built in three phases:
 #
-#    1) TMP_BUILD             - No build metadata.
+#    1) INITIAL_BUILD       - No build metadata.
 #    2) INTERMEDIATE_BUILD    - Some build metadata.
-#    3) RELEASE_BUILD         - All build metadata.
+#    3) BOOTSTRAPPED_BUILD           - All build metadata.
 #
 # See comments below for more explanation.
 
-# TMP_BUILD is a build of the CLI done using just `go build ...`. This is used to bootstrap
-# compiling the CLI using itself, for dogfooding purposes. The TMP_BUILD contains none of the
+TMP_BASE := $(TMPDIR)/actions-go-build.builds/$(SOURCE_ID_VALUE)
+
+# INITIAL_BUILD is a build of the CLI done using just `go build ...`. This is used to bootstrap
+# compiling the CLI using itself, for dogfooding purposes. The INITIAL_BUILD contains none of the
 # automatically generated metadata like the version or revision. It is used to build the
 # intermediate build...
-TMP_BUILD := $(TMPDIR)/temp-build/$(CLINAME)
+INITIAL_BUILD := $(TMP_BASE)/initial/$(CLINAME)
 
-# INTERMEDIATE_BUILD is a build of the CLI done using the TMP_BUILD build. Because it used
-# TMP_BUILD (i.e. the code in this repo) to build itself, it contains automatically generated
+# INTERMEDIATE_BUILD is a build of the CLI done using the INITIAL_BUILD build. Because it used
+# INITIAL_BUILD (i.e. the code in this repo) to build itself, it contains automatically generated
 # metadata like the version and revision. However, it does not contain the metadata about the
-# version of actions-go-build that built it because TMP_BUILD doesn't have that metadata
+# version of actions-go-build that built it because INITIAL_BUILD doesn't have that metadata
 # available to inject.
-INTERMEDIATE_BUILD := $(TMPDIR)/intermediate-build/$(CLINAME)
+INTERMEDIATE_BUILD := $(TMP_BASE)/intermediate/$(CLINAME)
 
-# RELEASE_BUILD is the final build of the CLI, done using the INTERMEDIATE_BUILD. Because
+# BOOTSTRAPPED_BUILD is the final build of the CLI, done using the INTERMEDIATE_BUILD. Because
 # INTERMEDIATE_BUILD contains build metadata (e.g. version and revision), it is able to inject
 # that information, into this final build as "tool metadata". Thus we can track the provanance of
 # this binary  just like we are able to with any product binaries also built using this tool.
-RELEASE_BUILD := dist/$(CLINAME)
+BOOTSTRAPPED_BUILD := $(TMP_BASE)/bootstrapped/$(CLINAME)
 
 # HOST_PLATFORM_TARGETS are targets that must always produce output compatible with
 # the current host platform. We therefore unset the GOOS and GOARCH variable to allow
 # the defaults to shine through.
-HOST_PLATFORM_TARGETS := $(TMP_BUILD) $(INTERMEDIATE_BUILD) test/go
+HOST_PLATFORM_TARGETS := $(INITIAL_BUILD) $(INTERMEDIATE_BUILD) test/go
 $(HOST_PLATFORM_TARGETS): export GOOS :=
 $(HOST_PLATFORM_TARGETS): export GOARCH :=
+
+HOST_PLATFORM_TARGET_ENV := GOOS= GOARCH= OS= ARCH=
 
 #
 # Targets
 #
 
-build:
-	go build ./...
-
 test: test/go
 
 .PHONY: test/go
 test/go: compile
-	go test $(GO_TEST_FLAGS) ./...
+	@$(HOST_PLATFORM_TARGET_ENV) go test $(GO_TEST_FLAGS) ./...
 
 cover: GO_TEST_FLAGS := -coverprofile=coverage.profile
 cover: test/go
@@ -120,41 +130,27 @@ env:
 	@echo "  PRODUCT_REVISION=$$PRODUCT_REVISION"
 	@echo "  PRODUCT_REVISION_TIME=$$PRODUCT_REVISION_TIME"
 
-# When building the binary, we first do a plain 'go build' to build a temporary
-# binary that contains no version info. Then we use that version of the binary
-# to build this product with all the version info added automatically from the
-# build context.
-#
-# We then use _that_ binary to build yet another binary, this time with the
-# correct tool version injected into the build.
-#
-# Thus, each version of actions-go-build is built using itself.
+# The targets below invoke the ./dev/build script. Please see that script for more docs
+# on how actions-go-build is built using itself.
 
-.PHONY: $(TMP_BUILD)
-$(TMP_BUILD):
+$(INITIAL_BUILD): $(SOURCE_ID)
 	@echo "# Running tests..." 1>&2
 	@$(RUN_TESTS_QUIET)
-	@echo "# Creating temporary build..." 1>&2
-	@rm -f "$(TMP_BUILD)"
-	@mkdir -p "$(dir $(TMP_BUILD))"
-	@go build -o "$(TMP_BUILD)"
+	@BIN_PATH="$@" ./dev/build initial > /dev/null
 
-.PHONY: $(INTERMEDIATE_BUILD)
-$(INTERMEDIATE_BUILD): export TARGET_DIR := $(dir $(INTERMEDIATE_BUILD))
-$(INTERMEDIATE_BUILD): $(TMP_BUILD)
-	@echo "# Creating intermediate build..." 1>&2
-	@$(TMP_BUILD) build -rebuild
+RUN_QUIET = OUT="$$($(1) 2>&1)" || { \
+				echo "Command Failed: $(notdir $(1))"; echo "$$OUT"; exit 1; \
+			} 
 
-.PHONY: $(RELEASE_BUILD)
-$(RELEASE_BUILD): $(INTERMEDIATE_BUILD)
-	@echo "# Creating final build." 1>&2
-	@$(INTERMEDIATE_BUILD) build -rebuild
-	@echo "# Verifying reproducibility of self..." 1>&2
-	@./$@ verify
+$(INTERMEDIATE_BUILD): $(INITIAL_BUILD)
+	@BIN_PATH="$@" ./dev/build intermediate "$<" > /dev/null
 
-cli: $(RELEASE_BUILD)
+$(BOOTSTRAPPED_BUILD): $(INTERMEDIATE_BUILD)
+	@BIN_PATH="$@" ./dev/build bootstrapped "$<" > /dev/null
+
+cli: $(BOOTSTRAPPED_BUILD)
 	@echo "Build successful."
-	$(RELEASE_BUILD) --version
+	$(BOOTSTRAPPED_BUILD) --version
 
 .PHONY: install
 # Ensure install always targets the host platform.
@@ -163,13 +159,13 @@ install: export GOARCH :=
 
 ifneq ($(GITHUB_PATH),)
 # install for GitHub Actions.
-install: $(RELEASE_BUILD)
-	@echo "$(dir $(CURDIR)/$(RELEASE_BUILD))" >> "$(GITHUB_PATH)"
-	@echo "Command '$(CLINAME)' installed to GITHUB_PATH"
-	@PATH="$$(cat $(GITHUB_PATH))" $(CLINAME) --version
+install: $(BOOTSTRAPPED_BUILD)
+	@echo "$(dir $(BOOTSTRAPPED_BUILD))" >> "$(GITHUB_PATH)"
+	@echo "Command '$(CLINAME)' installed to GITHUB_PATH ($(GITHUB_PATH))"
+	@export PATH="$$(cat $(GITHUB_PATH))" && $(CLINAME) --version
 else
 # install for local use.
-install: $(RELEASE_BUILD)
+install: $(BOOTSTRAPPED_BUILD)
 	@mv "$<" "$(DESTDIR)"
 	@V="$$($(CLINAME) version -short)" && \
 		echo "# $(CLINAME) v$$V installed to $(DESTDIR)"
@@ -184,10 +180,10 @@ mod/framework/update:
 # which is usful for quickly seeing its output whilst developing.
 
 .PHONY: run
-run: $(TMP_BUILD)
+run: $(INITIAL_BUILD)
 	@$${QUIET:-false} || $(CLEAR)
 	@$${QUIET:-false} || echo "\$$ $(notdir $<) $(RUN)"
-	@$(TMP_BUILD) $(RUN)
+	@$(INITIAL_BUILD) $(RUN)
 
 .PHONY: docs
 docs: readme changelog
@@ -235,9 +231,49 @@ ifneq ($(GH_AUTHED),true)
 endif
 endif
 
-.PHONY: release
-release:
-	@./dev/release/create
+#
+# Release build targets
+#
+# FINAL_BUILD_TARGETS defines all the targets for platform-specific "final" builds.
+# It's a macro so that we get a consistent set of targets for each platform.
+define FINAL_BUILD_TARGETS
+
+# Inside this define, $(1) is a platform string, like "linux/amd64" or "darwin/arm64"
+
+# build/<platform> does not require a clean worktree and results in a "Development" build.
+build/$(1): $$(BOOTSTRAPPED_BUILD)
+	@./dev/build dev "$$<" "$1" > /dev/null
+
+DEV_BUILDS := $$(DEV_BUILDS) build/$(1)
+
+dist/$1/actions-go-build \
+out/actions-go-build_$(CURR_VERSION)_$(subst /,_,$1).zip \
+zip/$(1) \
+release/build/$(1): $$(BOOTSTRAPPED_BUILD)
+	@./dev/build release "$$<" "$1" > /dev/null
+RELEASE_BUILDS := $$(RELEASE_BUILDS) release/build/$(1)
+RELEASE_ZIPS   := $$(RELEASE_ZIPS) out/actions-go-build_$(CURR_VERSION)_$(subst /,_,$1).zip
+
+endef
+
+# Get the list of supported platforms defined in the build script.
+TARGET_PLATFORMS := $(shell ./dev/build platforms)
+
+# For each supported platform, call FINAL_BUILD_TARGETS to create the needed targets.
+$(eval $(foreach P,$(TARGET_PLATFORMS),$(call FINAL_BUILD_TARGETS,$(P))))
+
+.PHONY: $(RELEASE_BUILDS)
+.PHONY: $(DEV_BUILDS)
+
+# build builds a dev build for each platform.
+build: $(DEV_BUILDS)
+
+# release/build builds a release build for each platform.
+release/build: $(RELEASE_BUILDS)
+
+# release builds zip-packaged builds for each platform.
+release: $(RELEASE_ZIPS)
+	@for Z in $^; do echo $$Z; done
 
 version: version/check
 	@LATEST="$(shell $(GH) release list -L 1 --exclude-drafts | grep Latest | cut -f1)"; \

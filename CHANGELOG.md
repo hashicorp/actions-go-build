@@ -21,6 +21,9 @@ Instead, edit the files in dev/changes/, then run 'make docs' to update this fil
 
 - New inspect flag: `-worktree` which reports on the dirty/clean status of the worktree.
 - Development documentation docs/development.md
+- Build system:
+  - `make build` - build dev (maybe dirty) CLI binaries & zips for all supported platforms.
+  - `make release` - build release (clean) CLI binaries & zipe for all supported platforms.
 
 ### Fixed:
 

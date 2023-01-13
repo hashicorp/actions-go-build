@@ -146,7 +146,10 @@ func (b *core) Steps() []Step {
 
 func (b *core) createDirectories() error {
 	c := b.config
-	return fs.Mkdirs(c.Paths.TargetDir(), c.Paths.ZipDir(), c.Paths.MetaDir)
+	if err := fs.MkdirEmpty(c.Paths.TargetDir()); err != nil {
+		return err
+	}
+	return fs.Mkdirs(c.Paths.ZipDir(), c.Paths.MetaDir)
 }
 
 func (b *core) assertExecutableWritten() error {
