@@ -16,6 +16,8 @@ for TAG in "${TAGS[@]}"; do
 	echo "$TAG"
 done
 
+git fetch --force --all --tags
+
 if (git tag | grep -F "$FULL_TAG"); then
 	die "Full tag '$FULL_TAG' already exists. Please increment the version first."
 fi
