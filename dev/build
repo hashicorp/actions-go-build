@@ -58,7 +58,7 @@ Makefile.funcs.main() {
 }
 
 # Ensure TMPDIR is set.
-: ${TMPDIR:-$RUNNER_TEMP}
+: "${TMPDIR:="${RUNNER_TEMP:-}"}"
 [[ -n "$TMPDIR" ]] || die "Neither TMPDIR nor RUNNER_TEMP is set."
 
 #
