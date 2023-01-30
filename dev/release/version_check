@@ -13,6 +13,8 @@ tag_exists() {
 	git tag --list | grep -qF "$1"
 }
 
+git fetch --force --all --tags
+
 # If we've already released this version it should have been incremented.
 tag_exists "$VERSION" && {
 	die "Please update '$VERSION_FILE'; you've already tagged v$VERSION"
