@@ -1,0 +1,11 @@
+schema: 1.1
+
+partition: internal-platform
+category: github-action
+
+summary:
+  name: actions-go-build
+  owner: team-rel-eng
+  description: Go build action, with built-in reproduciblity verification as part of Common Release Tooling (CRT).
+  visibility: external
+  auth_methods: none
