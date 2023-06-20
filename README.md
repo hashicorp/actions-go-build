@@ -1,4 +1,4 @@
-# Go Build Action
+# Go Build Action [![Heimdall](https://heimdall.hashicorp.services/api/v1/assets/actions-go-build/badge.svg?key=5c34743984c6ac17fabc3e68b7f6d34620de4e877ab1c529405ed7f4843147bf)](https://heimdall.hashicorp.services/site/assets/actions-go-build) [![CI](https://github.com/hashicorp/actions-go-build/actions/workflows/test.yml/badge.svg)](https://github.com/hashicorp/actions-go-build/actions/workflows/test.yml)
 
 _**Build and package a (reproducible) Go binary.**_
 

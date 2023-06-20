@@ -1,0 +1,4 @@
+tags:
+  family: github-actions
+  type: github-action
+  crt-compatible: true
