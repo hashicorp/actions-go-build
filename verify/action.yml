@@ -26,7 +26,7 @@ runs:
   steps:
 
     # Setup Go for CLI compilation.
-    - uses: actions/setup-go@fac708d6674e30b6ba41289acaab6d4b75aa0753 # v4.0.1
+    - uses: actions/setup-go@0c52d547c9bc32b1aa3301fd7a9cb496313a4491 # v5.0.0
       with:
         go-version: 1.18
 
@@ -74,7 +74,7 @@ runs:
         $RUN_CLI inspect -build-config "$RESULT_FILE"
 
     # Setup Go For Running the Verification Build
-    - uses: actions/setup-go@fac708d6674e30b6ba41289acaab6d4b75aa0753 # v4.0.1
+    - uses: actions/setup-go@0c52d547c9bc32b1aa3301fd7a9cb496313a4491 # v5.0.0
       with:
         go-version: ${{ env.GO_VERSION }}
 
@@ -95,7 +95,7 @@ runs:
     # Store reproducibility report.
     - name: Upload Reproducibility Report
       if: always()
-      uses: actions/upload-artifact@0b7f8abb1508181956e8e162db84b466c27e18ce # v3.1.2
+      uses: actions/upload-artifact@65462800fd760344b1a7b4382951275a0abb4808 # v4.3.3
       with:
         path: ${{ env.VERIFICATION_RESULT }}
         name: ${{ env.OUTPUT_FILE }}
