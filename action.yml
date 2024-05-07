@@ -83,6 +83,7 @@ runs:
     - uses: actions/setup-go@0c52d547c9bc32b1aa3301fd7a9cb496313a4491 # v5.0.0
       with:
         go-version: 1.18
+        cache: false
 
     - name: Action Setup
       shell: bash
@@ -93,6 +94,8 @@ runs:
     - uses: actions/setup-go@0c52d547c9bc32b1aa3301fd7a9cb496313a4491 # v5.0.0
       with:
         go-version: ${{ inputs.go_version }}
+        cache: false
+
 
     # Read config.
     - name: Read config from inputs; export to GITHUB_ENV
