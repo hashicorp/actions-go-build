@@ -30,6 +30,9 @@ inputs:
     description: Passed through to action.
     default: 1.0.0
     required: false
+  product_version_meta:
+    description: Passed through to action.
+    required: false
   go_version:
     description: Passed through to action.
     default: 1.17
@@ -64,6 +67,7 @@ runs:
       with:
         product_name: ${{ inputs.product_name }}_${{ github.job }}
         product_version: ${{ inputs.product_version }}
+        product_version_meta: ${{ inputs.reproducible }} # use reproducible field as a unique identifier per artifact
         go_version: ${{ inputs.go_version }}
         os: ${{ inputs.os }}
         arch: ${{ inputs.arch }}
