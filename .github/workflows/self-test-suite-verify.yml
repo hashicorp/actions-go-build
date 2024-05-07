@@ -31,9 +31,12 @@ jobs:
           - { assert: failure, file: corrupt,                             when: result file is corrupt }
     steps:
       - uses: actions/checkout@0ad4b8fadaa221de15dcec353f45205ec38ea70b # v4.1.4
+      # generate a random ID; GH doesn't provide a proper job ID (especially for matrix jobs)
+      - name: Generate random ID to distinguish build artifacts
+        run: echo "ARTIFACT_ID=$RANDOM" >> "$GITHUB_ENV"
       - uses: ./verify/self-test
         with:
           assert: ${{ matrix.assert }}
           when: ${{ matrix.when }}
           result_file: verify/testdata/${{ matrix.file }}.buildresult.json
-          output_file: verification-result-${{ inputs.runner }}.json
+          output_file: verification-result-${{ inputs.runner }}-${{ env.ARTIFACT_ID }}.json
