@@ -9,7 +9,7 @@ jobs:
           - { runner: macos-latest,  os: darwin,  arch: amd64, tags: netcgo        }
           - { runner: macos-latest,  os: darwin,  arch: arm64, tags: netcgo        }
           - { runner: ubuntu-latest, os: linux,   arch: amd64, env:  CGO_ENABLED=0 }
-          - { runner: ubuntu-latest, os: linux,   arch: amd64, env:  CGO_ENABLED=0 }
+          - { runner: ubuntu-latest, os: linux,   arch: arm64, env:  CGO_ENABLED=0 }
           - { runner: ubuntu-latest, os: windows, arch: amd64, env:  CGO_ENABLED=0 }
     steps:
       - uses: actions/checkout@0ad4b8fadaa221de15dcec353f45205ec38ea70b # v4.1.4
