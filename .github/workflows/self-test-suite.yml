@@ -17,6 +17,10 @@ jobs:
   # with different sets of inputs, and assert that the action succeeds or
   # fails correctly.
 
+  # Each test uses a distinct product_name that must account for both the job name
+  # and the variants introduced via job matrix in order to avoid duplicate artifact
+  # names (which cannot be uploaded as of actions/upload-artifact@v4.
+
   # A single reproducible go binary.
   ok-single-file:
     runs-on: ${{ inputs.runner }}
@@ -28,9 +32,13 @@ jobs:
           - { reproducible: report, want: success }
           - { reproducible: nope,   want: success }
     steps:
-      - uses: actions/checkout@8e5e7e5ab8b370d6c329ec480221332ada57f0ab # v3.5.2
+      - uses: actions/checkout@0ad4b8fadaa221de15dcec353f45205ec38ea70b # v4.1.4
+      - name: select OS value
+        run: case "${{ runner.os }}" in macOS) echo "SELECTED_OS=darwin" >> "$GITHUB_ENV" ;; Linux) echo "SELECTED_OS=linux" >> "$GITHUB_ENV" ;; esac
       - uses: ./self-test
         with:
+          product_name: "example-app-${{ github.job }}-${{ matrix.reproducible }}"
+          os: ${{ env.SELECTED_OS }}
           reproducible: ${{ matrix.reproducible }}
           assert: ${{ matrix.want }}
           when: "the binary files are identical and there are no other files in the zip"
@@ -49,9 +57,13 @@ jobs:
           - { reproducible: report, want: success }
           - { reproducible: nope,   want: success }
     steps:
-      - uses: actions/checkout@8e5e7e5ab8b370d6c329ec480221332ada57f0ab # v3.5.2
+      - uses: actions/checkout@0ad4b8fadaa221de15dcec353f45205ec38ea70b # v4.1.4
+      - name: select OS value
+        run: case "${{ runner.os }}" in macOS) echo "SELECTED_OS=darwin" >> "$GITHUB_ENV" ;; Linux) echo "SELECTED_OS=linux" >> "$GITHUB_ENV" ;; esac
       - uses: ./self-test
         with:
+          product_name: "example-app-${{ github.job }}-${{ matrix.reproducible }}"
+          os: ${{ env.SELECTED_OS }}
           reproducible: ${{ matrix.reproducible }}
           assert: ${{ matrix.want }}
           when: "the binary files are identical and so are two other files in the zip"
@@ -79,11 +91,12 @@ jobs:
           - { reproducible: report, os: darwin, arch: arm64, want: success }
           - { reproducible: nope,   os: darwin, arch: arm64, want: success }
     steps:
-      - uses: actions/checkout@8e5e7e5ab8b370d6c329ec480221332ada57f0ab # v3.5.2
+      - uses: actions/checkout@0ad4b8fadaa221de15dcec353f45205ec38ea70b # v4.1.4
         if: runner.os == 'macOS'
       - uses: ./self-test
         if: runner.os == 'macOS'
         with:
+          product_name: "example-app-${{ github.job }}-${{ matrix.reproducible }}"
           os: ${{ matrix.os }}
           arch: ${{ matrix.arch }}
           reproducible: ${{ matrix.reproducible }}
@@ -104,9 +117,13 @@ jobs:
           - { reproducible: report, want: success }
           - { reproducible: nope,   want: success }
     steps:
-      - uses: actions/checkout@8e5e7e5ab8b370d6c329ec480221332ada57f0ab # v3.5.2
+      - uses: actions/checkout@0ad4b8fadaa221de15dcec353f45205ec38ea70b # v4.1.4
+      - name: select OS value
+        run: case "${{ runner.os }}" in macOS) echo "SELECTED_OS=darwin" >> "$GITHUB_ENV" ;; Linux) echo "SELECTED_OS=linux" >> "$GITHUB_ENV" ;; esac
       - uses: ./self-test
         with:
+          product_name: "example-app-${{ github.job }}-${{ matrix.reproducible }}"
+          os: ${{ env.SELECTED_OS }}
           reproducible: ${{ matrix.reproducible }}
           assert: ${{ matrix.want }}
           when: "the binary files reproduce but the zip files do not"
@@ -127,9 +144,13 @@ jobs:
           - { reproducible: report, want: success }
           - { reproducible: nope,   want: success }
     steps:
-      - uses: actions/checkout@8e5e7e5ab8b370d6c329ec480221332ada57f0ab # v3.5.2
+      - uses: actions/checkout@0ad4b8fadaa221de15dcec353f45205ec38ea70b # v4.1.4
+      - name: select OS value
+        run: case "${{ runner.os }}" in macOS) echo "SELECTED_OS=darwin" >> "$GITHUB_ENV" ;; Linux) echo "SELECTED_OS=linux" >> "$GITHUB_ENV" ;; esac
       - uses: ./self-test
         with:
+          product_name: "example-app-${{ github.job }}-${{ matrix.reproducible }}"
+          os: ${{ env.SELECTED_OS }}
           reproducible: ${{ matrix.reproducible }}
           assert: ${{ matrix.want }}
           when: "neither the binary file not the zip file reproduce"
@@ -149,9 +170,13 @@ jobs:
           - { reproducible: report, want: failure }
           - { reproducible: nope,   want: failure }
     steps:
-      - uses: actions/checkout@8e5e7e5ab8b370d6c329ec480221332ada57f0ab # v3.5.2
+      - uses: actions/checkout@0ad4b8fadaa221de15dcec353f45205ec38ea70b # v4.1.4
+      - name: select OS value
+        run: case "${{ runner.os }}" in macOS) echo "SELECTED_OS=darwin" >> "$GITHUB_ENV" ;; Linux) echo "SELECTED_OS=linux" >> "$GITHUB_ENV" ;; esac
       - uses: ./self-test
         with:
+          product_name: "example-app-${{ github.job }}-${{ matrix.reproducible }}"
+          os: ${{ env.SELECTED_OS }}
           reproducible: ${{ matrix.reproducible }}
           assert: ${{ matrix.want }}
           when: "the binary file is not written to the correct path"
