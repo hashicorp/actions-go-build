@@ -62,7 +62,7 @@ runs:
       id: build
       uses: ./ # The action at the root of this repo.
       with:
-        product_name: ${{ inputs.product_name }}_${{ github.job }}
+        product_name: ${{ inputs.product_name }}
         product_version: ${{ inputs.product_version }}
         go_version: ${{ inputs.go_version }}
         os: ${{ inputs.os }}
