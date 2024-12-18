@@ -127,6 +127,7 @@ runs:
         name: ${{ env.ZIP_NAME }}
         path: ${{ env.ZIP_PATH_PRIMARY }}
         if-no-files-found: error
+        compression-level: 0
 
     # Local Verification Build
     - name: Run Local Verification Build
@@ -142,7 +143,8 @@ runs:
       with:
         name: ${{ env.ZIP_NAME }}.local-verification-build.zip
         path: ${{ env.ZIP_PATH_VERIFICATION }}
-        if-no-files-found: error
+        if-no-files-found:
+        compression-level: 0
 
     # Assert Reproducibility
     - name: Assert Build Outputs Identical
@@ -176,3 +178,4 @@ runs:
         name: ${{ env.ZIP_NAME }}.verificationresult.json
         path: ${{ env.VERIFICATION_RESULT }}
         if-no-files-found: error
+        compression-level: 0

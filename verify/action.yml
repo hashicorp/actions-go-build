@@ -102,3 +102,4 @@ runs:
         path: ${{ env.VERIFICATION_RESULT }}
         name: ${{ env.OUTPUT_FILE }}
         if-no-files-found: error
+        compression-level: 0
