@@ -121,12 +121,12 @@ runs:
       run: $RUN_CLI build -clean -json
 
     # Upload Primary Build
-    - name: Upload Primary Zip
-      uses: actions/upload-artifact@65462800fd760344b1a7b4382951275a0abb4808 # v4.3.3
-      with:
-        name: ${{ env.ZIP_NAME }}
-        path: ${{ env.ZIP_PATH_PRIMARY }}
-        if-no-files-found: error
+    # - name: Upload Primary Zip
+    #   uses: actions/upload-artifact@65462800fd760344b1a7b4382951275a0abb4808 # v4.3.3
+    #   with:
+    #     name: ${{ env.ZIP_NAME }}
+    #     path: ${{ env.ZIP_PATH_PRIMARY }}
+    #     if-no-files-found: error
 
     # Local Verification Build
     - name: Run Local Verification Build
@@ -136,13 +136,13 @@ runs:
       run: $RUN_CLI build -clean -json -verification
 
     # Upload Local Verification Build
-    - name: Upload Local Verification Zip
-      if: inputs.reproducible == 'assert' || inputs.reproducible == 'report'
-      uses: actions/upload-artifact@65462800fd760344b1a7b4382951275a0abb4808 # v4.3.3
-      with:
-        name: ${{ env.ZIP_NAME }}.local-verification-build.zip
-        path: ${{ env.ZIP_PATH_VERIFICATION }}
-        if-no-files-found: error
+    # - name: Upload Local Verification Zip
+    #   if: inputs.reproducible == 'assert' || inputs.reproducible == 'report'
+    #   uses: actions/upload-artifact@65462800fd760344b1a7b4382951275a0abb4808 # v4.3.3
+    #   with:
+    #     name: ${{ env.ZIP_NAME }}.local-verification-build.zip
+    #     path: ${{ env.ZIP_PATH_VERIFICATION }}
+    #     if-no-files-found: error
 
     # Assert Reproducibility
     - name: Assert Build Outputs Identical
