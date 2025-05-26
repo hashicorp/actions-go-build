@@ -6,8 +6,6 @@ updates:
     directory: "/"
     schedule:
       interval: "monthly"
-    # Only update hashicorp-owned actions
-    # External actions managed via TSCCR
     groups:
       github-actions-breaking:
         update-types:
