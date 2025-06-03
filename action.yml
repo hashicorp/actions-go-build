@@ -123,6 +123,7 @@ runs:
 
     # Export ZIP_NAME to outputs
     - id: export_zip_name
+      shell: bash
       name: Export ZIP_NAME to outputs
       run: echo "zip_name=${{ env.ZIP_NAME }}" | tee -a "$GITHUB_OUTPUT"
 
