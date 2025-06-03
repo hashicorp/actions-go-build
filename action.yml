@@ -75,6 +75,13 @@ inputs:
     required: false
     default: 0
 
+outputs:
+
+  zip_name:
+    description: >
+      Name of the built zip file.
+    value: ${{ steps.export_zip_name.outputs.zip_name }}
+
 runs:
   using: composite
   steps:
@@ -113,6 +120,11 @@ runs:
         ZIP_NAME: ${{ inputs.zip_name }}
         INSTRUCTIONS: ${{ inputs.instructions }}
         DEBUG: ${{ inputs.debug }}
+
+    # Export ZIP_NAME to outputs
+    - id: export_zip_name
+      name: Export ZIP_NAME to outputs
+      run: echo "zip_name=${{ env.ZIP_NAME }}" | tee -a "$GITHUB_OUTPUT"
 
     # Primary Build
     - name: Run Primary Build

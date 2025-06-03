@@ -136,6 +136,11 @@ jobs:
 |  `debug`&nbsp;_(optional)_                 |  Enable debug-level logging.                                                                              |
 <!-- end:insert:dev/docs/inputs_doc -->
 
+### Outputs
+|  Name                                      |  Description                                                                                              |
+|  -----                                     |  -----                                                                                                    |
+|  `zip_name`                                |  The provided or calculated zip file name                                                                 |
+
 ### Build Instructions
 
 The `instructions` input is a bash script that builds the product binary.
