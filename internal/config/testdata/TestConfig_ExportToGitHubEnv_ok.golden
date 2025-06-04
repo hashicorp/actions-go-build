@@ -64,3 +64,6 @@ _GitHubActionsFileCommandDelimeter_
 DEBUG<<_GitHubActionsFileCommandDelimeter_
 false
 _GitHubActionsFileCommandDelimeter_
+TARGET_DIR<<_GitHubActionsFileCommandDelimeter_
+/some/dir/work/dist
+_GitHubActionsFileCommandDelimeter_
