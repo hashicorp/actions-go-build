@@ -80,7 +80,12 @@ outputs:
   zip_name:
     description: >
       Name of the built zip file.
-    value: ${{ steps.export_zip_name.outputs.zip_name }}
+    value: ${{ steps.export_outputs.outputs.zip_name }}
+
+  target_dir:
+    description: >
+      Name of the directory where an artifact can be assembled
+    value: ${{ steps.export_outputs.outputs.target_dir }}
 
 runs:
   using: composite
@@ -121,11 +126,13 @@ runs:
         INSTRUCTIONS: ${{ inputs.instructions }}
         DEBUG: ${{ inputs.debug }}
 
-    # Export ZIP_NAME to outputs
-    - id: export_zip_name
+    # Export outputs
+    - id: export_outputs
       shell: bash
-      name: Export ZIP_NAME to outputs
-      run: echo "zip_name=${{ env.ZIP_NAME }}" | tee -a "$GITHUB_OUTPUT"
+      name: Export outputs
+      run: | 
+        echo "zip_name=${{ env.ZIP_NAME }}" | tee -a "$GITHUB_OUTPUT"
+        echo "target_dir=${{ env.TARGET_DIR }}" | tee -a "$GITHUB_OUTPUT"
 
     # Primary Build
     - name: Run Primary Build
