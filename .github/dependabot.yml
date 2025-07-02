@@ -6,10 +6,6 @@ updates:
     directory: "/"
     schedule:
       interval: "monthly"
-    # Only update hashicorp-owned actions
-    # External actions managed via TSCCR
-    allow:
-      - dependency-name: "hashicorp/*"
     groups:
       github-actions-breaking:
         update-types:
