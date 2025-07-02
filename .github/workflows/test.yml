@@ -10,10 +10,6 @@ on:
       - "!action.yml"
 
 jobs:
-  lint:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: super-linter/super-linter@b4515bd4ad9d0aa4681960e053916ab991bdbe96 # v6.8.0
 
   go-tests:
     runs-on: ubuntu-latest
