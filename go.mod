@@ -7,7 +7,7 @@ require (
 	github.com/hashicorp/composite-action-framework-go v0.0.3-0.20221209120222-4cb4b247ec6b
 	github.com/hashicorp/go-version v1.6.0
 	github.com/mitchellh/cli v1.1.5
-	github.com/otiai10/copy v1.7.0
+	github.com/otiai10/copy v1.14.1
 	github.com/sethvargo/go-envconfig v0.8.2
 	github.com/sethvargo/go-githubactions v0.5.3
 	golang.org/x/mod v0.25.0
@@ -40,6 +40,7 @@ require (
 	github.com/mattn/go-isatty v0.0.3 // indirect
 	github.com/mitchellh/copystructure v1.0.0 // indirect
 	github.com/mitchellh/reflectwalk v1.0.0 // indirect
+	github.com/otiai10/mint v1.6.3 // indirect
 	github.com/pjbgf/sha1cd v0.2.3 // indirect
 	github.com/posener/complete v1.1.1 // indirect
 	github.com/sergi/go-diff v1.2.0 // indirect
@@ -49,6 +50,7 @@ require (
 	github.com/xanzy/ssh-agent v0.3.3 // indirect
 	golang.org/x/crypto v0.35.0 // indirect
 	golang.org/x/net v0.21.0 // indirect
+	golang.org/x/sync v0.8.0 // indirect
 	golang.org/x/sys v0.30.0 // indirect
 	golang.org/x/tools v0.13.0 // indirect
 	gopkg.in/warnings.v0 v0.1.2 // indirect
