@@ -3,7 +3,7 @@ module github.com/hashicorp/actions-go-build
 go 1.24
 
 require (
-	github.com/google/go-cmp v0.5.9
+	github.com/google/go-cmp v0.7.0
 	github.com/hashicorp/composite-action-framework-go v0.0.3-0.20221209120222-4cb4b247ec6b
 	github.com/hashicorp/go-version v1.6.0
 	github.com/mitchellh/cli v1.1.5
