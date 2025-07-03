@@ -138,9 +138,9 @@ func goVersion118OrGreater(vs string) (bool, error) {
 	if err != nil {
 		return false, fmt.Errorf("parsing go version %q: %w", vs, err)
 	}
-	go118, err := version.NewVersion("1.18")
+	go118, err := version.NewVersion("1.24")
 	if err != nil {
-		return false, fmt.Errorf("parsing go version 1.18: %w", err)
+		return false, fmt.Errorf("parsing go version 1.24: %w", err)
 	}
 	return goVersion.GreaterThanOrEqual(go118), nil
 }

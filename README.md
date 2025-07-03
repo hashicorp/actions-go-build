@@ -57,7 +57,7 @@ jobs:
       - name: Build
         uses: hashicorp/actions-go-build@main
         with:
-          go_version: 1.18
+          go_version: 1.24
           os: linux
           arch: amd64
           work_dir: testdata/example-app
@@ -98,7 +98,7 @@ jobs:
         with:
           product_name: example-app
           product_version: 1.2.3
-          go_version: 1.18
+          go_version: 1.24
           os: ${{ matrix.os }}
           arch: ${{ matrix.arch }}
           instructions: |-

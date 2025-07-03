@@ -76,7 +76,7 @@ const mainDotGo = `
 
 const goDotMod = `module github.com/dadgarcorp/lockbox
 
-go 1.18
+go 1.24
 `
 
 // createTestProductRepo creates a test repo and returns its path.
