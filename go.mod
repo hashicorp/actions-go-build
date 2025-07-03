@@ -6,7 +6,7 @@ require (
 	github.com/google/go-cmp v0.5.9
 	github.com/hashicorp/composite-action-framework-go v0.0.3-0.20221209120222-4cb4b247ec6b
 	github.com/hashicorp/go-version v1.6.0
-	github.com/mitchellh/cli v1.1.4
+	github.com/mitchellh/cli v1.1.5
 	github.com/otiai10/copy v1.7.0
 	github.com/sethvargo/go-envconfig v0.8.2
 	github.com/sethvargo/go-githubactions v0.5.3
@@ -15,9 +15,9 @@ require (
 )
 
 require (
-	github.com/Masterminds/goutils v1.1.0 // indirect
+	github.com/Masterminds/goutils v1.1.1 // indirect
 	github.com/Masterminds/semver/v3 v3.1.1 // indirect
-	github.com/Masterminds/sprig/v3 v3.2.0 // indirect
+	github.com/Masterminds/sprig/v3 v3.2.1 // indirect
 	github.com/Microsoft/go-winio v0.6.0 // indirect
 	github.com/ProtonMail/go-crypto v0.0.0-20221026131551-cf6655e29de4 // indirect
 	github.com/acomagu/bufpipe v1.0.3 // indirect
