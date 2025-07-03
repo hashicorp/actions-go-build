@@ -11,7 +11,7 @@ require (
 	github.com/sethvargo/go-envconfig v0.8.2
 	github.com/sethvargo/go-githubactions v0.5.3
 	golang.org/x/mod v0.25.0
-	golang.org/x/term v0.29.0
+	golang.org/x/term v0.30.0
 )
 
 require (
@@ -48,10 +48,10 @@ require (
 	github.com/skeema/knownhosts v1.1.0 // indirect
 	github.com/spf13/cast v1.3.1 // indirect
 	github.com/xanzy/ssh-agent v0.3.3 // indirect
-	golang.org/x/crypto v0.35.0 // indirect
-	golang.org/x/net v0.21.0 // indirect
+	golang.org/x/crypto v0.36.0 // indirect
+	golang.org/x/net v0.38.0 // indirect
 	golang.org/x/sync v0.8.0 // indirect
-	golang.org/x/sys v0.30.0 // indirect
+	golang.org/x/sys v0.31.0 // indirect
 	golang.org/x/tools v0.13.0 // indirect
 	gopkg.in/warnings.v0 v0.1.2 // indirect
 )
