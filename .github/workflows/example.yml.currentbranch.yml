@@ -9,7 +9,7 @@ jobs:
       - name: Build
         uses: ./
         with:
-          go_version: 1.24
+          go_version: 1.18
           os: linux
           arch: amd64
           work_dir: testdata/example-app

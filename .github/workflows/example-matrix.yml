@@ -18,7 +18,7 @@ jobs:
         with:
           product_name: example-app
           product_version: 1.2.3
-          go_version: 1.24
+          go_version: 1.20
           os: ${{ matrix.os }}
           arch: ${{ matrix.arch }}
           instructions: |-
