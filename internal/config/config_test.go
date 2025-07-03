@@ -206,7 +206,7 @@ func standardConfig() Config {
 func standardUnintializedConfig() Config {
 	return Config{
 		Parameters: build.Parameters{
-			GoVersion: "1.18",
+			GoVersion: "1.24",
 			OS:        "linux",
 			Arch:      "amd64",
 		},
@@ -215,7 +215,7 @@ func standardUnintializedConfig() Config {
 
 func standardParameters() build.Parameters {
 	return build.Parameters{
-		GoVersion:    "1.18",
+		GoVersion:    "1.24",
 		OS:           "linux",
 		Arch:         "amd64",
 		ZipName:      "lockbox_1.2.3_linux_amd64.zip",
