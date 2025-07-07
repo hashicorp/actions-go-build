@@ -136,6 +136,12 @@ jobs:
 |  `debug`&nbsp;_(optional)_                 |  Enable debug-level logging.                                                                              |
 <!-- end:insert:dev/docs/inputs_doc -->
 
+### Outputs
+|  Name                                      |  Description                                                                                              |
+|  -----                                     |  -----                                                                                                    |
+|  `zip_name`                                |  The provided or calculated zip file name                                                                 |
+|  `target_dir`                              |  Name of the directory where an artifact can be assembled                                                 |
+
 ### Build Instructions
 
 The `instructions` input is a bash script that builds the product binary.
