@@ -140,6 +140,7 @@ jobs:
 |  Name                                      |  Description                                                                                              |
 |  -----                                     |  -----                                                                                                    |
 |  `zip_name`                                |  The provided or calculated zip file name                                                                 |
+|  `target_dir`                              |  Name of the directory where an artifact can be assembled                                                 |
 
 ### Build Instructions
 
