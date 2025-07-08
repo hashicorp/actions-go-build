@@ -104,8 +104,8 @@ github.com/sergi/go-diff v1.3.2-0.20230802210424-5b0b94c5c0d3 h1:n661drycOFuPLCN
 github.com/sergi/go-diff v1.3.2-0.20230802210424-5b0b94c5c0d3/go.mod h1:A0bzQcvG0E7Rwjx0REVgAGH58e96+X0MeOfepqsbeW4=
 github.com/sethvargo/go-envconfig v0.8.2 h1:DDUVuG21RMgeB/bn4leclUI/837y6cQCD4w8hb5797k=
 github.com/sethvargo/go-envconfig v0.8.2/go.mod h1:Iz1Gy1Sf3T64TQlJSvee81qDhf7YIlt8GMUX6yyNFs0=
-github.com/sethvargo/go-githubactions v0.5.3 h1:moF/bzlaUUFAz8lu4/xnDQ5NPYoov5RvsINNLsprnr8=
-github.com/sethvargo/go-githubactions v0.5.3/go.mod h1:ugCoIFQjs7HxIwwYiY7ty6H9T+7Z4ey481HxqA3VRKE=
+github.com/sethvargo/go-githubactions v1.3.1 h1:rlwwLRUaunWLQ1aN2o5Y+3s0xhaTC30YObCnilRx448=
+github.com/sethvargo/go-githubactions v1.3.1/go.mod h1:7/4WeHgYfSz9U5vwuToCK9KPnELVHAhGtRwLREOQV80=
 github.com/shopspring/decimal v1.2.0 h1:abSATXmQEYyShuxI4/vyW3tV1MrKAJzCZ/0zLUXYbsQ=
 github.com/shopspring/decimal v1.2.0/go.mod h1:DKyhrW/HYNuLGql+MJL6WCR6knT2jwCFRcu2hWCYk4o=
 github.com/sirupsen/logrus v1.7.0/go.mod h1:yWOB1SBYBC5VeMP7gHvWumXLIWorT60ONWic61uBYv0=
