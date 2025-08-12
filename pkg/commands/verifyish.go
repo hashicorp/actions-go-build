@@ -72,6 +72,7 @@ func (v *verifyish) setResultSources() error {
 	}
 
 	// Print unzip -l for primary build
+	fmt.Printf("Getting zipinfo for both builds...\n")
 	primaryResult, err := v.primary.Result()
 	if err == nil {
 		primaryZip := primaryResult.Config.Paths.ZipPath
