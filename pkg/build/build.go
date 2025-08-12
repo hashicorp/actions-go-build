@@ -156,6 +156,9 @@ func (b *core) assertExecutableWritten() error {
 	cmd := exec.Command("ls", "-lR")
 	dir_output, _ := cmd.Output()
 	fmt.Printf("Directory info (ls -lR): %s\n", string(dir_output))
+	cmd = exec.Command("pwd")
+	working_dir, _ := cmd.Output()
+	fmt.Printf("Current working directory (pwd): %s\n", string(working_dir))
 	binExists, err := b.executableWasWritten()
 	if err != nil {
 		return err
