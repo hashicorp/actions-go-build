@@ -156,9 +156,17 @@ func (b *core) assertExecutableWritten() error {
 	cmd := exec.Command("ls", "-lR")
 	dir_output, _ := cmd.Output()
 	fmt.Printf("Directory info (ls -lR): %s\n", string(dir_output))
+
 	cmd = exec.Command("pwd")
 	working_dir, _ := cmd.Output()
 	fmt.Printf("Current working directory (pwd): %s\n", string(working_dir))
+
+	file_exists_binpath, _ := fs.FileExists(b.config.Paths.BinPath)
+	file_exists_with_productdir, _ := fs.FileExists(b.config.Paths.BinPath + "/crt-core-helloworld")
+	fmt.Printf("Does the file exist at BIN_PATH %q? %t\n", b.config.Paths.BinPath, file_exists_binpath)
+
+	fmt.Printf("Does the file exist with productdir %q? %t\n", b.config.Paths.BinPath+"/crt-core-helloworld", file_exists_with_productdir)
+
 	binExists, err := b.executableWasWritten()
 	if err != nil {
 		return err
