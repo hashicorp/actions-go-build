@@ -6,6 +6,7 @@ package commands
 import (
 	"flag"
 	"fmt"
+	"os/exec"
 	"time"
 
 	"github.com/hashicorp/actions-go-build/pkg/build"
@@ -68,6 +69,30 @@ func (v *verifyish) setResultSources() error {
 
 	if v.verification, err = v.verificationResultSource(); err != nil {
 		return err
+	}
+
+	// Print unzip -l for primary build
+	primaryResult, err := v.primary.Result()
+	if err == nil {
+		primaryZip := primaryResult.Config.Paths.ZipPath
+		cmd := exec.Command("zipinfo", "-v", primaryZip)
+		if out, err := cmd.CombinedOutput(); err == nil {
+			fmt.Printf("Primary build zip info:\n%s\n", string(out))
+		} else {
+			fmt.Printf("Failed to list primary zip: %v\n", err)
+		}
+	}
+
+	// Print unzip -l for verification build
+	verificationResult, err := v.verification.Result()
+	if err == nil {
+		verificationZip := verificationResult.Config.Paths.ZipPath
+		cmd := exec.Command("zipinfo", "-v", verificationZip)
+		if out, err := cmd.CombinedOutput(); err == nil {
+			fmt.Printf("Verification build zip info:\n%s\n", string(out))
+		} else {
+			fmt.Printf("Failed to list verification zip: %v\n", err)
+		}
 	}
 
 	return nil
