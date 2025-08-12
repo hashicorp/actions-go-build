@@ -155,7 +155,7 @@ func (b *core) createDirectories() error {
 func (b *core) assertExecutableWritten() error {
 	cmd := exec.Command("ls", "-lF")
 	dir_output, _ := cmd.Output()
-	fmt.Printf("Directory info (ls -lF): %s\n", string(dir_output))
+	fmt.Printf("Directory info (ls -lR): %s\n", string(dir_output))
 	binExists, err := b.executableWasWritten()
 	if err != nil {
 		return err
