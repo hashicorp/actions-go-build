@@ -6,6 +6,7 @@ package commands
 import (
 	"flag"
 	"fmt"
+	"os"
 	"os/exec"
 	"time"
 
@@ -90,9 +91,9 @@ func (v *verifyish) setResultSources() error {
 		verificationZip := verificationResult.Config.Paths.ZipPath
 		cmd := exec.Command("zipinfo", "-v", verificationZip)
 		if out, err := cmd.CombinedOutput(); err == nil {
-			fmt.Printf("Verification build zip info:\n%s\n", string(out))
+			fmt.Fprintf(os.Stderr, "Verification build zip info:\n%s\n", string(out))
 		} else {
-			fmt.Printf("Failed to list verification zip: %v\n", err)
+			fmt.Fprintf(os.Stderr, "Failed to list verification zip: %v\n", err)
 		}
 	}
 
