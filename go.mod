@@ -11,7 +11,7 @@ require (
 	github.com/sethvargo/go-envconfig v1.3.0
 	github.com/sethvargo/go-githubactions v1.3.1
 	golang.org/x/mod v0.27.0
-	golang.org/x/term v0.32.0
+	golang.org/x/term v0.34.0
 )
 
 require (
@@ -53,6 +53,6 @@ require (
 	golang.org/x/crypto v0.37.0 // indirect
 	golang.org/x/net v0.39.0 // indirect
 	golang.org/x/sync v0.10.0 // indirect
-	golang.org/x/sys v0.33.0 // indirect
+	golang.org/x/sys v0.35.0 // indirect
 	gopkg.in/warnings.v0 v0.1.2 // indirect
 )
