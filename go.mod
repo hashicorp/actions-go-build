@@ -10,7 +10,7 @@ require (
 	github.com/otiai10/copy v1.14.1
 	github.com/sethvargo/go-envconfig v1.3.0
 	github.com/sethvargo/go-githubactions v1.3.1
-	golang.org/x/mod v0.28.0
+	golang.org/x/mod v0.29.0
 	golang.org/x/term v0.36.0
 )
 
