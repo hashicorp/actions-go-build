@@ -30,7 +30,7 @@ jobs:
           - { assert: failure, file: this-file-does-not-exist,            when: result file is missing }
           - { assert: failure, file: corrupt,                             when: result file is corrupt }
     steps:
-      - uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5.0.0
+      - uses: actions/checkout@1af3b93b6815bc44a9784bd300feb67ff0d1eeb3 # v6.0.0
       # generate a random ID; GH doesn't provide a proper job ID (especially for matrix jobs)
       - name: Generate random ID to distinguish build artifacts
         run: echo "ARTIFACT_ID=$RANDOM" >> "$GITHUB_ENV"
