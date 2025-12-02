@@ -5,7 +5,7 @@ go 1.24.0
 require (
 	github.com/google/go-cmp v0.7.0
 	github.com/hashicorp/composite-action-framework-go v0.1.0
-	github.com/hashicorp/go-version v1.7.0
+	github.com/hashicorp/go-version v1.8.0
 	github.com/mitchellh/cli v1.1.5
 	github.com/otiai10/copy v1.14.1
 	github.com/sethvargo/go-envconfig v1.3.0
