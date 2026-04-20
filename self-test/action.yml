@@ -32,7 +32,7 @@ inputs:
     required: false
   go_version:
     description: Passed through to action.
-    default: 1.17
+    default: 1.24
     required: false
   os:
     description: Passed through to action.
