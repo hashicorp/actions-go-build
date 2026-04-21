@@ -200,7 +200,7 @@ that give the build some chance at being reproducible.
 
 ---
 
-Simplest Go 1.17 invocation. (Uses `-trimpath` to aid with reproducibility.)
+Simplest Go 1.24 invocation. (Uses `-trimpath` to aid with reproducibility.)
 
 ```yaml
 instructions: go build -o "$BIN_PATH" -trimpath
