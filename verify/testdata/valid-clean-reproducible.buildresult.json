@@ -16,7 +16,7 @@
       "SourceHash": "f4f4decfe74c8f4b241c3360069b36c75dd9da94"
     },
     "Parameters": {
-      "GoVersion": "1.18.2",
+      "GoVersion": "1.24",
       "Instructions": "go build -o \"$BIN_PATH\" -trimpath -buildvcs=false -ldflags \"-X 'github.com/hashicorp/actions-go-build/product.Repository=hashicorp/actions-go-build' -X 'github.com/hashicorp/actions-go-build/product.Module=github.com/hashicorp/actions-go-build' -X 'github.com/hashicorp/actions-go-build/product.Name=actions-go-build' -X 'github.com/hashicorp/actions-go-build/product.CoreName=actions-go-build' -X 'github.com/hashicorp/actions-go-build/product.ExecutableName=actions-go-build' -X 'github.com/hashicorp/actions-go-build/product.VersionFull=0.1.4' -X 'github.com/hashicorp/actions-go-build/product.VersionCore=0.1.4' -X 'github.com/hashicorp/actions-go-build/product.VersionMeta=' -X 'github.com/hashicorp/actions-go-build/product.Revision=f4f4decfe74c8f4b241c3360069b36c75dd9da94' -X 'github.com/hashicorp/actions-go-build/product.RevisionTime=2022-08-24T09:45:34Z' -X 'github.com/hashicorp/actions-go-build/product.SourceHash=f4f4decfe74c8f4b241c3360069b36c75dd9da94'\"",
       "OS": "darwin",
       "Arch": "arm64",
