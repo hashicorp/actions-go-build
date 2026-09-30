@@ -4,7 +4,74 @@ Instead, edit the files in dev/changes/, then run 'make docs' to update this fil
 -->
 # Changelog - Go Build Action
 
-## Unreleased Changes (targeting v0.1.9)
+## Unreleased Changes (targeting v1.1.3)
+
+## Changes in v1.1.3
+
+### Security
+
+- Upgraded transitive dependencies to remediate SECVULN-50203 through SECVULN-50209
+  ([#114](https://github.com/hashicorp/actions-go-build/pull/114)):
+  - `golang.org/x/crypto` v0.37.0 -> v0.52.0
+  - `golang.org/x/net` v0.39.0 -> v0.54.0
+  - `golang.org/x/sys` v0.37.0 -> v0.45.0
+  - `golang.org/x/term` v0.36.0 -> v0.43.0
+
+### Changed
+
+- The Go toolchain used to compile this action's own CLI moved from 1.24 to 1.25
+  (`go.mod`, `action.yml`, `.github/workflows/build.yml`).
+
+## Migration
+
+No action required. Consumers using `@v1` or `@v1.1` will automatically receive this update.
+
+The `go_version` input is unaffected by this release; you still choose the Go version used
+to build your own product.
+
+## [v1.1.2](https://github.com/hashicorp/actions-go-build/releases/tag/v1.1.2) - May 06, 2026
+
+## Changes in v1.1.2
+
+- Updated to Node.js 24 to address GitHub deprecation warnings
+- Improved compatibility with latest GitHub Actions runner environment
+- No breaking changes for consumers
+
+## Migration
+
+No action required. Consumers using `@v1` or `@v1.1` will automatically receive this update.
+
+## [v1.1.1](https://github.com/hashicorp/actions-go-build/releases/tag/v1.1.1) - August 06, 2025
+
+3cd664e Prepare release v1.1.1
+73e1163 Make clean flag optional (#86)
+3463cbf Bump golang.org/x/mod from 0.25.0 to 0.26.0 (#85)
+2ac062d Bump github.com/sethvargo/go-envconfig from 0.8.2 to 1.3.0 (#83)
+659b091 Bump golang.org/x/term from 0.31.0 to 0.32.0 (#81)
+95f2d17 Bump github.com/sethvargo/go-githubactions from 0.5.3 to 1.3.1 (#82)
+333a759 Bump github.com/hashicorp/go-version from 1.6.0 to 1.7.0 (#80)
+
+## [v1.1.0](https://github.com/hashicorp/actions-go-build/releases/tag/v1.1.0) - July 07, 2025
+
+02dcbac set version 1.1.0 (#78)
+7b79e8c SMRE-595: Add zip name output (#77)
+e90ad9a Bump composite-action-framework-go to v0.1.0 (#76)
+ba707d5 Bump github.com/go-git/go-git/v5 from 5.5.0 to 5.13.0 (#74)
+665521b Bump golang.org/x/net from 0.21.0 to 0.38.0 (#73)
+e6b15ff Bump github.com/otiai10/copy from 1.7.0 to 1.14.1 (#72)
+1d592a2 Bump github.com/google/go-cmp from 0.5.9 to 0.7.0 (#71)
+47622ee Bump github.com/cloudflare/circl from 1.3.7 to 1.6.1 (#75)
+423a886 Bump github.com/mitchellh/cli from 1.1.4 to 1.1.5 (#70)
+c29e6e3 Bump golang.org/x/mod from 0.7.0 to 0.25.0 (#69)
+2438501 Bump the github-actions-backward-compatible group with 3 updates (#68)
+2da594b Bump golang.org/x/crypto from 0.17.0 to 0.31.0 (#61)
+32d7da4 Set valid directory in dependabot.yml (#67)
+0f65553 Migrate GitHub Actions updates from TSCCR to Dependabot (#65)
+ea83be5 Nuke super-linter (#66)
+e953e23 Dependabot and TSCCR disjoint deps management (#56)
+95c2ffd [COMPLIANCE] Add Copyright and License Headers (#46)
+
+## [v0.1.9](https://github.com/hashicorp/actions-go-build/releases/tag/v0.1.9) - January 30, 2023
 
 
 
