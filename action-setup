@@ -43,6 +43,13 @@ if [[ "$ACTION_REF" == "." ]]; then
 	ACTION_ROOT="${ACTION_ROOT%/./}"
 fi
 
+# Normalize to a canonical absolute path (resolves any remaining '.' or '..'
+# components). GNU rm refuses to remove paths whose last component is '.',
+# which breaks the clone step below on Linux runners.
+if [[ -d "$ACTION_ROOT" ]]; then
+	ACTION_ROOT="$(cd "$ACTION_ROOT" && pwd -P)"
+fi
+
 # Clone the repo if needed.
 if [[ ! -d "$ACTION_ROOT/.git" ]]; then
 	# Go to the directory containing the directory containing the action.
