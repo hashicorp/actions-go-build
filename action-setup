@@ -32,6 +32,7 @@ ACTION_REPO="https://github.com/hashicorp/actions-go-build"
 ACTION_PATH="${GITHUB_ACTION_PATH:?}"
 ACTION_ROOT="${ACTION_PATH%"/$SUB_ACTION"}"
 ACTION_REF="$(basename "$ACTION_ROOT")"
+echo "DEBUG: GITHUB_ACTION_PATH='$GITHUB_ACTION_PATH' SUB_ACTION='$SUB_ACTION' ACTION_ROOT='$ACTION_ROOT' ACTION_REF='$ACTION_REF' PWD='$PWD'"; ls -la "$ACTION_ROOT" | head -5
 
 # If the ref is just "." then that means we're referencing the action
 # from the self-tests rather than from a remote repo. Therefore the
